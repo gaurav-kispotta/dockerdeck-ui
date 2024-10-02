@@ -58,7 +58,7 @@ function DesignDeck({ nodes: propNodes, edges: propEdges }: DesignDeckProperties
             className='overview'
             
         >
-            <Background />
+            <Background className='bg-slate-600' color='gray'/>
             <Controls position={'bottom-right'} orientation={'horizontal'}/>
         </ReactFlow>
     )
