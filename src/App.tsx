@@ -3,7 +3,7 @@ import './App.css'
 import DesignDeck from './components/DesignDeck'
 import * as samples from './utils/samples'
 import { Navbar } from './components/Navbar'
-import SideBar from './components/SideBar'
+import SideBar from './components/sidebar/SideBar'
 import { useContextMenu } from 'react-contexify'
 import GlobalContextMenu from './components/context-menu/GlobalContextMenu'
 
@@ -58,9 +58,9 @@ function App() {
         <div className='flex-none w-full'>
           <Navbar></Navbar>
         </div>
-        <div className='grow h-full bg-orange-300'>
+        <div className='grow h-full bg-'>
           <div className='flex flex-row h-full'>
-            <div className='w-1/4 overflow-scroll'>
+            <div className='w-1/4 overflow-scroll bg-slate-500'>
               <SideBar></SideBar>
             </div>
             <div className='grow bg-slate-50' onContextMenu={displayMenu}>
