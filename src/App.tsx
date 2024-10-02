@@ -1,14 +1,28 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import DesignDeck from './components/DesignDeck'
 import * as samples from './utils/samples'
 import { Navbar } from './components/Navbar'
 import SideBar from './components/SideBar'
+import { useContextMenu } from 'react-contexify'
+import GlobalContextMenu from './components/context-menu/GlobalContextMenu'
+
+const MENU_ID = "menu-id";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
+
+  const { show } = useContextMenu({
+    id: MENU_ID
+  });
+
+  function displayMenu(e: any){
+    // put whatever custom logic you need
+    // you can even decide to not display the Menu
+    show({
+      event: e,
+    });
+  }
 
   return (
     <>
@@ -47,9 +61,9 @@ function App() {
         <div className='grow h-full bg-orange-300'>
           <div className='flex flex-row h-full'>
             <div className='w-1/4 overflow-scroll'>
-              <div>tool 1</div>
+              <SideBar></SideBar>
             </div>
-            <div className='grow bg-slate-50'>
+            <div className='grow bg-slate-50' onContextMenu={displayMenu}>
               <DesignDeck nodes={samples.nodes} edges={samples.edges}></DesignDeck>
             </div>
           </div>
@@ -57,6 +71,7 @@ function App() {
         <div>
           status
         </div>
+        <GlobalContextMenu></GlobalContextMenu>
       </div>
     </>
   )
