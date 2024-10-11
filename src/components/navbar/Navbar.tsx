@@ -1,11 +1,39 @@
+import { useState } from "react"
+import { useUploadFileContext } from "../../context/UploadedFileContext"
+
+const reader = new FileReader()
+
+type FileContent = string | ArrayBuffer | null | undefined
+
 export function Navbar() {
+    const [file, setFile] = useState<FileContent>()
+    const { fileContent, setFileContent } = useUploadFileContext()
+
+    function handleChange(event: any) {
+        
+        console.log(file)
+
+        reader.onload = (event) => {
+            console.log(event.target?.result)
+            setFile(event.target?.result)
+            setFileContent(event.target?.result || 'empty')
+        }
+
+        reader.readAsText(event.target.files[0])
+    }
+
     return (
         <div className="navbar bg-base-100">
             <div className="flex-1">
                 <a className="btn btn-ghost text-xl">docker deck</a>
             </div>
             <div className="flex-grow">
-                <input type="file" className="file-input file-input-bordered file-input-sm w-full max-w-xs" />
+                <div>file content{ fileContent.toString() }</div>
+                <input id="dockerdeck-yaml-file-upload" 
+                    type="file" 
+                    className="file-input file-input-bordered file-input-sm w-full max-w-xs"
+                    onChange={handleChange}
+                    accept=".yaml"/>
             </div>
             <div className="flex-none">
                 <div className="dropdown dropdown-end">

@@ -7,15 +7,12 @@ import {
     type Node,
     type Edge,
 } from '@xyflow/react'
-import RedisNode from './nodes/RedisNode'
 import { useCallback, useState, useEffect } from 'react'
-import { getLayoutedElements } from '../utils/layoutHelper'
+import { getLayoutedElements } from '../../utils/layoutHelper'
 
 import '@xyflow/react/dist/style.css'
-import { IDesignElement } from '../interface/IDesignElements'
-import NodejsNode from './nodes/NodejsNode'
-
-const nodeTypes = { redis: RedisNode, nodejs: NodejsNode }
+import { IDesignElement } from '../../interface/IDesignElements'
+import nodeTypes from './NodeTypes'
 
 interface DesignDeckProperties extends IDesignElement {
 
@@ -60,6 +57,7 @@ function DesignDeck({ nodes: propNodes, edges: propEdges }: DesignDeckProperties
         >
             <Background className='bg-slate-600' color='gray'/>
             <Controls position={'bottom-right'} orientation={'horizontal'}/>
+            
         </ReactFlow>
     )
 }

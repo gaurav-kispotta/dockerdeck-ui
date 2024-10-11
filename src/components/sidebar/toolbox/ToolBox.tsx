@@ -10,11 +10,10 @@ export default function ToolBox({ items }: ToolBoxProp) {
             <div className="grid sm:grid-cols-3 md:grid-cols-4 gap-5 m-5 ">
                 {
                     items.map(t => (
-                        <ToolBoxItem></ToolBoxItem>
+                        <ToolBoxItem key={t}></ToolBoxItem>
                     ))
                 }
             </div>
         </>
-
     )
 }
