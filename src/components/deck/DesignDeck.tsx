@@ -8,17 +8,18 @@ import {
     type Edge,
 } from '@xyflow/react'
 import { useCallback, useState, useEffect } from 'react'
-import { getLayoutedElements } from '../../utils/layoutHelper'
 
 import '@xyflow/react/dist/style.css'
 import { IDesignElement } from '../../interface/IDesignElements'
 import nodeTypes from './NodeTypes'
+import { useUploadFileContext } from '../../context/UploadedFileContext'
+import MapMaker from '../../modules/MapMaker'
 
 interface DesignDeckProperties extends IDesignElement {
-
+    clear?: boolean
 }
 
-function DesignDeck({ nodes: propNodes, edges: propEdges }: DesignDeckProperties) {
+function DesignDeck({ nodes: propNodes, edges: propEdges, clear }: DesignDeckProperties) {
     const [nodes, setNodes] = useState<Node[]>(propNodes)
     const [edges, setEdges] = useState<Edge[]>(propEdges)
 
@@ -35,12 +36,24 @@ function DesignDeck({ nodes: propNodes, edges: propEdges }: DesignDeckProperties
         [setEdges],
     );
 
-    useEffect(() => {
-        const layoutServiceNodes = getLayoutedElements(nodes, edges, 'LR')
+    const { yamlObject } = useUploadFileContext()
 
-        setNodes(layoutServiceNodes.nodes)
-        setEdges(layoutServiceNodes.edges)
-    }, [])
+    useEffect(() => {
+        if (clear) {
+            setNodes([])
+            setEdges([])
+        }
+    }, [clear])
+
+    useEffect(() => {
+        console.log(yamlObject)
+        const maker = new MapMaker();
+        if (yamlObject) {
+            maker.buildMap(yamlObject)
+            setNodes(maker.nodes)
+            setEdges(maker.edges)
+        }
+    }, [yamlObject])
 
     return (
         <ReactFlow
