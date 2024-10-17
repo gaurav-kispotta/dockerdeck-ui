@@ -1,25 +1,15 @@
-import { useState } from "react"
 import { useUploadFileContext } from "../../context/UploadedFileContext"
-
-const reader = new FileReader()
-
-type FileContent = string | ArrayBuffer | null | undefined
+import { FileReaderModule } from "../../modules/FileReaderModule"
 
 export function Navbar() {
-    const [file, setFile] = useState<FileContent>()
-    const { fileContent, setFileContent } = useUploadFileContext()
+    const { setContent } = useUploadFileContext()
 
-    function handleChange(event: any) {
-        
-        console.log(file)
+    const fileReader = new FileReaderModule()
 
-        reader.onload = (event) => {
-            console.log(event.target?.result)
-            setFile(event.target?.result)
-            setFileContent(event.target?.result || 'empty')
-        }
-
-        reader.readAsText(event.target.files[0])
+    async function handleChange(inputEvent: any) {
+        const fileContent = await fileReader.onChangeOfFileInput(inputEvent);
+        //console.log(fileContent)
+        setContent && setContent(fileContent)
     }
 
     return (
@@ -28,12 +18,11 @@ export function Navbar() {
                 <a className="btn btn-ghost text-xl">docker deck</a>
             </div>
             <div className="flex-grow">
-                <div>file content{ fileContent.toString() }</div>
-                <input id="dockerdeck-yaml-file-upload" 
-                    type="file" 
+                <input id="dockerdeck-yaml-file-upload"
+                    type="file"
                     className="file-input file-input-bordered file-input-sm w-full max-w-xs"
                     onChange={handleChange}
-                    accept=".yaml"/>
+                    accept=".yaml,.yml" />
             </div>
             <div className="flex-none">
                 <div className="dropdown dropdown-end">

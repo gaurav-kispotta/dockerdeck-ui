@@ -1,16 +1,22 @@
 import { createContext, useContext } from "react";
 
-export type FileContentType = string | ArrayBuffer
+export type FileContentType = string | ArrayBuffer;
+export type YamlDockerCompose = {
+    networks?: { [key: string]: {} },
+    services?: { [key: string]: {} },
+    volumes?: { [key: string]: {} },
+    version?: string
+}
 
 export type UploadedFileContextType = {
-    fileContent: FileContentType,
-    yamlObject?: object,
-    setFileContent: (fileContent: FileContentType) => void
+    fileContent?: FileContentType,
+    yamlObject?: YamlDockerCompose | null,
+    setContent?: (fileContent: FileContentType) => void,
 }
 export const UploadedFileContext = createContext<UploadedFileContextType>({
     fileContent: '',
+    setContent: () => {},
     yamlObject: {},
-    setFileContent: () => {}
 });
 
 export const useUploadFileContext = () => useContext(UploadedFileContext);
