@@ -50,8 +50,10 @@ function DesignDeck({ nodes: propNodes, edges: propEdges, clear }: DesignDeckPro
         const maker = new MapMaker();
         if (yamlObject) {
             maker.buildMap(yamlObject)
-            setNodes(maker.nodes)
-            setEdges(maker.edges)
+                .then(() => {
+                    setNodes(maker.nodes)
+                    setEdges(maker.edges)
+                })
         }
     }, [yamlObject])
 
@@ -68,7 +70,7 @@ function DesignDeck({ nodes: propNodes, edges: propEdges, clear }: DesignDeckPro
             className='overview'
             
         >
-            <Background className='bg-slate-600' color='gray'/>
+            <Background className='bg-white' color='blue'/>
             <Controls position={'bottom-right'} orientation={'horizontal'}/>
             
         </ReactFlow>

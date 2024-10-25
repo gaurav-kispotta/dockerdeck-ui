@@ -1,154 +1,219 @@
-import { Edge, Node } from "@xyflow/react";
+import { Edge, MarkerType, Node } from "@xyflow/react";
 import { YamlDockerCompose } from "../context/UploadedFileContext";
-import { JSONPath } from "jsonpath-plus";
-import { getLayoutedElements } from '../utils/layoutHelper'
+import { getLayedOutElements } from "../utils/elkjsLayoutHelper";
+import * as uuid from 'uuid'
+import { JsonPathParser } from "./JsonPathParser";
+
+export type GroupNode = Node & { children: Node[] }
+export type AnyArrayOrUndefined = any[] | undefined
+export type GroupMap = { [key:string]: Node[] }
+
+/**
+ * Convert a list of nodes to a list of group nodes
+ * @param nodes 
+ * @returns GroupNode[]
+ */
+export const fromNodeToGroupNode = (nodes: Node[]): GroupNode[] => {
+    return nodes.map(n => {
+        return {
+            ...n,
+            children: []
+        }
+    })
+}
+
+/**
+ * Convert a list of group nodes to a list of nodes
+ * @param groupNodes 
+ * @returns Node[]
+ */
+export const fromGroupNodeToNode = (groupNodes: GroupNode[]): Node[] => {
+    return groupNodes.map(gn => {
+        return {
+            ...gn
+        }
+    })
+}
 
 export default class MapMaker {
     public nodes: Node[] = []
     public edges: Edge[] = []
 
-    public buildMap(yamlObject: YamlDockerCompose) {
+    private buildGroupNode(id: string,
+        label: string,
+        backgroundColor = 'rgba(255, 0, 0, 0.2)',
+        width = 1000,
+        height = 700,
+        children: Node[] = []
+    ): GroupNode {
+        return {
+            id,
+            data: { label },
+            position: { x: 0, y: 0 },
+            style: { backgroundColor },
+            type: 'group',
+            height,
+            width,
+            children,
+        }
+    }
+
+    private buildTypeNode(id: string,
+        type: string | undefined,
+        parentId: string | undefined = undefined,
+        width = 200,
+        height = 250,
+        backgroundColor = 'rgba(255, 0, 0, 0.2)',
+    ): Node {
+        const ret: Node = {
+            id,
+            position: { x: 0, y: 0 },
+            style: { backgroundColor },
+            data: { label: type + ': ' + id },
+            type,
+            resizing: true,
+            parentId,
+            extent: 'parent',
+            width,
+            height
+        }
+
+        if (parentId) {
+            ret['parentId'] = parentId
+            ret['extent'] = 'parent'
+        }
+        return ret
+    }
+
+    private buildEdge(sourceId: string, targetId: string, label = undefined, markerColor = '#FF0072'): Edge {
+        return {
+            id: `edge-sn-${sourceId}-${targetId}-${uuid.v7()}`,
+            source: sourceId,
+            target: targetId,
+            animated: true,
+            markerStart: {
+                type: MarkerType.ArrowClosed,
+                width: 10,
+                height: 10,
+                color: markerColor,
+            },
+            markerEnd: {
+                type: MarkerType.ArrowClosed,
+                width: 10,
+                height: 10,
+                color: markerColor,
+            },
+            zIndex: 5,
+            type: 'smoothstep',
+            label: label ? label : `from-${sourceId}-${targetId}`
+        }
+    }
+
+    public async buildMap(yamlObject: YamlDockerCompose) {
+        this.nodes = []
         delete yamlObject['version']
 
-        const hashMap: { 
-            networks: string[],
-            services: string[],
-            volumes: string[]
-        } = {
-            networks: [],
-            services: [],
-            volumes: []
-        }
+        const jsonPathParser = new JsonPathParser(yamlObject);
 
-        let layoutNodes: any = []
+        const groups = jsonPathParser.findKeys('$');
 
-        layoutNodes.push({
-            id: 'network-group',
-            data: { label: 'Network'},
-            position: { x: 100, y: 100 },
-            style: { backgroundColor: 'rgba(255, 0, 0, 0.2)', width: 1000, height: 1000 },
-            type: 'group'
+        const allTypeNodes: Node[] = []
+        const allGroupNodes: Node[] = []
+
+        // Strategy:
+        // 1. Build all "Type Nodes"
+        // 2. Build all "Group Nodes"
+        // 3. Build all "Edges"
+        // 4. Plot all of these using the ElkJS layout engine
+
+        // BUILDING
+
+         // Building all "Group Nodes"
+        groups.map((g: string) => {
+            const childrenNodes: Node[] = []
+            if (false) {
+                const nodes = jsonPathParser.findKeys(`$.${g}`)
+
+                nodes.map((n: string) => {
+                    const image = jsonPathParser.findJson(`$.${g}.${n}.image`)
+                    childrenNodes.push(this.buildTypeNode(n, image, g))
+                })
+            }
+            const gn = this.buildGroupNode(g, `${g}-group`)
+            allGroupNodes.push(...fromGroupNodeToNode([gn]))
         })
 
-        layoutNodes.push({
-            id: 'volume-group',
-            data: { label: 'Volume'},
-            position: { x: 300, y: 100 },
-            style: { backgroundColor: 'rgba(0, 255, 0, 0.2)', width: 500, height: 300},
-            type: 'group'
+        // Building all "Type Nodes"
+        groups.map((g: string) => {
+            const nodes = jsonPathParser.findKeys(`$.${g}`)
+
+            return nodes.map((n: string) => {
+                const image = jsonPathParser.findJson(`$.${g}.${n}.image`)
+                allTypeNodes.push(this.buildTypeNode(n, image, g))
+            })
         })
 
-        layoutNodes.push({
-            id: 'service-group',
-            data: { label: 'Service'},
-            position: { x: 300, y: 100 },
-            style: { backgroundColor: 'rgba(0, 0, 255, 0.2)', width: 300, height: 500},
-            type: 'group'
+        // PLOTTING
+
+        // Plotting all "Type Nodes"
+        const plottedElements1: any = []
+        const allPlottableGroupNodes = fromNodeToGroupNode(allTypeNodes)
+        const promiseNodeType = groups.map(async (g: string) => {
+            const filteredByParent = allPlottableGroupNodes.filter((gn: GroupNode) => gn.parentId === g)
+            const customLayoutOptions = { 
+                'elk.spacing.nodeNode': '90',
+                'elk.algorithm': 'org.eclipse.elk.layered',
+            }
+            const plottedElements = await getLayedOutElements(filteredByParent, this.edges, customLayoutOptions)
+            return plottedElements
         })
 
-        const layoutA = getLayoutedElements(layoutNodes, this.edges, 'TB')
+        const allNodeTypes = await Promise.all(promiseNodeType)
 
-        if (true){
+        plottedElements1.push(...allNodeTypes.reduce((accumulator, val) => {
+            return accumulator.concat(val?.nodes as never[])
+        }, []))
 
-            this.edges = layoutA.edges
-            this.nodes = layoutA.nodes
+        // Plotting all "Group Nodes"
+        const allTypeGroupNodes = fromNodeToGroupNode(allGroupNodes)
+        const customLayoutOptions = {
+            'elk.algorithm': 'org.eclipse.elk.box',
+            'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+            'elk.spacing.nodeNode': '100',
+            'elk.box.packingMode': 'GROUP_DEC',
+            'elk.childAreaWidth': '100',
+            'elk.childAreaHeight': '20',
+            'elk.layered.unnecessaryBendpoints': 'false',
+            'elk.aspectRatio': '4'
         }
+        const plottedElements2 = await getLayedOutElements(allTypeGroupNodes, this.edges)
 
+        function updateNodePositions(
+            nodes: Node[],
+            plottedElements: any
+        ): Node[] {
+            const retNode: Node[] = []
+            for (let i = 0; i < nodes.length; i++) {
+                const filteredNode = plottedElements?.nodes?.filter((n: Node) => n.id === nodes[i].id);
+                if (filteredNode && filteredNode[0] && filteredNode[0].position) {
+                    nodes[i].position = { 
+                        x: filteredNode[0].position?.x ?? 0,
+                        y: filteredNode[0].position?.y ?? 0
+                    };
 
-        layoutNodes = []
+                    retNode.push(nodes[i])
+                }
+            }
 
-        const pathNetwork = JSONPath({ path: '$.networks', json: yamlObject })
-
-        const networkNodesKeys =  Object.keys(pathNetwork[0])
-        if (networkNodesKeys.length > 0) {
-            hashMap.networks.push(...networkNodesKeys)
-
-            hashMap.networks.forEach((network) => {
-                layoutNodes.push({
-                    id: network,
-                    position: { x: 0, y: 0},
-                    data: { label: 'network: ' + network },
-                    //type: 'nodejs',
-                    resizing: true,
-                    parentId: 'network-group',
-                    extent:'parent'
-                })
-            });
-        }
-
-        
-
-        const volumeNodes = yamlObject.volumes
-        if (volumeNodes) {
-            const volumeNames = Object.keys(volumeNodes)
-            hashMap.volumes.push(...volumeNames)
-
-            hashMap.volumes.forEach((volume) => {
-                layoutNodes.push({
-                    id: volume,
-                    position: { x: 0, y: 0},
-                    data: { label: 'volume:' + volume },
-                    //type: 'nodejs',
-                    resizing: true,
-                    parentId: 'volume-group',
-                    extent:'parent'
-                })
-            });
-        }
-
-        const pathService = JSONPath({ path: '$.services', json: yamlObject })
-        const serviceNodes = Object.keys(pathService[0])
-        if (serviceNodes.length > 0) {
-            hashMap.services.push(...serviceNodes)
-
-            hashMap.services.forEach((service) => {
-                layoutNodes.push({
-                    id: service,
-                    position: { x: 0, y: 0},
-                    data: { label: 'services: '+service },
-                    //type: 'nodejs',
-                    resizing: true
-                })
-
-                const serviceNetworks = JSONPath({ path: `$.services.${ service }.networks`, json: yamlObject })
-
-                serviceNetworks.forEach((serviceNwk: string[]) => {
-                    serviceNwk.forEach(element => {
-                        this.edges.push({
-                            id: `edge-sn-${ service }-${ element }`,
-                            source: service,
-                            target: element,
-                            animated: true
-                        })
-                    });
-                })
-
-                const serviceVolumes = JSONPath({ path: `$.services.${ service }.volumes`, json: yamlObject })
-
-                serviceVolumes.forEach((volumes: string[]) => {
-                    volumes.forEach(element => {
-                        this.edges.push({
-                            id: `edge-sv-${ service }-${ element }`,
-                            source: service,
-                            target: element.split(':')[0],
-                            animated: true
-                        })
-                    })
-                })
-
-                console.log(serviceVolumes)
-            });
-        }
-
-        const layouted = getLayoutedElements(layoutNodes, this.edges, 'TB')
-
-        if (true) {
-
-            this.nodes.push(...layouted.nodes)
-            this.edges.push(...layouted.edges)
+            return retNode
         }
         
-        console.log(layouted)
+        // Combine all group nodes and type nodes to Node[]
+        this.nodes.push(...updateNodePositions(allGroupNodes, plottedElements2))
+        this.nodes.push(...updateNodePositions(allTypeNodes, { nodes: plottedElements1 }))
         
+        const testNode = this.buildTypeNode('root', undefined, 'volumes', 100, 100, 'rgba(0, 255, 0, 0.2)');
+        testNode.position = { x: 600, y: 600 }
+        this.nodes.push(testNode)
     }
 }
