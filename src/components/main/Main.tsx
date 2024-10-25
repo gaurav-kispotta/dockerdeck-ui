@@ -28,7 +28,9 @@ export default function Main() {
         const maker = new MapMaker();
         if (yamlObject) {
             maker.buildMap(yamlObject)
-            setMap({ nodes: maker.nodes, edges: maker.edges })
+                .then(() => {
+                    setMap({ nodes: maker.nodes, edges: maker.edges })
+                })
         }
     }, [yamlObject])
 
@@ -37,7 +39,7 @@ export default function Main() {
             <div className='w-1/4 overflow-scroll bg-slate-500'>
                 <SideBar></SideBar>
             </div>
-            <div className='grow bg-slate-50' onContextMenu={displayMenu}>
+            <div id="docker-deck-ui" className='grow bg-slate-50' onContextMenu={displayMenu}>
                 { map && <DesignDeck nodes={map.nodes} edges={map.edges} clear={map!== null}></DesignDeck> }
                 { !map && <>Please load a docker-compose.yaml.</>}
             </div>
