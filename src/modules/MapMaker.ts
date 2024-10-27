@@ -3,6 +3,8 @@ import { YamlDockerCompose } from "../context/UploadedFileContext";
 import { getLayedOutElements } from "../utils/elkjsLayoutHelper";
 import * as uuid from 'uuid'
 import { JsonPathParser } from "./JsonPathParser";
+import { LayoutOptions } from "elkjs/lib/elk.bundled";
+import uniqolor from 'uniqolor';
 
 export type GroupNode = Node & { children: Node[] }
 export type AnyArrayOrUndefined = any[] | undefined
@@ -35,6 +37,12 @@ export const fromGroupNodeToNode = (groupNodes: GroupNode[]): Node[] => {
     })
 }
 
+export const customUniqueColour = (name: string): string => {
+    let rgbColor = uniqolor(name, { format: 'rgb' }).color
+    rgbColor = rgbColor.replace('rgb(', '').replace(')', '')
+    return `rgba(${rgbColor}, 0.4)`
+}
+
 export default class MapMaker {
     public nodes: Node[] = []
     public edges: Edge[] = []
@@ -50,7 +58,7 @@ export default class MapMaker {
             id,
             data: { label },
             position: { x: 0, y: 0 },
-            style: { backgroundColor },
+            style: { backgroundColor, border: '2px solid black' },
             type: 'group',
             height,
             width,
@@ -68,7 +76,7 @@ export default class MapMaker {
         const ret: Node = {
             id,
             position: { x: 0, y: 0 },
-            style: { backgroundColor },
+            style: { backgroundColor, border: '2px solid black' },
             data: { label: type + ': ' + id },
             type,
             resizing: true,
@@ -104,7 +112,7 @@ export default class MapMaker {
                 color: markerColor,
             },
             zIndex: 5,
-            type: 'smoothstep',
+            //type: 'smoothstep',
             label: label ? label : `from-${sourceId}-${targetId}`
         }
     }
@@ -161,8 +169,8 @@ export default class MapMaker {
         const promiseNodeType = groups.map(async (g: string) => {
             const filteredByParent = allPlottableGroupNodes.filter((gn: GroupNode) => gn.parentId === g)
             const customLayoutOptions = { 
-                'elk.spacing.nodeNode': '90',
-                'elk.algorithm': 'org.eclipse.elk.layered',
+                'elk.spacing.nodeNode': '50',
+                'elk.algorithm': 'org.eclipse.elk.box',
             }
             const plottedElements = await getLayedOutElements(filteredByParent, this.edges, customLayoutOptions)
             return plottedElements
@@ -215,5 +223,58 @@ export default class MapMaker {
         const testNode = this.buildTypeNode('root', undefined, 'volumes', 100, 100, 'rgba(0, 255, 0, 0.2)');
         testNode.position = { x: 600, y: 600 }
         this.nodes.push(testNode)
+    }
+
+    public async buildMap2(yamlObject: YamlDockerCompose) {
+        delete yamlObject['version']
+        const jsonPathParser = new JsonPathParser(yamlObject);
+
+        const groups = jsonPathParser.findKeys('$');
+
+        const gNodes = groups.map((g: string) => {
+            const childrenNodes: Node[] = []
+            const nodes = jsonPathParser.findKeys(`$.${g}`)
+
+            const networks = jsonPathParser.findKeys(`$.networks`)
+            const volumes = jsonPathParser.findKeys(`$.volumes`)
+
+            nodes.map((n: string) => {
+                const nImage = jsonPathParser.findJson(`$.services.${n}.image`)
+                const nPorts = jsonPathParser.findJson(`$.services.${n}.ports`)
+                const nVolumes = jsonPathParser.findJson(`$.services.${n}.volumes`)
+                const nNetworks = jsonPathParser.findJson(`$.services.${n}.networks`)
+
+                nNetworks?.map((nn: string) => {
+                    const foundNetwork = networks.find((ntwk: string) => ntwk === nn)
+                    if (foundNetwork) {
+                        this.edges.push(this.buildEdge(n, foundNetwork))
+                    }
+                })
+
+                childrenNodes.push(this.buildTypeNode(n, nImage, g, 250, 200, customUniqueColour(nImage + n)))
+            })
+
+            const gn = this.buildGroupNode(g, `${g}-group`, customUniqueColour(g), 1000, 700, childrenNodes)
+            return gn
+        })
+
+        const customOptions: LayoutOptions = {
+            'elk.algorithm': 'org.eclipse.elk.box',
+            'elk.layered.spacing.nodeNodeBetweenLayers': '200',
+            'elk.spacing.nodeNode': '200',
+            'elk.box.packingMode': 'GROUP_DEC',
+            //'elk.childAreaWidth': '100',
+            //'elk.childAreaHeight': '150',
+            //'elk.layered.unnecessaryBendpoints': 'false',
+            //'elk.aspectRatio': '100',
+            'org.eclipse.elk.expandNodes': 'true',
+            //'org.eclipse.elk.interactive': 'true',
+        }
+
+        const plottedElements = await getLayedOutElements(gNodes, this.edges, customOptions)
+
+        const mappedChildNodes = fromGroupNodeToNode(plottedElements?.nodes as GroupNode[])
+        const childNodes = plottedElements?.nodes?.flatMap((n: any) => n?.children) || []
+        this.nodes.push(...mappedChildNodes, ...childNodes)
     }
 }

@@ -27,7 +27,7 @@ export default function Main() {
         console.log(yamlObject)
         const maker = new MapMaker();
         if (yamlObject) {
-            maker.buildMap(yamlObject)
+            maker.buildMap2(yamlObject)
                 .then(() => {
                     setMap({ nodes: maker.nodes, edges: maker.edges })
                 })
