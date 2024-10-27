@@ -49,7 +49,7 @@ function DesignDeck({ nodes: propNodes, edges: propEdges, clear }: DesignDeckPro
         console.log(yamlObject)
         const maker = new MapMaker();
         if (yamlObject) {
-            maker.buildMap(yamlObject)
+            maker.buildMap2(yamlObject)
                 .then(() => {
                     setNodes(maker.nodes)
                     setEdges(maker.edges)
