@@ -69,14 +69,14 @@ export default class MapMaker {
     private buildTypeNode(id: string,
         type: string | undefined,
         parentId: string | undefined = undefined,
-        width = 200,
-        height = 250,
+        width = 100,
+        height = 100,
         backgroundColor = 'rgba(255, 0, 0, 0.2)',
     ): Node {
         const ret: Node = {
             id,
             position: { x: 0, y: 0 },
-            style: { backgroundColor, border: '2px solid black' },
+            //style: { backgroundColor, border: '2px solid black' },
             data: { label: type + ': ' + id },
             type,
             resizing: true,
@@ -251,10 +251,10 @@ export default class MapMaker {
                     }
                 })
 
-                childrenNodes.push(this.buildTypeNode(n, nImage, g, 250, 200, customUniqueColour(nImage + n)))
+                childrenNodes.push(this.buildTypeNode(n, 'redis', g, 100, 100, customUniqueColour(nImage + n)))
             })
 
-            const gn = this.buildGroupNode(g, `${g}-group`, customUniqueColour(g), 1000, 700, childrenNodes)
+            const gn = this.buildGroupNode(g, `${g}-group`, customUniqueColour(g), 1000, 1000, childrenNodes)
             return gn
         })
 
@@ -267,8 +267,10 @@ export default class MapMaker {
             //'elk.childAreaHeight': '150',
             //'elk.layered.unnecessaryBendpoints': 'false',
             //'elk.aspectRatio': '100',
-            'org.eclipse.elk.expandNodes': 'true',
+            //'org.eclipse.elk.expandNodes': 'true',
             //'org.eclipse.elk.interactive': 'true',
+            'org.eclipse.elk.padding': '12',
+            //'org.eclipse.elk.spacing.individual': 'spacing.portPort:45;,;spacing.nodeNode:50',
         }
 
         const plottedElements = await getLayedOutElements(gNodes, this.edges, customOptions)
