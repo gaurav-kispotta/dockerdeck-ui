@@ -29,8 +29,8 @@ export const getLayedOutElements = async (nodes: GroupNode[], edges: Edge[] | El
 
             // Hardcode a width and height for elk to use when laying.
             layoutOptions: { 
-                'elk.spacing.nodeNode': '90',
-                'elk.algorithm': 'org.eclipse.elk.layered',
+                'elk.spacing.nodeNode': '150',
+                'elk.algorithm': 'org.eclipse.elk.stress',
             },
             width: node?.width,
             height: node?.height,
