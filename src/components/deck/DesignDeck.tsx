@@ -14,6 +14,7 @@ import { IDesignElement } from '../../interface/IDesignElements'
 import nodeTypes from './NodeTypes'
 import { useUploadFileContext } from '../../context/UploadedFileContext'
 import MapMaker from '../../modules/MapMaker'
+import SimpleFloatingEdge from './SimpleFloatingEdge'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -37,6 +38,10 @@ function DesignDeck({ nodes: propNodes, edges: propEdges, clear }: DesignDeckPro
     );
 
     const { yamlObject } = useUploadFileContext()
+
+    const edgeTypes = {
+        default: SimpleFloatingEdge,
+      };
 
     useEffect(() => {
         if (clear) {
@@ -66,6 +71,7 @@ function DesignDeck({ nodes: propNodes, edges: propEdges, clear }: DesignDeckPro
             onConnect={onConnect}
             nodes={nodes}
             edges={edges}
+            edgeTypes={edgeTypes}
             colorMode={'system'}
             className='overview'
             
