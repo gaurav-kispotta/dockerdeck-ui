@@ -23,25 +23,14 @@ export default function Main() {
         });
     }
 
-    useEffect(() => {
-        console.log(yamlObject)
-        const maker = new MapMaker();
-        if (yamlObject) {
-            maker.buildMap2(yamlObject)
-                .then(() => {
-                    setMap({ nodes: maker.nodes, edges: maker.edges })
-                })
-        }
-    }, [yamlObject])
-
     return (
         <div className='flex flex-row h-full'>
             {/* <div className='w-1/4 overflow-scroll bg-slate-500'>
                 <SideBar></SideBar>
             </div> */}
             <div id="docker-deck-ui" className='grow bg-slate-50' onContextMenu={displayMenu}>
-                { map && <DesignDeck nodes={map.nodes} edges={map.edges} clear={map!== null}></DesignDeck> }
-                { !map && <>Please load a docker-compose.yaml.</>}
+                { yamlObject && <DesignDeck clear={map!== null}></DesignDeck> }
+                { !yamlObject && <>Please load a docker-compose.yaml.</>}
             </div>
         </div>
     )

@@ -20,9 +20,9 @@ interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
 }
 
-function DesignDeck({ nodes: propNodes, edges: propEdges, clear }: DesignDeckProperties) {
-    const [nodes, setNodes] = useState<Node[]>(propNodes)
-    const [edges, setEdges] = useState<Edge[]>(propEdges)
+function DesignDeck({ clear }: DesignDeckProperties) {
+    const [nodes, setNodes] = useState<Node[]>([])
+    const [edges, setEdges] = useState<Edge[]>([])
 
     const onNodesChange = useCallback(
         (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds)),
