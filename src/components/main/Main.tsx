@@ -29,7 +29,7 @@ export default function Main() {
                 <SideBar></SideBar>
             </div> */}
             <div id="docker-deck-ui" className='grow bg-slate-50' onContextMenu={displayMenu}>
-                { yamlObject && <DesignDeck clear={map!== null}></DesignDeck> }
+                { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
                 { !yamlObject && <>Please load a docker-compose.yaml.</>}
             </div>
         </div>

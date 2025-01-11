@@ -20,7 +20,7 @@ interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
 }
 
-function DesignDeck({ clear }: DesignDeckProperties) {
+function DesignDeck({ clear = false }: DesignDeckProperties) {
     const [nodes, setNodes] = useState<Node[]>([])
     const [edges, setEdges] = useState<Edge[]>([])
 
