@@ -8,7 +8,7 @@ import uniqolor from 'uniqolor';
 
 export type GroupNode = Node & { children: Node[] }
 export type AnyArrayOrUndefined = any[] | undefined
-export type GroupMap = { [key:string]: Node[] }
+export type GroupMap = { [key: string]: Node[] }
 
 /**
  * Convert a list of nodes to a list of group nodes
@@ -112,8 +112,11 @@ export default class MapMaker {
                 color: markerColor,
             },
             zIndex: 5,
-            //type: 'smoothstep',
-            label: label ? label : `from-${sourceId}-${targetId}`
+            //type: 'simplebezier',
+            label: label ? label : `from-${sourceId}-${targetId}`,
+            labelShowBg: true,
+            labelBgPadding: [4, 8],
+            labelBgBorderRadius: 4,
         }
     }
 
@@ -136,14 +139,14 @@ export default class MapMaker {
 
         // BUILDING
 
-         // Building all "Group Nodes"
+        // Building all "Group Nodes"
         groups.map((g: string) => {
             const childrenNodes: Node[] = []
             if (false) {
                 const nodes = jsonPathParser.findKeys(`$.${g}`)
 
                 nodes.map((n: string) => {
-                    const image = jsonPathParser.findJson(`$.${g}.${n}.image`)
+                    const image = jsonPathParser.findPath(`$.${g}.${n}.image`)
                     childrenNodes.push(this.buildTypeNode(n, image, g))
                 })
             }
@@ -156,7 +159,7 @@ export default class MapMaker {
             const nodes = jsonPathParser.findKeys(`$.${g}`)
 
             return nodes.map((n: string) => {
-                const image = jsonPathParser.findJson(`$.${g}.${n}.image`)
+                const image = jsonPathParser.findPath(`$.${g}.${n}.image`)
                 allTypeNodes.push(this.buildTypeNode(n, image, g))
             })
         })
@@ -168,7 +171,7 @@ export default class MapMaker {
         const allPlottableGroupNodes = fromNodeToGroupNode(allTypeNodes)
         const promiseNodeType = groups.map(async (g: string) => {
             const filteredByParent = allPlottableGroupNodes.filter((gn: GroupNode) => gn.parentId === g)
-            const customLayoutOptions = { 
+            const customLayoutOptions = {
                 'elk.spacing.nodeNode': '50',
                 'elk.algorithm': 'org.eclipse.elk.box',
             }
@@ -204,7 +207,7 @@ export default class MapMaker {
             for (let i = 0; i < nodes.length; i++) {
                 const filteredNode = plottedElements?.nodes?.filter((n: Node) => n.id === nodes[i].id);
                 if (filteredNode && filteredNode[0] && filteredNode[0].position) {
-                    nodes[i].position = { 
+                    nodes[i].position = {
                         x: filteredNode[0].position?.x ?? 0,
                         y: filteredNode[0].position?.y ?? 0
                     };
@@ -215,11 +218,11 @@ export default class MapMaker {
 
             return retNode
         }
-        
+
         // Combine all group nodes and type nodes to Node[]
         this.nodes.push(...updateNodePositions(allGroupNodes, plottedElements2))
         this.nodes.push(...updateNodePositions(allTypeNodes, { nodes: plottedElements1 }))
-        
+
         const testNode = this.buildTypeNode('root', undefined, 'volumes', 100, 100, 'rgba(0, 255, 0, 0.2)');
         testNode.position = { x: 600, y: 600 }
         this.nodes.push(testNode)
@@ -239,10 +242,10 @@ export default class MapMaker {
             const volumes = jsonPathParser.findKeys(`$.volumes`)
 
             nodes.map((n: string) => {
-                const nImage = jsonPathParser.findJson(`$.services.${n}.image`)
-                const nPorts = jsonPathParser.findJson(`$.services.${n}.ports`)
-                const nVolumes = jsonPathParser.findJson(`$.services.${n}.volumes`)
-                const nNetworks = jsonPathParser.findJson(`$.services.${n}.networks`)
+                const nImage = jsonPathParser.findPath(`$.services.${n}.image`)
+                const nPorts = jsonPathParser.findPath(`$.services.${n}.ports`)
+                const nVolumes = jsonPathParser.findPath(`$.services.${n}.volumes`)
+                const nNetworks = jsonPathParser.findPath(`$.services.${n}.networks`)
 
                 nNetworks?.map((nn: string) => {
                     const foundNetwork = networks.find((ntwk: string) => ntwk === nn)
@@ -251,7 +254,81 @@ export default class MapMaker {
                     }
                 })
 
+                nVolumes?.map((nv: string) => {
+                    const volName = nv.split(':')[0]
+                    const foundVolume = volumes.find((vol: string) => vol === volName)
+                    if (foundVolume) {
+                        this.edges.push(this.buildEdge(n, foundVolume))
+                    }
+                }   )
+
                 childrenNodes.push(this.buildTypeNode(n, 'redis', g, 100, 100, customUniqueColour(nImage + n)))
+            })
+
+            
+
+            const gn = this.buildGroupNode(g, `${g}-group`, customUniqueColour(g), 1000, 1000, childrenNodes)
+            return gn
+        })
+
+        const customOptions: LayoutOptions = {
+            'elk.algorithm': 'org.eclipse.elk.box',
+            'elk.layered.spacing.nodeNodeBetweenLayers': '200',
+            'elk.spacing.nodeNode': '200',
+            'elk.box.packingMode': 'GROUP_DEC',
+            //'elk.childAreaWidth': '100',
+            //'elk.childAreaHeight': '150',
+            //'elk.layered.unnecessaryBendpoints': 'false',
+            //'elk.aspectRatio': '100',
+            //'org.eclipse.elk.expandNodes': 'true',
+            //'org.eclipse.elk.interactive': 'true',
+            'org.eclipse.elk.padding': '12',
+            //'org.eclipse.elk.spacing.individual': 'spacing.portPort:45;,;spacing.nodeNode:50',
+        }
+
+        const plottedElements = await getLayedOutElements(gNodes, this.edges, customOptions)
+
+        const mappedChildNodes = fromGroupNodeToNode(plottedElements?.nodes as GroupNode[])
+        const childNodes = plottedElements?.nodes?.flatMap((n: any) => n?.children) || []
+        this.nodes.push(...mappedChildNodes, ...childNodes)
+    }
+
+    // First find the groups and then find its each child nodes
+    // then build Elkjs Node mapping and get the plotted layout
+    // then flatten the nodes to get its actual positions
+    public async buildMap3(yamlObject: YamlDockerCompose) {
+        // remove version key to avoid picking it as a group
+        delete yamlObject['version']
+
+        const jsonPathParser = new JsonPathParser(yamlObject);
+
+        const groupKeys = jsonPathParser.findKeys('$');
+
+        // Get the usual docker compose groups
+        const networkKeys = jsonPathParser.findKeys(`$.networks`)
+        const volumeKeys = jsonPathParser.findKeys(`$.volumes`)
+
+        // For all the groups, find its dependent children and build the nodes
+        const gNodes = groupKeys.map((g: string) => {
+            const childrenNodes: Node[] = []
+            const nodeKeys = jsonPathParser.findKeys(`$.${g}`)
+
+            nodeKeys.map((nodeKey: string) => {
+                const nImage = jsonPathParser.findPath(`$.services.${nodeKey}.image`)
+                const nPorts = jsonPathParser.findPath(`$.services.${nodeKey}.ports`)
+                const nVolumes = jsonPathParser.findPath(`$.services.${nodeKey}.volumes`)
+                const nNetworks = jsonPathParser.findPath(`$.services.${nodeKey}.networks`)
+
+                nNetworks?.map((nn: string) => {
+                    const foundNetwork = networkKeys.find((ntwk: string) => ntwk === nn)
+                    if (foundNetwork) {
+                        this.edges.push(this.buildEdge(nodeKey, foundNetwork))
+                    }
+                })
+
+                const typeNodeBuilder = new NodeBuilder(yamlObject)
+
+                childNodes.push(typeNodeBuilder.buildTypeNode(nodeKey, g))
             })
 
             const gn = this.buildGroupNode(g, `${g}-group`, customUniqueColour(g), 1000, 1000, childrenNodes)

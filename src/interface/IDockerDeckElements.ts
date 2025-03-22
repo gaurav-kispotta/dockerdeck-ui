@@ -1,5 +1,5 @@
 import { IDesignElement } from "./IDesignElements";
 
-export interface IDesktopDesignElements {
+export interface IDockerDesignElements {
     elements: { [k: string]: IDesignElement[] }
 }

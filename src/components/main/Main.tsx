@@ -13,7 +13,6 @@ export default function Main() {
         id: MENU_ID
     });
     const { yamlObject } = useUploadFileContext()
-    const [map, setMap] = useState<{ nodes: Node[], edges: Edge[] } | null>(null)
 
     function displayMenu(e: any) {
         // put whatever custom logic you need

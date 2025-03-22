@@ -1,19 +1,20 @@
 import { JSONPath } from "jsonpath-plus";
+import { IPathParser } from "../interface/IPathParser";
 
-export class JsonPathParser {
+export class JsonPathParser implements IPathParser {
     yamlObject: object;
 
     constructor(yamlObject: object) {
         this.yamlObject = yamlObject
     }
 
-    public findJson(path: string) {
+    public findPath(path: string): string[] {
         const parsedObject = JSONPath({ path, json: this.yamlObject });
-        return parsedObject[0]
+        return parsedObject[0] || []
     }
 
-    public findKeys(path: string) {
-        const parsedObject = this.findJson(path)
+    public findKeys(path: string): string[] {
+        const parsedObject = this.findPath(path)
         return Object.keys(parsedObject)
     }
 }
