@@ -5,6 +5,8 @@ import * as uuid from 'uuid'
 import { JsonPathParser } from "./JsonPathParser";
 import { LayoutOptions } from "elkjs/lib/elk.bundled";
 import uniqolor from 'uniqolor';
+import TypeNodeBuilder from "./builder/TypeNodeBuilder";
+import UniqueColorBuilder from "./builder/UniqueColorBuilder";
 
 export type GroupNode = Node & { children: Node[] }
 export type AnyArrayOrUndefined = any[] | undefined
@@ -72,6 +74,7 @@ export default class MapMaker {
         width = 100,
         height = 100,
         backgroundColor = 'rgba(255, 0, 0, 0.2)',
+        edgeCount = 0
     ): Node {
         const ret: Node = {
             id,
@@ -83,7 +86,7 @@ export default class MapMaker {
             parentId,
             extent: 'parent',
             width,
-            height
+            height,
         }
 
         if (parentId) {
@@ -230,6 +233,7 @@ export default class MapMaker {
 
     public async buildMap2(yamlObject: YamlDockerCompose) {
         delete yamlObject['version']
+        
         const jsonPathParser = new JsonPathParser(yamlObject);
 
         const groups = jsonPathParser.findKeys('$');
@@ -247,10 +251,13 @@ export default class MapMaker {
                 const nVolumes = jsonPathParser.findPath(`$.services.${n}.volumes`)
                 const nNetworks = jsonPathParser.findPath(`$.services.${n}.networks`)
 
+                let edgeCount = 0
+
                 nNetworks?.map((nn: string) => {
                     const foundNetwork = networks.find((ntwk: string) => ntwk === nn)
                     if (foundNetwork) {
                         this.edges.push(this.buildEdge(n, foundNetwork))
+                        edgeCount++
                     }
                 })
 
@@ -259,6 +266,7 @@ export default class MapMaker {
                     const foundVolume = volumes.find((vol: string) => vol === volName)
                     if (foundVolume) {
                         this.edges.push(this.buildEdge(n, foundVolume))
+                        edgeCount++
                     }
                 }   )
 
@@ -303,35 +311,33 @@ export default class MapMaker {
         const jsonPathParser = new JsonPathParser(yamlObject);
 
         const groupKeys = jsonPathParser.findKeys('$');
-
-        // Get the usual docker compose groups
         const networkKeys = jsonPathParser.findKeys(`$.networks`)
         const volumeKeys = jsonPathParser.findKeys(`$.volumes`)
 
         // For all the groups, find its dependent children and build the nodes
-        const gNodes = groupKeys.map((g: string) => {
+        const gNodes = groupKeys.map((groupKey: string) => {
             const childrenNodes: Node[] = []
-            const nodeKeys = jsonPathParser.findKeys(`$.${g}`)
+            const nodeKeys = jsonPathParser.findKeys(`$.${groupKey}`)
 
             nodeKeys.map((nodeKey: string) => {
-                const nImage = jsonPathParser.findPath(`$.services.${nodeKey}.image`)
-                const nPorts = jsonPathParser.findPath(`$.services.${nodeKey}.ports`)
-                const nVolumes = jsonPathParser.findPath(`$.services.${nodeKey}.volumes`)
-                const nNetworks = jsonPathParser.findPath(`$.services.${nodeKey}.networks`)
+                const imageRef = jsonPathParser.findPath(`$.services.${nodeKey}.image`)
+                const portsRefs = jsonPathParser.findPath(`$.services.${nodeKey}.ports`)
+                const volumeRefs = jsonPathParser.findPath(`$.services.${nodeKey}.volumes`)
+                const networkRefs = jsonPathParser.findPath(`$.services.${nodeKey}.networks`)
 
-                nNetworks?.map((nn: string) => {
-                    const foundNetwork = networkKeys.find((ntwk: string) => ntwk === nn)
+                networkRefs?.map((networkRef: string) => {
+                    const foundNetwork = networkKeys.find((networkKey: string) => networkKey === networkRef)
                     if (foundNetwork) {
                         this.edges.push(this.buildEdge(nodeKey, foundNetwork))
                     }
                 })
 
-                const typeNodeBuilder = new NodeBuilder(yamlObject)
+                const typeNodeBuilder = new TypeNodeBuilder(jsonPathParser, new UniqueColorBuilder())
 
-                childNodes.push(typeNodeBuilder.buildTypeNode(nodeKey, g))
+                childNodes.push(typeNodeBuilder.buildTypeNode(nodeKey, groupKey))
             })
 
-            const gn = this.buildGroupNode(g, `${g}-group`, customUniqueColour(g), 1000, 1000, childrenNodes)
+            const gn = this.buildGroupNode(groupKey, `${groupKey}-group`, customUniqueColour(groupKey), 1000, 1000, childrenNodes)
             return gn
         })
 
@@ -356,4 +362,6 @@ export default class MapMaker {
         const childNodes = plottedElements?.nodes?.flatMap((n: any) => n?.children) || []
         this.nodes.push(...mappedChildNodes, ...childNodes)
     }
+
+    
 }

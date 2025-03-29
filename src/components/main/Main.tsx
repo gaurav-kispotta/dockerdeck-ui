@@ -1,10 +1,10 @@
 import { useContextMenu } from "react-contexify";
 import DesignDeck from "../deck/DesignDeck";
-import SideBar from "../sidebar/SideBar";
+//import SideBar from "../sidebar/SideBar";
 import { useUploadFileContext } from "../../context/UploadedFileContext";
-import { useEffect, useState } from "react";
-import MapMaker from "../../modules/MapMaker";
-import { Edge, Node } from "@xyflow/react";
+//import { useEffect, useState } from "react";
+//import MapMaker from "../../modules/MapMaker";
+//import { Edge, Node } from "@xyflow/react";
 
 const MENU_ID = "menu-id";
 

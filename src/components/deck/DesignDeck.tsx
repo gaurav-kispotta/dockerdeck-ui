@@ -15,7 +15,7 @@ import nodeTypes from './NodeTypes'
 import { useUploadFileContext } from '../../context/UploadedFileContext'
 import MapMaker from '../../modules/MapMaker'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
-import SmartBezierEdge from '@tisoap/react-flow-smart-edge'
+//import SmartBezierEdge from '@tisoap/react-flow-smart-edge'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -41,7 +41,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
     );
 
     const edgeTypes = {
-        //default: SmartBezierEdge,
+        default: SimpleFloatingEdge,
     };
 
     useEffect(() => {

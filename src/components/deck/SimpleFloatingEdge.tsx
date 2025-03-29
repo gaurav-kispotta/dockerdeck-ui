@@ -30,6 +30,7 @@ function SimpleFloatingEdge({ id, source, target, markerEnd, style }: SimpleFloa
         targetPosition: targetPos,
         targetX: tx,
         targetY: ty,
+        curvature: 100,
     });
 
     return (
