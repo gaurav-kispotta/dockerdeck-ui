@@ -15,6 +15,7 @@ import nodeTypes from './NodeTypes'
 import { useUploadFileContext } from '../../context/UploadedFileContext'
 import MapMaker from '../../modules/MapMaker'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
+import { SmartBezierEdge } from "@tisoap/react-flow-smart-edge"
 //import SmartBezierEdge from '@tisoap/react-flow-smart-edge'
 
 interface DesignDeckProperties extends IDesignElement {
@@ -55,7 +56,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         console.log(yamlObject)
         const maker = new MapMaker();
         if (yamlObject) {
-            maker.buildMap2(yamlObject)
+            maker.buildMap3(yamlObject)
                 .then(() => {
                     setNodes(maker.nodes)
                     setEdges(maker.edges)

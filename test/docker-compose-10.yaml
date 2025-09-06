@@ -1,0 +1,120 @@
+# Polyglot Build-Oriented Stack (Local Dockerfile builds + health & resource constraints)
+version: "3.9"
+
+x-health: &health
+  test: ["CMD", "curl", "-f", "http://localhost:health"]
+  interval: 10s
+  timeout: 3s
+  retries: 5
+  start_period: 5s
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  db_data: {}
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./examples/backend
+      dockerfile: Dockerfile
+      target: runtime
+      args:
+        BUILD_MODE: dev
+    environment:
+      SERVICE_NAME: backend
+      DATABASE_URL: postgres://app:app@db:5432/app
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "4000:3000"
+    networks:
+      - app-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  worker:
+    build:
+      context: ./examples/worker
+      dockerfile: Dockerfile
+    environment:
+      QUEUE: jobs
+      DATABASE_URL: postgres://app:app@db:5432/app
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-net
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 4096
+        hard: 8192
+    sysctls:
+      net.core.somaxconn: 4096
+
+  frontend:
+    build:
+      context: ./examples/frontend
+      dockerfile: Dockerfile
+      args:
+        API_URL: http://localhost:4000
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+    networks:
+      - app-net
+    environment:
+      NODE_ENV: development
+    labels:
+      com.example.stack: "polyglot"
+
+  nginx-edge:
+    image: nginx:1.27-alpine
+    depends_on:
+      - frontend
+    ports:
+      - "7000:80"
+    networks:
+      - app-net
+    volumes:
+      - type: tmpfs
+        target: /var/cache/nginx
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"

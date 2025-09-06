@@ -262,7 +262,7 @@ export default class MapMaker {
                 })
 
                 nVolumes?.map((nv: string) => {
-                    const volName = nv.split(':')[0]
+                    const volName = typeof nv !== 'string' ? 'empty-vol-name' : nv.split(':')[0]
                     const foundVolume = volumes.find((vol: string) => vol === volName)
                     if (foundVolume) {
                         this.edges.push(this.buildEdge(n, foundVolume))
@@ -305,21 +305,30 @@ export default class MapMaker {
     // then build Elkjs Node mapping and get the plotted layout
     // then flatten the nodes to get its actual positions
     public async buildMap3(yamlObject: YamlDockerCompose) {
-        // remove version key to avoid picking it as a group
+        /**
+         * IMPORTANT: HERE IS THE DOCKER COMPOSE SPECIFICATION
+         * 
+         * https://github.com/compose-spec/compose-spec/blob/main/spec.md
+         */
+
+        // removing optional version property
         delete yamlObject['version']
 
         const jsonPathParser = new JsonPathParser(yamlObject);
 
-        const groupKeys = jsonPathParser.findKeys('$');
-        const networkKeys = jsonPathParser.findKeys(`$.networks`)
+        const serviceKeys = jsonPathParser.findKeys(`$.services`);
+        if (serviceKeys.length === 0) {
+            throw new Error('No services found in the docker compose file. As per specification, services must be defined.')
+        }
+        const networkKeys = jsonPathParser.findKeys(`$.networks`);
         const volumeKeys = jsonPathParser.findKeys(`$.volumes`)
 
         // For all the groups, find its dependent children and build the nodes
-        const gNodes = groupKeys.map((groupKey: string) => {
+        const serviceNodes = serviceKeys.map((serviceKey: string) => {
             const childrenNodes: Node[] = []
-            const nodeKeys = jsonPathParser.findKeys(`$.${groupKey}`)
+            const serviceProperties = jsonPathParser.findKeys(`$.services.${serviceKey}`);
 
-            nodeKeys.map((nodeKey: string) => {
+            serviceProperties.map((nodeKey: string) => {
                 const imageRef = jsonPathParser.findPath(`$.services.${nodeKey}.image`)
                 const portsRefs = jsonPathParser.findPath(`$.services.${nodeKey}.ports`)
                 const volumeRefs = jsonPathParser.findPath(`$.services.${nodeKey}.volumes`)
@@ -334,10 +343,10 @@ export default class MapMaker {
 
                 const typeNodeBuilder = new TypeNodeBuilder(jsonPathParser, new UniqueColorBuilder())
 
-                childNodes.push(typeNodeBuilder.buildTypeNode(nodeKey, groupKey))
+                childNodes.push(typeNodeBuilder.buildTypeNode(nodeKey, serviceKey))
             })
 
-            const gn = this.buildGroupNode(groupKey, `${groupKey}-group`, customUniqueColour(groupKey), 1000, 1000, childrenNodes)
+            const gn = this.buildGroupNode(serviceKey, `${serviceKey}-group`, customUniqueColour(serviceKey), 1000, 1000, childrenNodes)
             return gn
         })
 
@@ -356,7 +365,7 @@ export default class MapMaker {
             //'org.eclipse.elk.spacing.individual': 'spacing.portPort:45;,;spacing.nodeNode:50',
         }
 
-        const plottedElements = await getLayedOutElements(gNodes, this.edges, customOptions)
+        const plottedElements = await getLayedOutElements(serviceNodes, this.edges, customOptions)
 
         const mappedChildNodes = fromGroupNodeToNode(plottedElements?.nodes as GroupNode[])
         const childNodes = plottedElements?.nodes?.flatMap((n: any) => n?.children) || []

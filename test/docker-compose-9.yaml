@@ -1,0 +1,99 @@
+# IoT & Time-Series Observability (Mosquitto + Node-RED + InfluxDB + Telegraf + Grafana)
+version: "3.9"
+
+networks:
+  iot-net:
+    driver: bridge
+
+secrets:
+  influx_token:
+    # Inline secret content (Compose specification supports this; used only for test parsing)
+    # In production you'd store in an external file.
+    file: ./secrets/influx_token.txt
+
+configs:
+  telegraf_conf:
+    content: |
+      [global_tags]
+        dc = "lab"
+      [agent]
+        interval = "10s"
+      [[outputs.influxdb_v2]]
+        urls = ["http://influxdb:8086"]
+        token = "$INFLUX_TOKEN"
+        organization = "example-org"
+        bucket = "sensors"
+      [[inputs.mqtt_consumer]]
+        servers = ["tcp://mosquitto:1883"]
+        topics = ["sensors/+/temperature"]
+        data_format = "value"
+        data_type = "float"
+
+volumes:
+  influxdb_data: {}
+  grafana_data: {}
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1884:1883"
+    networks:
+      - iot-net
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-h", "localhost", "-t", "$SYS/#", "-C", "1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  nodered:
+    image: nodered/node-red:3.1
+    ports:
+      - "1880:1880"
+    networks:
+      - iot-net
+    depends_on:
+      - mosquitto
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin123
+      DOCKER_INFLUXDB_INIT_ORG: example-org
+      DOCKER_INFLUXDB_INIT_BUCKET: sensors
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: test-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    ports:
+      - "8087:8086"
+    networks:
+      - iot-net
+
+  telegraf:
+    image: telegraf:1.30-alpine
+    depends_on:
+      - influxdb
+      - mosquitto
+    environment:
+      INFLUX_TOKEN: test-token
+    configs:
+      - source: telegraf_conf
+        target: /etc/telegraf/telegraf.conf
+    networks:
+      - iot-net
+
+  grafana:
+    image: grafana/grafana:10.3.3
+    depends_on:
+      - influxdb
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3031:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - iot-net

@@ -1,0 +1,101 @@
+# CI/CD & Code Quality Stack (Jenkins + Docker-in-Docker + SonarQube + Postgres)
+version: "3.9"
+
+profiles:
+  - ci
+  - quality
+
+networks:
+  cicd:
+    driver: bridge
+
+volumes:
+  jenkins_home: {}
+  dind_storage: {}
+  sonar_data: {}
+  sonar_extensions: {}
+  sonar_logs: {}
+  sonar_postgres: {}
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    user: root
+    environment:
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
+      DOCKER_HOST: tcp://dind:2376
+      DOCKER_CERT_PATH: /certs/client
+      DOCKER_TLS_VERIFY: 1
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - dind_storage:/var/lib/docker
+    depends_on:
+      dind:
+        condition: service_healthy
+    networks:
+      - cicd
+    healthcheck:
+      test: ["CMD", "bash", "-c", "curl -fsS http://localhost:8080/login || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+    profiles: ["ci"]
+
+  dind:
+    image: docker:26-dind
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: /certs
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - dind_storage:/var/lib/docker
+    networks:
+      - cicd
+    profiles: ["ci"]
+
+  sonarqube:
+    image: sonarqube:10.5-community
+    depends_on:
+      - sonar-db
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    ports:
+      - "9002:9000"
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_extensions:/opt/sonarqube/extensions
+      - sonar_logs:/opt/sonarqube/logs
+    networks:
+      - cicd
+    healthcheck:
+      test: ["CMD", "bash", "-c", "wget -q -O - http://localhost:9000/api/system/health | grep -q 'GREEN'"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    profiles: ["quality"]
+
+  sonar-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - sonar_postgres:/var/lib/postgresql/data
+    networks:
+      - cicd
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "sonar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles: ["quality"]
