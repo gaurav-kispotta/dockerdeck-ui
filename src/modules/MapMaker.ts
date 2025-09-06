@@ -5,8 +5,11 @@ import * as uuid from 'uuid'
 import { JsonPathParser } from "./JsonPathParser";
 import { LayoutOptions } from "elkjs/lib/elk.bundled";
 import uniqolor from 'uniqolor';
-import TypeNodeBuilder from "./builder/TypeNodeBuilder";
-import UniqueColorBuilder from "./builder/UniqueColorBuilder";
+import ServiceNodeBuilder from "./node-builder/ServiceNodeBuilder";
+import UniqueColorBuilder from "./node-builder/util/UniqueColorBuilder";
+import { DockerComposeAstBuilder } from "./ast/DockerComposeAstBuilder";
+import GroupNodeBuilder from "./node-builder/GroupNodeBuilder";
+import NetworkNodeBuilder from "./node-builder/NetworkNodeBuilder";
 
 export type GroupNode = Node & { children: Node[] }
 export type AnyArrayOrUndefined = any[] | undefined
@@ -311,6 +314,25 @@ export default class MapMaker {
          * https://github.com/compose-spec/compose-spec/blob/main/spec.md
          */
 
+        const astBuilder = new DockerComposeAstBuilder(yamlObject);
+        const dockerComposeAst = astBuilder.buildAst();
+
+        const serviceGroupNode = new GroupNodeBuilder(new UniqueColorBuilder())
+        const networkGroupNode = new GroupNodeBuilder(new UniqueColorBuilder())
+        const volumeGroupNode = new GroupNodeBuilder(new UniqueColorBuilder())
+
+        dockerComposeAst.services.forEach(s => {
+            const typeNodeBuilder = new ServiceNodeBuilder(s, new UniqueColorBuilder())
+            const serviceNode = typeNodeBuilder.build(s.name, 'root')
+            serviceGroupNode.pushChild(serviceNode)
+        });
+
+        dockerComposeAst.networks?.forEach(n => {
+            const typeNodeBuilder = new NetworkNodeBuilder(n, new UniqueColorBuilder())
+            const networkNode = typeNodeBuilder.build(n.name, 'root')
+            networkGroupNode.pushChild(networkNode)
+        });
+
         // removing optional version property
         delete yamlObject['version']
 
@@ -341,7 +363,7 @@ export default class MapMaker {
                     }
                 })
 
-                const typeNodeBuilder = new TypeNodeBuilder(jsonPathParser, new UniqueColorBuilder())
+                const typeNodeBuilder = new ServiceNodeBuilder(jsonPathParser, new UniqueColorBuilder())
 
                 childNodes.push(typeNodeBuilder.buildTypeNode(nodeKey, serviceKey))
             })

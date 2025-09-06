@@ -1,37 +1,8 @@
 import { YamlDockerCompose } from '../../context/UploadedFileContext';
+import { IDockerNetwork } from '../../interface/ast/IDockerNetwork';
+import { IDockerService } from '../../interface/ast/IDockerService';
+import { IDockerVolume } from '../../interface/ast/IDockerVolume';
 import { JsonPathParser } from '../JsonPathParser';
-
-interface IDockerService {
-    name: string;
-    image: {
-        name: string;
-        tag: string;
-    };
-    containerName: string;
-    ports: string[];
-    volumes: string[];
-    networks: string[];
-}
-
-interface IDockerNetwork {
-    name: string;
-    driver: string;
-    ipam: {
-        driver: string;
-        config: {
-            subnet: string;
-            gateway: string;
-        }[];
-    };
-}
-
-interface IDockerVolume {
-    name: string;
-    driver: string;
-    driver_opts: {
-        [key: string]: string;
-    };
-}
 
 interface IDockerComposeAst {
     services: IDockerService[];
@@ -69,8 +40,14 @@ export class DockerComposeAstBuilder {
                 name: serviceName,
                 image: { name: imageName, tag: imageTag },
                 containerName: rawService.container_name || serviceName, // default to service name if not set
-                ports: Array.isArray(rawService.ports) ? rawService.ports : [],
-                volumes: Array.isArray(rawService.volumes) ? rawService.volumes : [],
+                ports: rawService.ports?.map((portMapping: string) => {
+                    const [internal, external] = portMapping.split(':');
+                    return { internal: Number(internal), external: Number(external) };
+                }) || [],
+                volumes: rawService.volumes?.map((volumeMapping: string) => {
+                    const [internal, external] = volumeMapping.split(':');
+                    return { internal, external };
+                }) || [],
                 networks: Array.isArray(rawService.networks) ? rawService.networks : [],
             };
             this.ast.services.push(service);

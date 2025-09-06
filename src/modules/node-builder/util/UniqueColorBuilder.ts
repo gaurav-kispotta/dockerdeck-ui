@@ -1,5 +1,5 @@
 import uniqolor from "uniqolor";
-import { IUniqueColorBuilder } from "../../interface/IUniqueColorBuilder";
+import { IUniqueColorBuilder } from "../../../interface/node-builder/util/IUniqueColorBuilder";
 
 class UniqueColorBuilder implements IUniqueColorBuilder {
     generateUniqueColor(input: string | number): string {

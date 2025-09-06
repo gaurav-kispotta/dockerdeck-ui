@@ -1,34 +1,20 @@
-import { IUniqueColorBuilder } from "../../interface/IUniqueColorBuilder";
-import { IDesignElement } from "../../interface/IDesignElements";
-import { INodeBuilder } from "../../interface/INodeBuilder";
-import { IPathParser } from "../../interface/IPathParser";
+import { IUniqueColorBuilder } from "../../interface/node-builder/util/IUniqueColorBuilder";
+import { INodeBuilder } from "../../interface/node-builder/INodeBuilder";
 import { DockerDeckNode } from "../../model/DockerDeckNode";
 
 abstract class BaseNodeBuilder implements INodeBuilder {
   width: number;
   height: number;
-  jsonPathParser: IPathParser;
   uniqueColorBuilder: IUniqueColorBuilder;
 
   constructor(
-    pathParser: IPathParser,
     uniqueColorBuilder: IUniqueColorBuilder,
     width = 100,
     height = 100,
   ) {
-    this.jsonPathParser = pathParser;
     this.uniqueColorBuilder = uniqueColorBuilder;
     this.width = width;
     this.height = height;
-  }
-
-  protected getTypeFromImage(serviceId: string): string {
-    if (this.jsonPathParser) {
-      const image = this.jsonPathParser.findPath(`$.services.${serviceId}.image`)[0];
-      return image.split(":")[0].split("/")[1];
-    }
-
-    return "unknown-type";
   }
 
   build(_id: string, _parentId: string): DockerDeckNode {
@@ -40,9 +26,9 @@ abstract class BaseNodeBuilder implements INodeBuilder {
         border: "2px solid black",
       },
       data: {
-        label: this.getTypeFromImage(_id) + ": " + _id,
+        label: 'unknown',
       },
-      type: this.getTypeFromImage(_id),
+      type: 'unknown-type',
       resizing: true,
       parentId: _parentId,
       width: this.width,
