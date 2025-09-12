@@ -16,6 +16,8 @@ class ServiceNodeBuilder extends BaseNodeBuilder {
 
         baseNode.data.label = "Service: " + this.serviceAst.image + id;
         baseNode.extent = 'parent';
+        baseNode.type = "redis";
+        baseNode.style = {}
 
         return baseNode;
     }

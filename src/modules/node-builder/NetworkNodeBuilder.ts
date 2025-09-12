@@ -16,6 +16,8 @@ class NetworkNodeBuilder extends BaseNodeBuilder {
 
         baseNode.data.label = "Network: " + this.networkAst.name + id;
         baseNode.extent = 'parent';
+        baseNode.type = "redis";
+        baseNode.style = {};
 
         return baseNode;
     }

@@ -3,13 +3,13 @@ import { IUniqueColorBuilder } from "../../../interface/node-builder/util/IUniqu
 
 class UniqueColorBuilder implements IUniqueColorBuilder {
     generateUniqueColor(input: string | number): string {
-        throw new Error("Method not implemented.");
+        return this.getUniqueColor(input.toString())
     }
     reset(): void {
-        throw new Error("Method not implemented.");
+        this.getUniqueColor('')
     }
     hasColor(input: string | number): boolean {
-        throw new Error("Method not implemented.");
+        return this.getUniqueColor(input.toString()) !== undefined
     }
     getUniqueColor(key: string): string {
         let rgbColor = uniqolor(key, { format: 'rgb' }).color

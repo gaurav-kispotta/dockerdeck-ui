@@ -22,6 +22,7 @@ class GroupNodeBuilder extends BaseNodeBuilder {
 
         baseNode.data.label = "Group: " + id;
         baseNode.children = this.children;
+        baseNode.type = "group";
 
         return baseNode;
     }
