@@ -12,6 +12,9 @@ import GroupNodeBuilder from "./node-builder/GroupNodeBuilder";
 import NetworkNodeBuilder from "./node-builder/NetworkNodeBuilder";
 import VolumeNodeBuilder from "./node-builder/VolumeNodeBuilder";
 import { DockerDeckNode } from "../model/DockerDeckNode";
+import { ElkJsLayoutEngine } from "./layout-engine/ElkJsLayoutEngine";
+import { DockerDeckEdge } from "../model/DockerDeckEdge";
+import { ElkJsLayoutOptions } from "./layout-engine/ElkJsLayoutOption";
 
 export type GroupNode = Node & { children: Node[] }
 export type AnyArrayOrUndefined = any[] | undefined
@@ -51,8 +54,8 @@ export const customUniqueColour = (name: string): string => {
 }
 
 export default class MapMaker {
-    public nodes: Node[] = []
-    public edges: Edge[] = []
+    public nodes: DockerDeckNode[] = []
+    public edges: DockerDeckEdge[] = []
 
     // First find the groups and then find its each child nodes
     // then build Elkjs Node mapping and get the plotted layout
@@ -74,76 +77,58 @@ export default class MapMaker {
         dockerComposeAst.services.forEach(s => {
             const typeNodeBuilder = new ServiceNodeBuilder(s, new UniqueColorBuilder())
             const serviceNode = typeNodeBuilder.build(s.name, 'services')
+
+            // serviceNode.layoutOptions = new ElkJsLayoutOptions()
+            //     .setCustomOption({ 
+            //         'elk.spacing.nodeNode': '100',
+            //         'elk.algorithm': 'org.eclipse.elk.box',
+            //     })
+            //     .build();
+
             serviceGroupNode.pushChild(serviceNode)
         });
 
         dockerComposeAst.networks?.forEach(n => {
             const typeNodeBuilder = new NetworkNodeBuilder(n, new UniqueColorBuilder())
             const networkNode = typeNodeBuilder.build(n.name, 'networks')
+
+            networkNode.layoutOptions = new ElkJsLayoutOptions()
+                .setCustomOption({
+                    'elk.spacing.nodeNode': '100',
+                    'elk.algorithm': 'org.eclipse.elk.box',
+                })
+                .build();
+
             networkGroupNode.pushChild(networkNode)
         });
 
         dockerComposeAst.volumes?.forEach(v => {
             const typeNodeBuilder = new VolumeNodeBuilder(v, new UniqueColorBuilder())
             const volumeNode = typeNodeBuilder.build(v.name, 'volumes')
+
+            volumeNode.layoutOptions = new ElkJsLayoutOptions()
+                .setCustomOption({
+                    'elk.spacing.nodeNode': '100',
+                    'elk.algorithm': 'org.eclipse.elk.box',
+                })
+                .build();
+
             volumeGroupNode.pushChild(volumeNode)
         });
 
-        const rootNode: DockerDeckNode = {
-            id: 'root',
-            parentId: undefined,
-            width: 5000,
-            height: 1000,
-            position: { x: 0, y: 0 },
-            data: { label: 'root' },
-            children: [
-                serviceGroupNode.build('services', ''),
-                networkGroupNode.build('networks', ''),
-                volumeGroupNode.build('volumes', '')
-            ]
-        }
-
-        const root2 = [
+        const dockerDeckRoot: DockerDeckNode[] = [
                 serviceGroupNode.build('services', ''),
                 networkGroupNode.build('networks', ''),
                 volumeGroupNode.build('volumes', '')
             ]
 
-        const customOptions: LayoutOptions = {
-            'elk.algorithm': 'org.eclipse.elk.box',
-            'elk.layered.spacing.nodeNodeBetweenLayers': '200',
-            'elk.spacing.nodeNode': '200',
-            'elk.box.packingMode': 'GROUP_DEC',
-            'elk.childAreaWidth': '100',
-            'elk.childAreaHeight': '150',
-            //'elk.layered.unnecessaryBendpoints': 'false',
-            'elk.aspectRatio': '100',
-            //'org.eclipse.elk.expandNodes': 'true',
-            //'org.eclipse.elk.interactive': 'true',
-            'org.eclipse.elk.padding': '12',
-            //'org.eclipse.elk.spacing.individual': 'spacing.portPort:45;,;spacing.nodeNode:50',
-        }
+        const layoutEngine = new ElkJsLayoutEngine();
 
-        const plottedElements = await getLayedOutElements([...(root2 as GroupNode[])], this.edges, customOptions)
+        const plottedElements = await layoutEngine.layout(dockerDeckRoot, this.edges)
 
-        const mappedChildNodes = fromGroupNodeToNode(plottedElements?.nodes as GroupNode[])
-        const childNodes = plottedElements?.nodes?.flatMap((n: any) => n?.children) || []
-
-        // Recursively go through plottedElements for child nodes
-        // and push the nodes to this.nodes
-        const traverseChildren = (nodes: any[]) => {
-            for (let i = 0; i < nodes.length; i++) {
-                const node = nodes[i];
-                node.position = { x: node.x, y: node.y }; // Assign position from x and y
-                this.nodes.push(node);
-                if (node.children && Array.isArray(node.children)) {
-                    traverseChildren(node.children);
-                }
-            }
-        };
-
-        traverseChildren(plottedElements?.nodes || [])
-        //this.nodes.push(...mappedChildNodes, ...childNodes)
+        // Map the plotted elements to the internal node and edge structures
+        this.nodes = plottedElements.nodes as DockerDeckNode[]
+        this.edges = plottedElements.edges as DockerDeckEdge[]
 
         console.log('All nodes:', this.nodes)
     }

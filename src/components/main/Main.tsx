@@ -2,6 +2,7 @@ import { useContextMenu } from "react-contexify";
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
 import { useUploadFileContext } from "../../context/UploadedFileContext";
+import SideBar from "../sidebar/SideBar";
 //import { useEffect, useState } from "react";
 //import MapMaker from "../../modules/MapMaker";
 //import { Edge, Node } from "@xyflow/react";
@@ -24,9 +25,9 @@ export default function Main() {
 
     return (
         <div className='flex flex-row h-full'>
-            {/* <div className='w-1/4 overflow-scroll bg-slate-500'>
+            <div className='w-1/4 overflow-scroll bg-slate-500'>
                 <SideBar></SideBar>
-            </div> */}
+            </div>
             <div id="docker-deck-ui" className='grow bg-slate-50' onContextMenu={displayMenu}>
                 { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
                 { !yamlObject && <>Please load a docker-compose.yaml.</>}

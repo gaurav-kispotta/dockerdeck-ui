@@ -1,5 +1,6 @@
 import { IUniqueColorBuilder } from "../../interface/node-builder/util/IUniqueColorBuilder";
 import { DockerDeckNode } from "../../model/DockerDeckNode";
+import { ElkJsLayoutOptions } from "../layout-engine/ElkJsLayoutOption";
 import BaseNodeBuilder from "./BaseNodeBuilder";
 
 class GroupNodeBuilder extends BaseNodeBuilder {
@@ -23,6 +24,13 @@ class GroupNodeBuilder extends BaseNodeBuilder {
         baseNode.data.label = "Group: " + id;
         baseNode.children = this.children;
         baseNode.type = "group";
+
+        baseNode.layoutOptions = new ElkJsLayoutOptions()
+            .setCustomOption({
+                'elk.spacing.nodeNode': '100',
+                'elk.algorithm': 'org.eclipse.elk.box',
+            })
+            .build();
 
         return baseNode;
     }

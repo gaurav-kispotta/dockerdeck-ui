@@ -1,6 +1,6 @@
-import { Edge } from "@dagrejs/dagre";
-import { LayoutOptions } from "elkjs";
+import { DockerDeckNode } from "../../model/DockerDeckNode";
+import { DockerDeckEdge } from "../../model/DockerDeckEdge";
 
 export interface ILayoutEngine {
-    layout(nodes: Node[], edges: Edge[], options?: LayoutOptions): Promise<any>;
+    layout(nodes: DockerDeckNode[], edges: DockerDeckEdge[]): Promise<any>;
 }
