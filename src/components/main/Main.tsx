@@ -1,4 +1,6 @@
 import { useContextMenu } from "react-contexify";
+import { Button, Layout, Typography } from 'antd'
+import { LeftOutlined, RightOutlined, UpOutlined, DownOutlined } from '@ant-design/icons'
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
 import { useUploadFileContext } from "../../context/UploadedFileContext";
@@ -7,6 +9,9 @@ import DockerComposeViewer from "../viewer/DockerComposeViewer";
 import { useState } from "react";
 //import MapMaker from "../../modules/MapMaker";
 //import { Edge, Node } from "@xyflow/react";
+
+const { Content, Sider } = Layout
+const { Text } = Typography
 
 const MENU_ID = "menu-id";
 
@@ -40,38 +45,36 @@ export default function Main() {
     };
 
     return (
-        <div className='flex flex-row h-full relative'>
+        <Layout className='h-full relative'>
             {/* Sidebar */}
-            {isSidebarOpen && (<div className={`w-1/4 transition-all duration-300 overflow-hidden bg-slate-500`}>
+            <Sider 
+                width="25%" 
+                collapsed={!isSidebarOpen}
+                collapsedWidth={0}
+                className="bg-slate-500 transition-all duration-300"
+                style={{ 
+                    overflow: 'hidden',
+                }}
+            >
                 <div className="overflow-scroll h-full">
                     <SideBar></SideBar>
                 </div>
-            </div>)}
+            </Sider>
             
             {/* Toggle Button */}
-            <button
+            <Button
                 onClick={toggleSidebar}
-                className="absolute top-4 left-2 z-10 bg-slate-600 hover:bg-slate-700 text-white p-2 rounded-md shadow-lg transition-all duration-200 border border-slate-400"
+                className="absolute top-4 z-10 shadow-lg"
                 style={{ 
                     left: isSidebarOpen ? 'calc(25% - 1rem)' : '0.5rem',
                     transition: 'left 0.3s ease'
                 }}
-                aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-            >
-                {isSidebarOpen ? (
-                    // Left-pointing triangle (close)
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                    </svg>
-                ) : (
-                    // Right-pointing triangle (open)
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                    </svg>
-                )}
-            </button>
+                icon={isSidebarOpen ? <LeftOutlined /> : <RightOutlined />}
+                shape="circle"
+                size="middle"
+            />
             
-            <div className="grow flex flex-col">
+            <Content className="flex flex-col">
                 {/* Main Content - Split into top and bottom */}
                 <div className="flex flex-col h-full">
                     {/* Top half - Design Deck */}
@@ -83,7 +86,7 @@ export default function Main() {
                         { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
                         { !yamlObject && (
                             <div className="flex items-center justify-center h-full">
-                                <div className="text-gray-500 text-lg">Please load a docker-compose.yaml.</div>
+                                <Text className="text-gray-500 text-lg">Please load a docker-compose.yaml.</Text>
                             </div>
                         )}
                     </div>
@@ -100,26 +103,17 @@ export default function Main() {
                     
                     {/* Show/Hide Viewer Toggle Button - only show when yamlObject exists */}
                     {yamlObject && (
-                        <button
+                        <Button
                             onClick={toggleViewer}
-                            className="absolute bottom-4 right-4 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 border border-blue-400"
-                            aria-label={isViewerOpen ? "Hide Docker Compose viewer" : "Show Docker Compose viewer"}
-                        >
-                            {isViewerOpen ? (
-                                // Down arrow (hide)
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M7 10l5 5 5-5z"/>
-                                </svg>
-                            ) : (
-                                // Up arrow (show)
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M7 14l5-5 5 5z"/>
-                                </svg>
-                            )}
-                        </button>
+                            className="absolute bottom-4 right-4 z-10 shadow-lg"
+                            icon={isViewerOpen ? <DownOutlined /> : <UpOutlined />}
+                            shape="circle"
+                            type="primary"
+                            size="large"
+                        />
                     )}
                 </div>
-            </div>
-        </div>
+            </Content>
+        </Layout>
     )
 }

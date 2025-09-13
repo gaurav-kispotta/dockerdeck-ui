@@ -1,26 +1,28 @@
 import './App.css'
+import { Layout } from 'antd'
 import { Navbar } from './components/navbar/Navbar'
 import AppContext from './context/AppContext'
 import StatusBar from './components/status/StatusBar'
 import Main from './components/main/Main'
+
+const { Header, Content, Footer } = Layout
 
 function App() {
 
   return (
     <>
       <AppContext>
-        <div className='w-screen h-screen flex flex-col bg-gray-300'>
-          <div className='flex-none w-full'>
+        <Layout className='w-screen h-screen'>
+          <Header className='flex-none w-full px-0' style={{ height: 'auto', lineHeight: 'normal' }}>
             <Navbar></Navbar>
-          </div>
-          <div>tool bar </div>
-          <div className='grow h-full bg-'>
+          </Header>
+          <Content className='grow h-full bg-gray-50'>
             <Main></Main>
-          </div>
-          <div>
+          </Content>
+          <Footer className='p-2' style={{ height: 'auto' }}>
             <StatusBar />
-          </div>
-        </div>
+          </Footer>
+        </Layout>
       </AppContext>
     </>
   )
