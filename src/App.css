@@ -1,11 +1,51 @@
 path.react-flow__edge-path {
     stroke-width: 4;
     z-index: 50;
+    transition: stroke-width 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
 }
 
 path.react-flow__edge-path:hover {
     stroke-width: 10;
     z-index: 50;
+}
+
+/* Enhanced styling for selected nodes and edges */
+.react-flow__node {
+    transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.react-flow__node:hover {
+    transform: scale(1.05);
+}
+
+/* Ensure highlighted elements are above others */
+.react-flow__node.selected {
+    z-index: 100;
+    transform: scale(1.1);
+}
+
+.react-flow__node.connected {
+    z-index: 99;
+    transform: scale(1.05);
+}
+
+.react-flow__edge.highlighted {
+    z-index: 99;
+}
+
+/* Add a subtle pulsing animation to selected nodes */
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
+    }
+}
+
+.react-flow__node.selected {
+    animation: pulse 2s infinite;
 }
 
 #docker-deck-ui {
