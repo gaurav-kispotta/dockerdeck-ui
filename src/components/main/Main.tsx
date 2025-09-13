@@ -3,13 +3,15 @@ import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
 import { useUploadFileContext } from "../../context/UploadedFileContext";
 import SideBar from "../sidebar/SideBar";
-//import { useEffect, useState } from "react";
+import { useState } from "react";
 //import MapMaker from "../../modules/MapMaker";
 //import { Edge, Node } from "@xyflow/react";
 
 const MENU_ID = "menu-id";
 
 export default function Main() {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    
     const { show } = useContextMenu({
         id: MENU_ID
     });
@@ -23,11 +25,43 @@ export default function Main() {
         });
     }
 
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
     return (
-        <div className='flex flex-row h-full'>
-            <div className='w-1/4 overflow-scroll bg-slate-500'>
-                <SideBar></SideBar>
+        <div className='flex flex-row h-full relative'>
+            {/* Sidebar */}
+            <div className={`${isSidebarOpen ? 'w-1/4' : 'w-0'} transition-all duration-300 overflow-hidden bg-slate-500`}>
+                <div className="overflow-scroll h-full">
+                    <SideBar></SideBar>
+                </div>
             </div>
+            
+            {/* Toggle Button */}
+            <button
+                onClick={toggleSidebar}
+                className="absolute top-4 left-2 z-10 bg-slate-600 hover:bg-slate-700 text-white p-2 rounded-md shadow-lg transition-all duration-200 border border-slate-400"
+                style={{ 
+                    left: isSidebarOpen ? 'calc(25% - 1rem)' : '0.5rem',
+                    transition: 'left 0.3s ease'
+                }}
+                aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+            >
+                {isSidebarOpen ? (
+                    // Left-pointing triangle (close)
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                    </svg>
+                ) : (
+                    // Right-pointing triangle (open)
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                    </svg>
+                )}
+            </button>
+            
+            {/* Main Content */}
             <div id="docker-deck-ui" className='grow bg-slate-50' onContextMenu={displayMenu}>
                 { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
                 { !yamlObject && <>Please load a docker-compose.yaml.</>}
