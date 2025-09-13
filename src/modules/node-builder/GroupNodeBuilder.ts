@@ -1,13 +1,17 @@
 import { IUniqueColorBuilder } from "../../interface/node-builder/util/IUniqueColorBuilder";
 import { DockerDeckNode } from "../../model/DockerDeckNode";
 import { ElkJsLayoutOptions } from "../layout-engine/ElkJsLayoutOption";
+import { SettingsState } from "../../store/settingsSlice";
 import BaseNodeBuilder from "./BaseNodeBuilder";
 
 class GroupNodeBuilder extends BaseNodeBuilder {
     children: DockerDeckNode[];
-    constructor(uniqueColorBuilder: IUniqueColorBuilder, width = 100, height = 100) {
+    private settings?: SettingsState;
+    
+    constructor(uniqueColorBuilder: IUniqueColorBuilder, width = 100, height = 100, settings?: SettingsState) {
         super(uniqueColorBuilder, width, height);
         this.children = [];
+        this.settings = settings;
     }
 
     pushChild(child: DockerDeckNode): void {
@@ -30,11 +34,15 @@ class GroupNodeBuilder extends BaseNodeBuilder {
             child.parentNode = id;
         });
 
+        // Calculate dynamic spacing and padding based on settings
+        const nodeSpacing = this.settings ? this.settings.nodeLevelPadding * 2 : 200; // Scale for group spacing
+        const groupPadding = this.settings ? this.settings.platformPadding : 100; // Direct use
+
         baseNode.layoutOptions = new ElkJsLayoutOptions()
             .setCustomOption({
-                'elk.spacing.nodeNode': '200',
+                'elk.spacing.nodeNode': nodeSpacing.toString(),
                 'elk.algorithm': 'org.eclipse.elk.box',
-                'elk.padding': '[top=100,left=100,bottom=100,right=100]',
+                'elk.padding': `[top=${groupPadding},left=${groupPadding},bottom=${groupPadding},right=${groupPadding}]`,
             })
             .build();
 

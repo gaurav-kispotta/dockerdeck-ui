@@ -15,8 +15,7 @@ import nodeTypes from './NodeTypes'
 import { useUploadFileContext } from '../../context/UploadedFileContext'
 import MapMaker from '../../modules/MapMaker'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
-import { SmartBezierEdge } from "@tisoap/react-flow-smart-edge"
-//import SmartBezierEdge from '@tisoap/react-flow-smart-edge'
+import { useAppSelector } from '../../store/hooks'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -27,6 +26,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
     const [edges, setEdges] = useState<Edge[]>([])
 
     const { yamlObject } = useUploadFileContext()
+    const settings = useAppSelector((state) => state.settings)
 
     const onNodesChange = useCallback(
         (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -56,13 +56,13 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         console.log(yamlObject)
         const maker = new MapMaker();
         if (yamlObject) {
-            maker.buildMap3(yamlObject)
+            maker.buildMap3(yamlObject, settings)
                 .then(() => {
                     setNodes(maker.nodes)
                     setEdges(maker.edges)
                 })
         }
-    }, [yamlObject])
+    }, [yamlObject, settings])
 
     return (
         <ReactFlow

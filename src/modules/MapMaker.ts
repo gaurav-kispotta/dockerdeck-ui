@@ -11,6 +11,7 @@ import { DockerDeckNode } from "../model/DockerDeckNode";
 import { ElkJsLayoutEngine } from "./layout-engine/ElkJsLayoutEngine";
 import { DockerDeckEdge } from "../model/DockerDeckEdge";
 import { ElkJsLayoutOptions } from "./layout-engine/ElkJsLayoutOption";
+import { SettingsState } from "../store/settingsSlice";
 
 export type GroupNode = Node & { children: Node[] }
 export type AnyArrayOrUndefined = any[] | undefined
@@ -56,7 +57,7 @@ export default class MapMaker {
     // First find the groups and then find its each child nodes
     // then build Elkjs Node mapping and get the plotted layout
     // then flatten the nodes to get its actual positions
-    public async buildMap3(yamlObject: YamlDockerCompose) {
+    public async buildMap3(yamlObject: YamlDockerCompose, settings?: SettingsState) {
         /**
          * IMPORTANT: HERE IS THE DOCKER COMPOSE SPECIFICATION
          * 
@@ -66,17 +67,24 @@ export default class MapMaker {
         const astBuilder = new DockerComposeAstBuilder(yamlObject);
         const dockerComposeAst = astBuilder.buildAst();
 
-        const serviceGroupNode = new GroupNodeBuilder(new UniqueColorBuilder())
-        const networkGroupNode = new GroupNodeBuilder(new UniqueColorBuilder())
-        const volumeGroupNode = new GroupNodeBuilder(new UniqueColorBuilder())
+        // Calculate node dimensions based on settings
+        const nodeWidth = settings ? settings.nodeSize : 100; // Direct use
+        const nodeHeight = settings ? settings.nodeSize : 100; // Direct use
+
+        // Calculate spacing based on settings
+        const nodeSpacing = settings ? settings.nodeLevelPadding : 100; // Direct use
+
+        const serviceGroupNode = new GroupNodeBuilder(new UniqueColorBuilder(), nodeWidth, nodeHeight, settings)
+        const networkGroupNode = new GroupNodeBuilder(new UniqueColorBuilder(), nodeWidth, nodeHeight, settings)
+        const volumeGroupNode = new GroupNodeBuilder(new UniqueColorBuilder(), nodeWidth, nodeHeight, settings)
 
         dockerComposeAst.services.forEach(s => {
-            const typeNodeBuilder = new ServiceNodeBuilder(s, new UniqueColorBuilder())
+            const typeNodeBuilder = new ServiceNodeBuilder(s, new UniqueColorBuilder(), nodeWidth, nodeHeight)
             const serviceNode = typeNodeBuilder.build(s.name, 'services')
 
             serviceNode.layoutOptions = new ElkJsLayoutOptions()
                 .setCustomOption({ 
-                    'elk.spacing.nodeNode': '100',
+                    'elk.spacing.nodeNode': nodeSpacing.toString(),
                     'elk.algorithm': 'org.eclipse.elk.box',
                 })
                 .build();
@@ -85,12 +93,12 @@ export default class MapMaker {
         });
 
         dockerComposeAst.networks?.forEach(n => {
-            const typeNodeBuilder = new NetworkNodeBuilder(n, new UniqueColorBuilder())
+            const typeNodeBuilder = new NetworkNodeBuilder(n, new UniqueColorBuilder(), nodeWidth, nodeHeight)
             const networkNode = typeNodeBuilder.build(n.name, 'networks')
 
             networkNode.layoutOptions = new ElkJsLayoutOptions()
                 .setCustomOption({
-                    'elk.spacing.nodeNode': '100',
+                    'elk.spacing.nodeNode': nodeSpacing.toString(),
                     'elk.algorithm': 'org.eclipse.elk.box',
                 })
                 .build();
@@ -99,12 +107,12 @@ export default class MapMaker {
         });
 
         dockerComposeAst.volumes?.forEach(v => {
-            const typeNodeBuilder = new VolumeNodeBuilder(v, new UniqueColorBuilder())
+            const typeNodeBuilder = new VolumeNodeBuilder(v, new UniqueColorBuilder(), nodeWidth, nodeHeight)
             const volumeNode = typeNodeBuilder.build(v.name, 'volumes')
 
             volumeNode.layoutOptions = new ElkJsLayoutOptions()
                 .setCustomOption({
-                    'elk.spacing.nodeNode': '100',
+                    'elk.spacing.nodeNode': nodeSpacing.toString(),
                     'elk.algorithm': 'org.eclipse.elk.box',
                 })
                 .build();
@@ -118,7 +126,7 @@ export default class MapMaker {
                 volumeGroupNode.build('volumes', '')
             ]
 
-        const layoutEngine = new ElkJsLayoutEngine();
+        const layoutEngine = new ElkJsLayoutEngine(settings);
 
         const plottedElements = await layoutEngine.layout(dockerDeckRoot, this.edges)
 

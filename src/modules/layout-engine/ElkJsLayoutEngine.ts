@@ -3,19 +3,37 @@ import ELK, { ElkExtendedEdge, ElkNode, LayoutOptions } from 'elkjs/lib/elk.bund
 import { DockerDeckNode } from "../../model/DockerDeckNode";
 import { DockerDeckEdge } from "../../model/DockerDeckEdge";
 import { ElkJsLayoutOptions } from "./ElkJsLayoutOption";
-
-// Base (root-level) layout options. Container/group nodes can supply their own via node.layoutOptions.
-const rootOptions: LayoutOptions = {
-    'elk.algorithm': 'org.eclipse.elk.box',
-    'elk.box.packingMode': 'GROUP_DEC',
-    'elk.spacing.nodeNode': '200',
-    // Let ELK auto expand group nodes based on children.
-    'org.eclipse.elk.expandNodes': 'true'
-};
+import { SettingsState } from "../../store/settingsSlice";
 
 export class ElkJsLayoutEngine implements ILayoutEngine {
     elk = new ELK();
-    layoutOptions = new ElkJsLayoutOptions().setCustomOption(rootOptions);
+    private settings?: SettingsState;
+
+    constructor(settings?: SettingsState) {
+        this.settings = settings;
+    }
+
+    private getBaseLayoutOptions(): LayoutOptions {
+        const spacing = this.settings ? this.settings.nodeLevelPadding * 2 : 200; // Direct scaling
+        const padding = this.settings ? this.settings.platformPadding : 100; // Direct use
+        
+        return {
+            'elk.algorithm': 'org.eclipse.elk.box',
+            'elk.box.packingMode': 'GROUP_DEC',
+            'elk.spacing.nodeNode': spacing.toString(),
+            'elk.padding': `[top=${padding},left=${padding},bottom=${padding},right=${padding}]`,
+            'org.eclipse.elk.expandNodes': 'true'
+        };
+    }
+
+    private getNodeDimensions(): { width: number; height: number } {
+        const size = this.settings ? this.settings.nodeSize : 100; // Direct use of setting value
+        
+        return {
+            width: size,
+            height: size
+        };
+    }
 
     async layout(nodes: DockerDeckNode[], edges: DockerDeckEdge[]): Promise<{ nodes: DockerDeckNode[], edges: DockerDeckEdge[] }> {
         // Create a quick lookup for all nodes (including nested) by id.
@@ -31,11 +49,14 @@ export class ElkJsLayoutEngine implements ILayoutEngine {
         // Only include true top-level nodes (no parentId) directly under root to prevent duplication.
         const topLevel = nodes.filter(n => !n.parentId);
 
+        // Get dynamic dimensions based on settings
+        const dimensions = this.getNodeDimensions();
+
         const buildElkNode = (n: DockerDeckNode): ElkNode => {
             const elkNode: ElkNode = {
                 id: n.id,
-                width: n.width,
-                height: n.height,
+                width: n.width || dimensions.width,
+                height: n.height || dimensions.height,
                 layoutOptions: n.layoutOptions as LayoutOptions | undefined
             };
             if (n.children && n.children.length) {
@@ -44,9 +65,13 @@ export class ElkJsLayoutEngine implements ILayoutEngine {
             return elkNode;
         };
 
+        // Use dynamic layout options based on settings
+        const rootOptions = this.getBaseLayoutOptions();
+        const layoutOptions = new ElkJsLayoutOptions().setCustomOption(rootOptions);
+
         const graph: ElkNode = {
             id: 'root',
-            layoutOptions: this.layoutOptions.build() as LayoutOptions,
+            layoutOptions: layoutOptions.build() as LayoutOptions,
             children: topLevel.map(n => buildElkNode(n)),
             edges: edges.map(e => ({
                 id: e.id,
