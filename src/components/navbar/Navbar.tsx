@@ -90,7 +90,7 @@ export function Navbar() {
     }
 
     return (
-        <div className="px-6 flex items-center justify-between h-16 theme-transition bg-gray-400 dark:bg-gray-800">
+        <div className="px-6 flex items-center justify-between h-16 theme-transition ">
             <div className="flex-1">
                 <Title level={3} className="text-gray-900 dark:text-gray-100">docker deck</Title>
             </div>
