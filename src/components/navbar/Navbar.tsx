@@ -2,7 +2,6 @@ import { Layout, Upload, Button, Dropdown, Avatar, Badge, Space, Typography } fr
 import { UploadOutlined, ShoppingCartOutlined, UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useUploadFileContext } from "../../context/UploadedFileContext"
-import { FileReaderModule } from "../../modules/FileReaderModule"
 
 const { Header } = Layout
 const { Title } = Typography
@@ -10,19 +9,39 @@ const { Title } = Typography
 export function Navbar() {
     const { setContent } = useUploadFileContext()
 
-    const fileReader = new FileReaderModule()
-
-    async function handleChange(info: any) {
-        if (info.file.status === 'done' || info.file.originFileObj) {
-            const file = info.file.originFileObj || info.file
-            // Create a mock event object that the FileReaderModule expects
-            const mockEvent = {
-                target: {
-                    files: [file]
+    const readFile = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = (event) => {
+                if (event.target?.result) {
+                    resolve(event.target.result as string)
+                } else {
+                    reject(new Error("Error while reading file or file is empty"))
                 }
             }
-            const fileContent = await fileReader.onChangeOfFileInput(mockEvent)
-            setContent && setContent(fileContent)
+            reader.onerror = () => {
+                reject(new Error("Error reading file"))
+            }
+            reader.readAsText(file)
+        })
+    }
+
+    async function handleChange(info: any) {
+        const { file } = info
+        
+        // For Ant Design Upload, we need to check file.status and handle accordingly
+        if (file.status !== 'uploading') {
+            const actualFile = file.originFileObj || file
+            if (actualFile) {
+                try {
+                    console.log('Reading docker-compose file...')
+                    const fileContent = await readFile(actualFile)
+                    console.log('File loaded successfully')
+                    setContent && setContent(fileContent)
+                } catch (error) {
+                    console.error('Error reading file:', error)
+                }
+            }
         }
     }
 
@@ -66,6 +85,7 @@ export function Navbar() {
         beforeUpload: () => false, // Prevent automatic upload
         onChange: handleChange,
         showUploadList: false,
+        maxCount: 1,
     }
 
     return (
