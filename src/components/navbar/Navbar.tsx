@@ -3,12 +3,14 @@ import { UploadOutlined, ShoppingCartOutlined, UserOutlined, SettingOutlined, Lo
 import type { MenuProps } from 'antd'
 import { useUploadFileContext } from "../../context/UploadedFileContext"
 import { ThemeToggle } from '../theme/ThemeToggle'
+import { useState } from 'react'
 
 const { Header } = Layout
 const { Title } = Typography
 
 export function Navbar() {
     const { setContent } = useUploadFileContext()
+    const [fileName, setFileName] = useState<string | null>(null)
 
     const readFile = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
@@ -39,6 +41,7 @@ export function Navbar() {
                     const fileContent = await readFile(actualFile)
                     console.log('File loaded successfully')
                     setContent && setContent(fileContent)
+                    setFileName(file.name)
                 } catch (error) {
                     console.error('Error reading file:', error)
                 }
@@ -91,13 +94,13 @@ export function Navbar() {
 
     return (
         <div className="px-6 flex items-center justify-between h-16 theme-transition ">
-            <div className="flex-1">
+            <div className="flex-none">
                 <Title level={3} className="text-gray-900 dark:text-gray-100">docker deck</Title>
             </div>
-            <div className="flex-grow max-w-xs mx-4">
+            <div className="flex-grow flex justify-center items-center">
                 <Upload {...uploadProps}>
-                    <Button icon={<UploadOutlined />} className="w-full">
-                        Upload Docker Compose
+                    <Button icon={<UploadOutlined />} className="w-full max-w-xs">
+                        {fileName ? fileName : "Upload Docker Compose"}
                     </Button>
                 </Upload>
             </div>
