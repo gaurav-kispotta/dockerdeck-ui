@@ -163,8 +163,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             
         >
             <Background/>
-            <Controls position={'bottom-right'} orientation={'horizontal'}/>
-            
+            <Controls position={'bottom-left'} orientation={'horizontal'}/>
+
         </ReactFlow>
     )
 }
