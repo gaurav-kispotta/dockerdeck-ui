@@ -90,9 +90,9 @@ export function Navbar() {
     }
 
     return (
-        <Header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex items-center justify-between h-16 theme-transition">
+        <div className="px-6 flex items-center justify-between h-16 theme-transition bg-gray-400 dark:bg-gray-800">
             <div className="flex-1">
-                <Title level={3} className="!mb-0 !text-gray-800 dark:!text-gray-200">docker deck</Title>
+                <Title level={3} className="text-gray-900 dark:text-gray-100">docker deck</Title>
             </div>
             <div className="flex-grow max-w-xs mx-4">
                 <Upload {...uploadProps}>
@@ -127,6 +127,6 @@ export function Navbar() {
                     </Dropdown>
                 </Space>
             </div>
-        </Header>
+        </div>
     )
 }
