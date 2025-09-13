@@ -25,6 +25,11 @@ class GroupNodeBuilder extends BaseNodeBuilder {
         baseNode.children = this.children;
         baseNode.type = "group";
 
+        // Set parentNode on all children for React Flow
+        this.children.forEach(child => {
+            child.parentNode = id;
+        });
+
         baseNode.layoutOptions = new ElkJsLayoutOptions()
             .setCustomOption({
                 'elk.spacing.nodeNode': '100',

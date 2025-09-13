@@ -1,9 +1,5 @@
-import { Edge, MarkerType, Node } from "@xyflow/react";
+import { Node } from "@xyflow/react";
 import { YamlDockerCompose } from "../context/UploadedFileContext";
-import { getLayedOutElements } from "../utils/elkjsLayoutHelper";
-import * as uuid from 'uuid'
-import { JsonPathParser } from "./JsonPathParser";
-import { LayoutOptions } from "elkjs/lib/elk.bundled";
 import uniqolor from 'uniqolor';
 import ServiceNodeBuilder from "./node-builder/ServiceNodeBuilder";
 import UniqueColorBuilder from "./node-builder/util/UniqueColorBuilder";
@@ -126,8 +122,27 @@ export default class MapMaker {
 
         const plottedElements = await layoutEngine.layout(dockerDeckRoot, this.edges)
 
+        // Flatten nodes for React Flow (which expects flat array with parentNode references)
+        const flattenNodes = (nodes: DockerDeckNode[]): DockerDeckNode[] => {
+            const result: DockerDeckNode[] = [];
+            
+            for (const node of nodes) {
+                // Add the parent node (but remove children array since React Flow doesn't use it)
+                const parentNode = { ...node };
+                delete parentNode.children;
+                result.push(parentNode);
+                
+                // Add all children nodes
+                if (node.children && node.children.length > 0) {
+                    result.push(...flattenNodes(node.children as DockerDeckNode[]));
+                }
+            }
+            
+            return result;
+        };
+
         // Map the plotted elements to the internal node and edge structures
-        this.nodes = plottedElements.nodes as DockerDeckNode[]
+        this.nodes = flattenNodes(plottedElements.nodes as DockerDeckNode[])
         this.edges = plottedElements.edges as DockerDeckEdge[]
 
         console.log('All nodes:', this.nodes)
