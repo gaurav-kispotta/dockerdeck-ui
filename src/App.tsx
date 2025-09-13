@@ -15,7 +15,7 @@ function App() {
       <ThemeProvider>
         <AppContext>
           <Layout className='w-screen h-screen'>
-            <Header className='flex-none w-full px-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700' style={{ height: 'auto', lineHeight: 'normal' }}>
+            <Header className=' bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700' style={{ height: 'auto', lineHeight: 'normal' }}>
               <Navbar></Navbar>
             </Header>
             <Content className='grow h-full bg-gray-50 dark:bg-gray-900'>

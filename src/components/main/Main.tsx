@@ -48,7 +48,7 @@ export default function Main() {
         <Layout className='h-full relative'>
             {/* Sidebar */}
             <Sider 
-                width="25%" 
+                width="15%" 
                 collapsed={!isSidebarOpen}
                 collapsedWidth={0}
                 className="bg-slate-500 dark:bg-slate-800 transition-all duration-300"
@@ -66,7 +66,7 @@ export default function Main() {
                 onClick={toggleSidebar}
                 className="absolute top-4 z-10 shadow-lg"
                 style={{ 
-                    left: isSidebarOpen ? 'calc(25% - 1rem)' : '0.5rem',
+                    left: isSidebarOpen ? 'calc(15% - 1rem)' : '0.5rem',
                     transition: 'left 0.3s ease'
                 }}
                 icon={isSidebarOpen ? <LeftOutlined /> : <RightOutlined />}
