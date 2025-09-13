@@ -32,8 +32,9 @@ class GroupNodeBuilder extends BaseNodeBuilder {
 
         baseNode.layoutOptions = new ElkJsLayoutOptions()
             .setCustomOption({
-                'elk.spacing.nodeNode': '100',
+                'elk.spacing.nodeNode': '200',
                 'elk.algorithm': 'org.eclipse.elk.box',
+                'elk.padding': '[top=100,left=100,bottom=100,right=100]',
             })
             .build();
 

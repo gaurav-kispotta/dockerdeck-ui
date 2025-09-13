@@ -74,12 +74,12 @@ export default class MapMaker {
             const typeNodeBuilder = new ServiceNodeBuilder(s, new UniqueColorBuilder())
             const serviceNode = typeNodeBuilder.build(s.name, 'services')
 
-            // serviceNode.layoutOptions = new ElkJsLayoutOptions()
-            //     .setCustomOption({ 
-            //         'elk.spacing.nodeNode': '100',
-            //         'elk.algorithm': 'org.eclipse.elk.box',
-            //     })
-            //     .build();
+            serviceNode.layoutOptions = new ElkJsLayoutOptions()
+                .setCustomOption({ 
+                    'elk.spacing.nodeNode': '100',
+                    'elk.algorithm': 'org.eclipse.elk.box',
+                })
+                .build();
 
             serviceGroupNode.pushChild(serviceNode)
         });

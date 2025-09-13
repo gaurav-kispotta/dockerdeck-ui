@@ -8,7 +8,7 @@ import { ElkJsLayoutOptions } from "./ElkJsLayoutOption";
 const rootOptions: LayoutOptions = {
     'elk.algorithm': 'org.eclipse.elk.box',
     'elk.box.packingMode': 'GROUP_DEC',
-    'elk.spacing.nodeNode': '40',
+    'elk.spacing.nodeNode': '200',
     // Let ELK auto expand group nodes based on children.
     'org.eclipse.elk.expandNodes': 'true'
 };
