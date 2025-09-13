@@ -51,7 +51,7 @@ export class EdgeBuilder {
                         source: service.name,
                         target: networkName,
                         type: 'smoothstep',
-                        animated: false,
+                        animated: true,
                         style: {
                             stroke: '#10b981', // Green color for network connections
                             strokeWidth: 2,
