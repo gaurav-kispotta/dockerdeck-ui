@@ -51,7 +51,7 @@ export default function Main() {
                 width="25%" 
                 collapsed={!isSidebarOpen}
                 collapsedWidth={0}
-                className="bg-slate-500 transition-all duration-300"
+                className="bg-slate-500 dark:bg-slate-800 transition-all duration-300"
                 style={{ 
                     overflow: 'hidden',
                 }}
@@ -80,20 +80,20 @@ export default function Main() {
                     {/* Top half - Design Deck */}
                     <div 
                         id="docker-deck-ui" 
-                        className={`${isViewerOpen && yamlObject ? 'h-1/2' : 'h-full'} bg-slate-50 transition-all duration-300`} 
+                        className={`${isViewerOpen && yamlObject ? 'h-1/2' : 'h-full'} bg-slate-50 dark:bg-slate-900 transition-all duration-300`} 
                         onContextMenu={displayMenu}
                     >
                         { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
                         { !yamlObject && (
                             <div className="flex items-center justify-center h-full">
-                                <Text className="text-gray-500 text-lg">Please load a docker-compose.yaml.</Text>
+                                <Text className="text-gray-500 dark:text-gray-400 text-lg">Please load a docker-compose.yaml.</Text>
                             </div>
                         )}
                     </div>
                     
                     {/* Bottom half - Docker Compose Viewer */}
                     {yamlObject && isViewerOpen && (
-                        <div className="h-1/2 border-t">
+                        <div className="h-1/2 border-t border-gray-200 dark:border-gray-700">
                             <DockerComposeViewer 
                                 yamlObject={yamlObject} 
                                 onClose={handleViewerClose}

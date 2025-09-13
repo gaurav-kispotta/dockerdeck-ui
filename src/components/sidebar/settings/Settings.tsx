@@ -21,10 +21,10 @@ export default function Settings() {
   }
 
   return (
-    <Card title="Layout Settings" size="small" className="m-4">
+    <Card title="Layout Settings" size="small" className="m-4 theme-transition">
       <Space direction="vertical" size="large" className="w-full">
         <div>
-          <Text strong>Platform Padding: {platformPadding}px</Text>
+          <Text strong className="dark:text-gray-200">Platform Padding: {platformPadding}px</Text>
           <Slider
             min={10}
             max={200}
@@ -35,7 +35,7 @@ export default function Settings() {
         </div>
         
         <div>
-          <Text strong>Node Level Padding: {nodeLevelPadding}px</Text>
+          <Text strong className="dark:text-gray-200">Node Level Padding: {nodeLevelPadding}px</Text>
           <Slider
             min={10}
             max={150}
@@ -46,7 +46,7 @@ export default function Settings() {
         </div>
         
         <div>
-          <Text strong>Node Size: {nodeSize}px</Text>
+          <Text strong className="dark:text-gray-200">Node Size: {nodeSize}px</Text>
           <Slider
             min={50}
             max={200}

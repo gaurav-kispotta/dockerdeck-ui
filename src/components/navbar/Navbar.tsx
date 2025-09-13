@@ -2,6 +2,7 @@ import { Layout, Upload, Button, Dropdown, Avatar, Badge, Space, Typography } fr
 import { UploadOutlined, ShoppingCartOutlined, UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useUploadFileContext } from "../../context/UploadedFileContext"
+import { ThemeToggle } from '../theme/ThemeToggle'
 
 const { Header } = Layout
 const { Title } = Typography
@@ -89,9 +90,9 @@ export function Navbar() {
     }
 
     return (
-        <Header className="bg-white border-b border-gray-200 px-6 flex items-center justify-between h-16">
+        <Header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex items-center justify-between h-16 theme-transition">
             <div className="flex-1">
-                <Title level={3} className="!mb-0 !text-gray-800">docker deck</Title>
+                <Title level={3} className="!mb-0 !text-gray-800 dark:!text-gray-200">docker deck</Title>
             </div>
             <div className="flex-grow max-w-xs mx-4">
                 <Upload {...uploadProps}>
@@ -102,6 +103,8 @@ export function Navbar() {
             </div>
             <div className="flex-none">
                 <Space size="middle">
+                    <ThemeToggle />
+                    
                     <Dropdown menu={{ items: cartItems }} placement="bottomRight" trigger={['click']}>
                         <Button 
                             type="text" 
