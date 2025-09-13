@@ -1,0 +1,12 @@
+import { YamlDockerCompose } from "../../context/UploadedFileContext";
+import { ILayoutEngine } from "../../interface/layout-engine/ILayoutEngine";
+import { IMappingEngine } from "../../interface/mapping-engine/IMappingEngine";
+import { DockerDeckNode } from "../../model/DockerDeckNode";
+
+export class MappingEngine3 implements IMappingEngine {
+  map(_yamlObject: YamlDockerCompose, LayoutEngine: ILayoutEngine): DockerDeckNode {
+    // Implementation goes here
+
+    return {} as DockerDeckNode;
+  }
+}

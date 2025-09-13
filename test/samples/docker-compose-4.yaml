@@ -1,0 +1,206 @@
+# Complex stack: polyglot microservices, db clustering, secrets, configs, healthchecks
+version: "3.9"
+
+x-default-labels: &default-labels
+  org.example.project: "dockerdeck-ui"
+  org.example.env: "test"
+
+x-healthcheck: &default-healthcheck
+  interval: 10s
+  timeout: 3s
+  retries: 3
+  start_period: 5s
+
+x-common-env: &common-env
+  NODE_ENV: development
+  LOG_LEVEL: debug
+
+networks:
+  edge:
+    driver: bridge
+  internal:
+    driver: bridge
+  monitoring:
+    driver: bridge
+
+volumes:
+  pg_data_primary: {}
+  pg_data_replica: {}
+  redis_data: {}
+  jaeger_storage: {}
+  minio_data: {}
+
+configs:
+  nginx_conf:
+    file: ./configs/nginx.conf
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+
+services:
+  api-gateway:
+    image: nginx:1.27-alpine
+    depends_on:
+      - users-service
+      - orders-service
+    ports:
+      - "8088:80"
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/nginx.conf
+    volumes:
+      - type: tmpfs
+        target: /var/cache/nginx
+    environment:
+      <<: *common-env
+      GATEWAY_ROUTES: "users:/api/users;orders:/api/orders"
+    networks:
+      - edge
+      - internal
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+    healthcheck: *default-healthcheck
+    labels: *default-labels
+
+  users-service:
+    image: node:20-alpine
+    working_dir: /srv/app
+    command: sh -c "node server.js"
+    volumes:
+      - ./examples/users:/srv/app:ro
+    environment:
+      <<: *common-env
+      SERVICE_NAME: users
+      DATABASE_URL: postgres://postgres:secret@postgres-primary:5432/users
+    expose:
+      - "3000"
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      <<: *default-healthcheck
+    labels:
+      <<: *default-labels
+      org.example.service: users
+
+  orders-service:
+    image: python:3.12-alpine
+    working_dir: /srv/app
+    command: sh -c "pip install -r requirements.txt && python app.py"
+    volumes:
+      - ./examples/orders:/srv/app:ro
+    environment:
+      <<: *common-env
+      SERVICE_NAME: orders
+      USERS_API: http://users-service:3000
+    expose:
+      - "5000"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      <<: *default-healthcheck
+    labels:
+      <<: *default-labels
+      org.example.service: orders
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      <<: *default-healthcheck
+    labels: *default-labels
+
+  postgres-primary:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: users
+    secrets:
+      - db_password
+    volumes:
+      - pg_data_primary:/var/lib/postgresql/data
+    ports:
+      - "5555:5432"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      <<: *default-healthcheck
+    labels: *default-labels
+
+  postgres-replica:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      PRIMARY_HOST: postgres-primary
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    secrets:
+      - db_password
+    volumes:
+      - pg_data_replica:/var/lib/postgresql/data
+    networks:
+      - internal
+    deploy:
+      replicas: 1
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      <<: *default-healthcheck
+    labels: *default-labels
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    environment:
+      COLLECTOR_ZIPKIN_HTTP_PORT: 9411
+    ports:
+      - "16686:16686"
+    networks:
+      - monitoring
+      - internal
+    volumes:
+      - jaeger_storage:/tmp
+    labels: *default-labels
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      <<: *default-healthcheck
+    labels: *default-labels
+
+  grafana-lite:
+    image: grafana/grafana:10.3.3
+    depends_on:
+      - jaeger
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3030:3000"
+    networks:
+      - monitoring
+    labels: *default-labels

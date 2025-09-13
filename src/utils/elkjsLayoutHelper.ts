@@ -5,7 +5,7 @@ import { GroupNode } from '../modules/MapMaker';
 const elk = new ELK();
 
 export const elkOptions: LayoutOptions = {
-    'elk.algorithm': 'org.eclipse.elk.box',
+    'elk.algorithm': 'org.eclipse.elk.stress',
     'elk.layered.spacing.nodeNodeBetweenLayers': '100',
     'elk.spacing.nodeNode': '100',
     'elk.box.packingMode': 'GROUP_DEC',
@@ -29,8 +29,9 @@ export const getLayedOutElements = async (nodes: GroupNode[], edges: Edge[] | El
 
             // Hardcode a width and height for elk to use when laying.
             layoutOptions: { 
-                'elk.spacing.nodeNode': '150',
-                'elk.algorithm': 'org.eclipse.elk.stress',
+                'elk.spacing.nodeNode': '100',
+                'elk.algorithm': 'org.eclipse.elk.box',
+                
             },
             width: node?.width,
             height: node?.height,

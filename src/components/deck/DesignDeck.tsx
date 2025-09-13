@@ -6,8 +6,9 @@ import {
     Controls,
     type Node,
     type Edge,
+    type NodeMouseHandler,
 } from '@xyflow/react'
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useMemo } from 'react'
 
 import '@xyflow/react/dist/style.css'
 import { IDesignElement } from '../../interface/IDesignElements'
@@ -15,7 +16,8 @@ import nodeTypes from './NodeTypes'
 import { useUploadFileContext } from '../../context/UploadedFileContext'
 import MapMaker from '../../modules/MapMaker'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
-//import SmartBezierEdge from '@tisoap/react-flow-smart-edge'
+import { useAppSelector, useAppDispatch } from '../../store/hooks'
+import { selectNode, clearSelection } from '../../store/selectionSlice'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -26,6 +28,9 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
     const [edges, setEdges] = useState<Edge[]>([])
 
     const { yamlObject } = useUploadFileContext()
+    const settings = useAppSelector((state) => state.settings)
+    const selection = useAppSelector((state) => state.selection)
+    const dispatch = useAppDispatch()
 
     const onNodesChange = useCallback(
         (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -40,9 +45,85 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         [setEdges],
     );
 
+    const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
+        // Find all connected edges and nodes
+        const connectedEdgeIds: string[] = []
+        const connectedNodeIds: string[] = []
+
+        edges.forEach(edge => {
+            if (edge.source === node.id || edge.target === node.id) {
+                connectedEdgeIds.push(edge.id)
+                if (edge.source === node.id) {
+                    connectedNodeIds.push(edge.target)
+                } else {
+                    connectedNodeIds.push(edge.source)
+                }
+            }
+        })
+
+        dispatch(selectNode({
+            nodeId: node.id,
+            connectedNodeIds,
+            connectedEdgeIds
+        }))
+    }, [dispatch, edges])
+
+    const onPaneClick = useCallback(() => {
+        dispatch(clearSelection())
+    }, [dispatch])
+
     const edgeTypes = {
         default: SimpleFloatingEdge,
     };
+
+    // Apply styling based on selection
+    const styledNodes = useMemo(() => {
+        if (!selection.selectedNodeId) return nodes
+
+        return nodes.map(node => {
+            const isSelected = node.id === selection.selectedNodeId
+            const isConnected = selection.connectedNodeIds.includes(node.id)
+            const isGrayed = !isSelected && !isConnected
+
+            return {
+                ...node,
+                style: {
+                    ...node.style,
+                    opacity: isGrayed ? 0.3 : 1,
+                    filter: isGrayed ? 'grayscale(100%)' : 'none',
+                    transition: 'opacity 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease',
+                    boxShadow: isSelected 
+                        ? '0 0 20px rgba(59, 130, 246, 0.6)' 
+                        : isConnected 
+                        ? '0 0 10px rgba(59, 130, 246, 0.4)' 
+                        : 'none',
+                },
+                className: isSelected ? 'selected' : isConnected ? 'connected' : ''
+            }
+        })
+    }, [nodes, selection])
+
+    const styledEdges = useMemo(() => {
+        if (!selection.selectedNodeId) return edges
+
+        return edges.map(edge => {
+            const isConnected = selection.connectedEdgeIds.includes(edge.id)
+            const isGrayed = !isConnected
+
+            return {
+                ...edge,
+                style: {
+                    ...edge.style,
+                    opacity: isGrayed ? 0.3 : 1,
+                    strokeWidth: isConnected ? 6 : 2,
+                    transition: 'opacity 0.3s ease, stroke-width 0.3s ease',
+                    filter: isConnected ? 'drop-shadow(0px 0px 4px rgba(59, 130, 246, 0.5))' : 'none',
+                },
+                animated: isConnected ? true : edge.animated,
+                className: isConnected ? 'highlighted' : ''
+            }
+        })
+    }, [edges, selection])
 
     useEffect(() => {
         if (clear) {
@@ -55,13 +136,13 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         console.log(yamlObject)
         const maker = new MapMaker();
         if (yamlObject) {
-            maker.buildMap2(yamlObject)
+            maker.buildMap3(yamlObject, settings)
                 .then(() => {
                     setNodes(maker.nodes)
                     setEdges(maker.edges)
                 })
         }
-    }, [yamlObject])
+    }, [yamlObject, settings])
 
     return (
         <ReactFlow
@@ -70,8 +151,10 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            nodes={nodes}
-            edges={edges}
+            onNodeClick={onNodeClick}
+            onPaneClick={onPaneClick}
+            nodes={styledNodes}
+            edges={styledEdges}
             edgeTypes={edgeTypes}
             colorMode={'system'}
             className='overview'

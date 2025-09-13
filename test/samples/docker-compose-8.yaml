@@ -1,0 +1,115 @@
+# Machine Learning & Analytics Stack (Spark + Jupyter + MLflow + MinIO + GPU profile)
+version: "3.9"
+
+profiles:
+  - gpu
+
+networks:
+  ml-net:
+    driver: bridge
+
+volumes:
+  spark_master: {}
+  spark_worker: {}
+  mlflow_pg: {}
+  ml_artifacts: {}
+
+services:
+  spark-master:
+    image: bitnami/spark:3.5
+    environment:
+      SPARK_MODE: master
+      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
+      SPARK_RPC_ENCRYPTION_ENABLED: "no"
+      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
+      SPARK_SSL_ENABLED: "no"
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+    volumes:
+      - spark_master:/bitnami
+    networks:
+      - ml-net
+
+  spark-worker:
+    image: bitnami/spark:3.5
+    depends_on:
+      - spark-master
+    environment:
+      SPARK_MODE: worker
+      SPARK_MASTER_URL: spark://spark-master:7077
+      SPARK_WORKER_MEMORY: 1G
+      SPARK_WORKER_CORES: 1
+    volumes:
+      - spark_worker:/bitnami
+    networks:
+      - ml-net
+    deploy:
+      replicas: 2
+
+  jupyter:
+    image: jupyter/minimal-notebook:python-3.11
+    environment:
+      JUPYTER_TOKEN: token123
+    ports:
+      - "8888:8888"
+    networks:
+      - ml-net
+    volumes:
+      - ml_artifacts:/home/jovyan/work
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.1
+    depends_on:
+      mlflow-db:
+        condition: service_started
+      minio:
+        condition: service_started
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql+psycopg2://mlflow:mlflow@mlflow-db:5432/mlflow
+      MLFLOW_ARTIFACT_ROOT: s3://ml-artifacts
+      AWS_ACCESS_KEY_ID: minio
+      AWS_SECRET_ACCESS_KEY: minio123
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    ports:
+      - "5001:5000"
+    networks:
+      - ml-net
+
+  mlflow-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mlflow
+      POSTGRES_PASSWORD: mlflow
+      POSTGRES_DB: mlflow
+    volumes:
+      - mlflow_pg:/var/lib/postgresql/data
+    networks:
+      - ml-net
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    volumes:
+      - ml_artifacts:/data
+    networks:
+      - ml-net
+
+  gpu-trainer:
+    image: nvcr.io/nvidia/pytorch:24.01-py3
+    command: >-
+      bash -c "python - <<'PY'\nimport time, torch;print('CUDA',torch.cuda.is_available());print('GPUs',torch.cuda.device_count());\n[print(f'heartbeat {i}') or time.sleep(5) for i in range(3)];\nwhile True: time.sleep(60)\nPY"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    networks:
+      - ml-net
+    profiles: ["gpu"]

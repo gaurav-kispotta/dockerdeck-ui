@@ -38,7 +38,7 @@ function SimpleFloatingEdge({ id, source, target, markerEnd, style }: SimpleFloa
             id={id}
             className="react-flow__edge-path"
             d={edgePath}
-            strokeWidth={2}
+            strokeWidth={style?.strokeWidth || 2}
             markerEnd={markerEnd}
             style={style}
             ></path>
