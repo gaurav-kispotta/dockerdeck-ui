@@ -12,6 +12,7 @@ import { ElkJsLayoutEngine } from "./layout-engine/ElkJsLayoutEngine";
 import { DockerDeckEdge } from "../model/DockerDeckEdge";
 import { ElkJsLayoutOptions } from "./layout-engine/ElkJsLayoutOption";
 import { SettingsState } from "../store/settingsSlice";
+import EdgeBuilder from "./node-builder/EdgeBuilder";
 
 export type GroupNode = Node & { children: Node[] }
 export type AnyArrayOrUndefined = any[] | undefined
@@ -126,9 +127,13 @@ export default class MapMaker {
                 volumeGroupNode.build('volumes', '')
             ]
 
+        // Build edges using the EdgeBuilder
+        const edgeBuilder = new EdgeBuilder(dockerComposeAst);
+        const generatedEdges = edgeBuilder.getAllEdges();
+
         const layoutEngine = new ElkJsLayoutEngine(settings);
 
-        const plottedElements = await layoutEngine.layout(dockerDeckRoot, this.edges)
+        const plottedElements = await layoutEngine.layout(dockerDeckRoot, generatedEdges)
 
         // Flatten nodes for React Flow (which expects flat array with parentNode references)
         const flattenNodes = (nodes: DockerDeckNode[]): DockerDeckNode[] => {
@@ -154,5 +159,6 @@ export default class MapMaker {
         this.edges = plottedElements.edges as DockerDeckEdge[]
 
         console.log('All nodes:', this.nodes)
+        console.log('All edges:', this.edges)
     }
 }

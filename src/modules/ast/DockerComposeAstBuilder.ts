@@ -45,7 +45,7 @@ export class DockerComposeAstBuilder {
                     return { internal: Number(internal), external: Number(external) };
                 }) || [],
                 volumes: rawService.volumes?.map((volumeMapping: string) => {
-                    const [internal, external] = volumeMapping.split(':');
+                    const [external, internal] = volumeMapping.split(':');
                     return { internal, external };
                 }) || [],
                 networks: Array.isArray(rawService.networks) ? rawService.networks : [],

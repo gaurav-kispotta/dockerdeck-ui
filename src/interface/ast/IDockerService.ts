@@ -5,13 +5,13 @@ export interface IDockerService {
         tag: string;
     };
     containerName: string;
-    ports: [{
+    ports: {
         internal: number;
         external: number;
-    }];
-    volumes: [{
+    }[];
+    volumes: {
         internal: string;
         external: string;
-    }];
+    }[];
     networks: string[];
 }
