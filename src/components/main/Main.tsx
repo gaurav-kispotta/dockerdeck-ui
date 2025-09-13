@@ -32,11 +32,11 @@ export default function Main() {
     return (
         <div className='flex flex-row h-full relative'>
             {/* Sidebar */}
-            <div className={`${isSidebarOpen ? 'w-1/4' : 'w-0'} transition-all duration-300 overflow-hidden bg-slate-500`}>
+            {isSidebarOpen && (<div className={`w-1/4 transition-all duration-300 overflow-hidden bg-slate-500`}>
                 <div className="overflow-scroll h-full">
                     <SideBar></SideBar>
                 </div>
-            </div>
+            </div>)}
             
             {/* Toggle Button */}
             <button
