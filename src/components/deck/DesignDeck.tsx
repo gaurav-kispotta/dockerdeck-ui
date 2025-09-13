@@ -18,6 +18,7 @@ import MapMaker from '../../modules/MapMaker'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
 import { selectNode, clearSelection } from '../../store/selectionSlice'
+import { useTheme } from '../../context/ThemeContext'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -26,6 +27,7 @@ interface DesignDeckProperties extends IDesignElement {
 function DesignDeck({ clear = false }: DesignDeckProperties) {
     const [nodes, setNodes] = useState<Node[]>([])
     const [edges, setEdges] = useState<Edge[]>([])
+    const {themeMode} = useTheme()
 
     const { yamlObject } = useUploadFileContext()
     const settings = useAppSelector((state) => state.settings)
@@ -156,11 +158,11 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             nodes={styledNodes}
             edges={styledEdges}
             edgeTypes={edgeTypes}
-            colorMode={'system'}
+            colorMode={themeMode}
             className='overview'
             
         >
-            <Background className='bg-white' color='blue'/>
+            <Background/>
             <Controls position={'bottom-right'} orientation={'horizontal'}/>
             
         </ReactFlow>
