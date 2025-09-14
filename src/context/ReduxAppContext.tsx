@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { useAppDispatch } from '../store/hooks'
 import { setFileContent, setYamlObject, setProcessingError, showViewer } from '../store/uploadedFileSlice'
+import { clearSelection } from '../store/selectionSlice'
 import GlobalContextMenu from '../components/context-menu/GlobalContextMenu'
 import YamlObjectTransformer from '../modules/YamlObjectTransformer'
 import type { FileContentType } from '../store/uploadedFileSlice'
@@ -16,6 +17,10 @@ export const useFileUpload = () => {
   const setContent = (fc: FileContentType) => {
     try {
       console.log('Processing uploaded file...')
+      
+      // Clear any existing selections when a new file is uploaded
+      dispatch(clearSelection())
+      
       dispatch(setFileContent(fc))
       
       const yt = new YamlObjectTransformer()

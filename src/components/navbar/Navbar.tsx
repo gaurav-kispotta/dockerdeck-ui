@@ -44,6 +44,7 @@ export function Navbar() {
                     setFileName(file.name)
                 } catch (error) {
                     console.error('Error reading file:', error)
+                    setFileName(null)
                 }
             }
         }
