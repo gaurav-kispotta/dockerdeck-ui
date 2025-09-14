@@ -1,16 +1,16 @@
-import { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import yaml from 'yaml';
-import { useAppSelector } from '../../store/hooks';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { hideViewer } from '../../store/uploadedFileSlice';
 
 interface DockerComposeViewerProps {
-    yamlObject: any;
     onClose?: () => void;
 }
 
-export default function DockerComposeViewer({ yamlObject, onClose }: DockerComposeViewerProps) {
-    const [isVisible, setIsVisible] = useState(true);
+export default function DockerComposeViewer({ onClose }: DockerComposeViewerProps) {
+    const dispatch = useAppDispatch();
     const { themeMode } = useAppSelector((state) => state.theme);
+    const { yamlObject, isViewerVisible } = useAppSelector((state) => state.uploadedFile);
 
     // Convert the YAML object back to a prettified YAML string
     const yamlString = yamlObject ? yaml.stringify(yamlObject, {
@@ -23,13 +23,13 @@ export default function DockerComposeViewer({ yamlObject, onClose }: DockerCompo
     }) : '';
 
     const handleClose = () => {
-        setIsVisible(false);
+        dispatch(hideViewer());
         if (onClose) {
             onClose();
         }
     };
 
-    if (!isVisible || !yamlObject) {
+    if (!isViewerVisible || !yamlObject) {
         return null;
     }
 

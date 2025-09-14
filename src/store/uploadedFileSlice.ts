@@ -14,13 +14,15 @@ interface UploadedFileState {
   yamlObject?: YamlDockerCompose | null
   isProcessing: boolean
   error?: string
+  isViewerVisible: boolean
 }
 
 const initialState: UploadedFileState = {
   fileContent: undefined,
   yamlObject: null,
   isProcessing: false,
-  error: undefined
+  error: undefined,
+  isViewerVisible: false
 }
 
 const uploadedFileSlice = createSlice({
@@ -46,9 +48,19 @@ const uploadedFileSlice = createSlice({
       state.yamlObject = null
       state.isProcessing = false
       state.error = undefined
+      state.isViewerVisible = false
     },
     setProcessing: (state, action: PayloadAction<boolean>) => {
       state.isProcessing = action.payload
+    },
+    showViewer: (state) => {
+      state.isViewerVisible = true
+    },
+    hideViewer: (state) => {
+      state.isViewerVisible = false
+    },
+    toggleViewer: (state) => {
+      state.isViewerVisible = !state.isViewerVisible
     }
   }
 })
@@ -58,7 +70,10 @@ export const {
   setYamlObject, 
   setProcessingError, 
   clearFile, 
-  setProcessing 
+  setProcessing,
+  showViewer,
+  hideViewer,
+  toggleViewer
 } = uploadedFileSlice.actions
 
 export default uploadedFileSlice.reducer

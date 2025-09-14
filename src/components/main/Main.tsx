@@ -3,7 +3,8 @@ import { Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'ant
 import { LeftOutlined, RightOutlined, UpOutlined, DownOutlined } from '@ant-design/icons'
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
-import { useAppSelector } from "../../store/hooks";
+import { useAppSelector, useAppDispatch } from "../../store/hooks";
+import { toggleViewer, hideViewer } from "../../store/uploadedFileSlice";
 import SideBar from "../sidebar/SideBar";
 import DockerComposeViewer from "../viewer/DockerComposeViewer";
 import { useState } from "react";
@@ -17,12 +18,12 @@ const MENU_ID = "menu-id";
 
 export default function Main() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [isViewerOpen, setIsViewerOpen] = useState(true);
     
+    const dispatch = useAppDispatch();
     const { show } = useContextMenu({
         id: MENU_ID
     });
-    const { yamlObject } = useAppSelector((state) => state.uploadedFile)
+    const { yamlObject, isViewerVisible } = useAppSelector((state) => state.uploadedFile)
 
     function displayMenu(e: any) {
         // put whatever custom logic you need
@@ -36,19 +37,19 @@ export default function Main() {
         setIsSidebarOpen(!isSidebarOpen);
     };
 
-    const toggleViewer = () => {
-        setIsViewerOpen(!isViewerOpen);
+    const handleToggleViewer = () => {
+        dispatch(toggleViewer());
     };
 
     const handleViewerClose = () => {
-        setIsViewerOpen(false);
+        dispatch(hideViewer());
     };
 
     return (
         <ConfigProvider theme={{
             components: {
                 Splitter: {
-                    splitBarSize: isViewerOpen || !yamlObject ? 5 : 0,
+                    splitBarSize: isViewerVisible || !yamlObject ? 5 : 0,
                     splitBarDraggableSize: 500
                 }
             }
@@ -96,12 +97,11 @@ export default function Main() {
                             )}
                         </div>
                     </Splitter.Panel>
-                    { yamlObject && <Splitter.Panel size={isViewerOpen ? '50%' : '0%'} className="">
+                    { yamlObject && <Splitter.Panel size={isViewerVisible ? '50%' : '0%'} className="">
                         <div className="h-full w-full">
                             {/* Bottom half - Docker Compose Viewer */}
-                            {yamlObject && isViewerOpen && (
+                            {yamlObject && isViewerVisible && (
                                 <DockerComposeViewer 
-                                    yamlObject={yamlObject} 
                                     onClose={handleViewerClose}
                                 />
                             )}
@@ -109,9 +109,9 @@ export default function Main() {
                             {/* Show/Hide Viewer Toggle Button - only show when yamlObject exists */}
                             {yamlObject && (
                                 <Button
-                                    onClick={toggleViewer}
+                                    onClick={handleToggleViewer}
                                     className="absolute bottom-4 right-4 z-10 shadow-lg"
-                                    icon={isViewerOpen ? <DownOutlined /> : <UpOutlined />}
+                                    icon={isViewerVisible ? <DownOutlined /> : <UpOutlined />}
                                     shape="circle"
                                     type="primary"
                                     size="large"

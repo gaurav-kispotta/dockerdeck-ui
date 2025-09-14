@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { useAppDispatch } from '../store/hooks'
-import { setFileContent, setYamlObject, setProcessingError } from '../store/uploadedFileSlice'
+import { setFileContent, setYamlObject, setProcessingError, showViewer } from '../store/uploadedFileSlice'
 import GlobalContextMenu from '../components/context-menu/GlobalContextMenu'
 import YamlObjectTransformer from '../modules/YamlObjectTransformer'
 import type { FileContentType } from '../store/uploadedFileSlice'
@@ -23,6 +23,7 @@ export const useFileUpload = () => {
       console.log('YAML object parsed:', yamlObject)
       
       dispatch(setYamlObject(yamlObject))
+      dispatch(showViewer()) // Automatically show the viewer when file is loaded
     } catch (error) {
       console.error('Error processing file:', error)
       dispatch(setProcessingError(error instanceof Error ? error.message : 'Unknown error'))
