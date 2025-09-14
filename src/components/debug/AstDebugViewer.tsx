@@ -24,6 +24,7 @@ const { Title } = Typography;
 export const AstDebugViewer: React.FC = () => {
     const astObject = useAppSelector((state) => state.uploadedFile.astObject);
     const selection = useAppSelector((state) => state.selection);
+    const { isDark } = useAppSelector((state) => state.theme);
     const dispatch = useAppDispatch();
     
     const [showLine, setShowLine] = useState<boolean>(true);
@@ -214,7 +215,7 @@ export const AstDebugViewer: React.FC = () => {
         return (
             <Card>
                 <Title level={4}>Docker Compose AST Debug</Title>
-                <p className="text-gray-600">No AST object available</p>
+                <p className="text-gray-600 dark:text-gray-400">No AST object available</p>
             </Card>
         );
     }
@@ -225,12 +226,12 @@ export const AstDebugViewer: React.FC = () => {
             
             {/* Debug info */}
             {selection.selectedNodeId && (
-                <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded">
-                    <div className="text-sm">
+                <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded">
+                    <div className="text-sm text-gray-800 dark:text-gray-200">
                         <strong>Selected Graph Node:</strong> {selection.selectedNodeId}
                     </div>
                     {selection.selectedAstNodeKey && (
-                        <div className="text-sm">
+                        <div className="text-sm text-gray-800 dark:text-gray-200">
                             <strong>Selected AST Node:</strong> {selection.selectedAstNodeKey}
                         </div>
                     )}
@@ -257,10 +258,10 @@ export const AstDebugViewer: React.FC = () => {
                 treeData={treeData}
                 height={400}
                 style={{ 
-                    border: '1px solid #d9d9d9',
+                    border: `1px solid ${isDark ? '#4b5563' : '#d9d9d9'}`,
                     borderRadius: '6px',
                     padding: '8px',
-                    background: '#fafafa'
+                    background: isDark ? '#374151' : '#fafafa'
                 }}
             />
 
