@@ -1,89 +1,211 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { Tree, Switch, Space, Card, Typography } from 'antd';
+import { 
+    ContainerOutlined, 
+    ApiOutlined, 
+    DatabaseOutlined, 
+    SettingOutlined,
+    AppstoreOutlined,
+    ToolOutlined,
+    LinkOutlined,
+    FolderOutlined,
+    FileOutlined
+} from '@ant-design/icons';
+import type { TreeDataNode } from 'antd';
 import { useAppSelector } from '../../store/hooks';
 
+const { Title } = Typography;
+
 /**
- * Debug component to display the current AST object from Redux state
+ * Debug component to display the current AST object from Redux state as a Tree view
  * This component can be used to verify that the AST is being stored properly
  */
 export const AstDebugViewer: React.FC = () => {
     const astObject = useAppSelector((state) => state.uploadedFile.astObject);
+    const [showLine, setShowLine] = useState<boolean>(true);
+    const [showIcon, setShowIcon] = useState<boolean>(true);
+
+    // Transform AST object into tree data
+    const treeData: TreeDataNode[] = useMemo(() => {
+        if (!astObject) return [];
+
+        const nodes: TreeDataNode[] = [];
+
+        // Root node for Docker Compose
+        const rootNode: TreeDataNode = {
+            title: 'Docker Compose',
+            key: 'root',
+            icon: <AppstoreOutlined />,
+            children: []
+        };
+
+        // Services section
+        if (astObject.services && astObject.services.length > 0) {
+            const servicesNode: TreeDataNode = {
+                title: `Services (${astObject.services.length})`,
+                key: 'services',
+                icon: <ContainerOutlined />,
+                children: astObject.services.map((service, index) => ({
+                    title: service.name,
+                    key: `service-${index}`,
+                    icon: <ContainerOutlined />,
+                    children: [
+                        {
+                            title: `Image: ${service.image.name}:${service.image.tag}`,
+                            key: `service-${index}-image`,
+                            icon: <FileOutlined />
+                        },
+                        {
+                            title: `Container: ${service.containerName}`,
+                            key: `service-${index}-container`,
+                            icon: <SettingOutlined />
+                        },
+                        ...(service.ports && service.ports.length > 0 ? [{
+                            title: `Ports (${service.ports.length})`,
+                            key: `service-${index}-ports`,
+                            icon: <LinkOutlined />,
+                            children: service.ports.flatMap((port, portIndex) => [
+                                {
+                                    title: `External: ${port.external}`,
+                                    key: `service-${index}-port-${portIndex}-external`,
+                                    icon: <ApiOutlined />
+                                },
+                                {
+                                    title: `Internal: ${port.internal}`,
+                                    key: `service-${index}-port-${portIndex}-internal`,
+                                    icon: <ApiOutlined />
+                                }
+                            ])
+                        }] : []),
+                        ...(service.volumes && service.volumes.length > 0 ? [{
+                            title: `Volumes (${service.volumes.length})`,
+                            key: `service-${index}-volumes`,
+                            icon: <DatabaseOutlined />,
+                            children: service.volumes.map((volume, volumeIndex) => ({
+                                title: `${volume.external}:${volume.internal}`,
+                                key: `service-${index}-volume-${volumeIndex}`,
+                                icon: <FolderOutlined />
+                            }))
+                        }] : []),
+                        ...(service.networks && service.networks.length > 0 ? [{
+                            title: `Networks (${service.networks.length})`,
+                            key: `service-${index}-networks`,
+                            icon: <ApiOutlined />,
+                            children: service.networks.map((network, networkIndex) => ({
+                                title: network,
+                                key: `service-${index}-network-${networkIndex}`,
+                                icon: <LinkOutlined />
+                            }))
+                        }] : [])
+                    ]
+                }))
+            };
+            rootNode.children!.push(servicesNode);
+        }
+
+        // Networks section
+        if (astObject.networks && astObject.networks.length > 0) {
+            const networksNode: TreeDataNode = {
+                title: `Networks (${astObject.networks.length})`,
+                key: 'networks',
+                icon: <ApiOutlined />,
+                children: astObject.networks.map((network, index) => ({
+                    title: network.name,
+                    key: `network-${index}`,
+                    icon: <LinkOutlined />,
+                    children: [
+                        {
+                            title: `Driver: ${network.driver}`,
+                            key: `network-${index}-driver`,
+                            icon: <ToolOutlined />
+                        },
+                        {
+                            title: `IPAM Driver: ${network.ipam.driver || 'default'}`,
+                            key: `network-${index}-ipam`,
+                            icon: <SettingOutlined />
+                        }
+                    ]
+                }))
+            };
+            rootNode.children!.push(networksNode);
+        }
+
+        // Volumes section
+        if (astObject.volumes && astObject.volumes.length > 0) {
+            const volumesNode: TreeDataNode = {
+                title: `Volumes (${astObject.volumes.length})`,
+                key: 'volumes',
+                icon: <DatabaseOutlined />,
+                children: astObject.volumes.map((volume, index) => ({
+                    title: volume.name,
+                    key: `volume-${index}`,
+                    icon: <FolderOutlined />,
+                    children: [
+                        {
+                            title: `Driver: ${volume.driver}`,
+                            key: `volume-${index}-driver`,
+                            icon: <ToolOutlined />
+                        },
+                        ...(Object.keys(volume.driver_opts || {}).length > 0 ? 
+                            Object.entries(volume.driver_opts).map(([key, value], optIndex) => ({
+                                title: `${key}: ${value}`,
+                                key: `volume-${index}-opt-${optIndex}`,
+                                icon: <SettingOutlined />
+                            })) : []
+                        )
+                    ]
+                }))
+            };
+            rootNode.children!.push(volumesNode);
+        }
+
+        nodes.push(rootNode);
+        return nodes;
+    }, [astObject]);
+
+    const onSelect = (selectedKeys: React.Key[], info: any) => {
+        console.log('Selected AST node:', selectedKeys, info);
+    };
 
     if (!astObject) {
         return (
-            <div className="p-4 bg-gray-100 rounded-lg">
-                <h3 className="text-lg font-semibold mb-2">Docker Compose AST Debug</h3>
+            <Card>
+                <Title level={4}>Docker Compose AST Debug</Title>
                 <p className="text-gray-600">No AST object available</p>
-            </div>
+            </Card>
         );
     }
 
     return (
-        <div className="p-4 bg-gray-100 rounded-lg">
-            <div className="pb-2 mb-4 border-b border-gray-300">
-                <h3 className="text-lg font-semibold">Docker Compose AST Debug</h3>
-            </div>
+        <Card>
+            <Title level={4}>Docker Compose AST Debug</Title>
             
-            <div className="space-y-4">
-                <div>
-                    <h4 className="font-medium text-gray-700 py-1">
-                        Services ({astObject.services.length})
-                    </h4>
-                    <ul className="ml-4 list-disc space-y-1">
-                        {astObject.services.map((service, index) => (
-                            <li key={index} className="text-sm text-gray-600">
-                                {service.name} - {service.image.name}:{service.image.tag}
-                                {service.ports && service.ports.length > 0 && (
-                                    <span className="text-xs text-blue-600 ml-2">
-                                        Ports: {service.ports.map(p => `${p.external}:${p.internal}`).join(', ')}
-                                    </span>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+            <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
+                <Space>
+                    <span>Show Lines:</span>
+                    <Switch checked={showLine} onChange={setShowLine} size="small" />
+                    <span>Show Icons:</span>
+                    <Switch checked={showIcon} onChange={setShowIcon} size="small" />
+                </Space>
+            </Space>
 
-                {astObject.networks && astObject.networks.length > 0 && (
-                    <div>
-                        <h4 className="font-medium text-gray-700 py-1">
-                            Networks ({astObject.networks.length})
-                        </h4>
-                        <ul className="ml-4 list-disc space-y-1">
-                            {astObject.networks.map((network, index) => (
-                                <li key={index} className="text-sm text-gray-600">
-                                    {network.name} - {network.driver}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
+            <Tree
+                showLine={showLine ? { showLeafIcon: true } : false}
+                showIcon={showIcon}
+                defaultExpandedKeys={['root', 'services']}
+                onSelect={onSelect}
+                treeData={treeData}
+                height={400}
+                style={{ 
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '6px',
+                    padding: '8px',
+                    background: '#fafafa'
+                }}
+            />
 
-                {astObject.volumes && astObject.volumes.length > 0 && (
-                    <div>
-                        <h4 className="font-medium text-gray-700 py-1">
-                            Volumes ({astObject.volumes.length})
-                        </h4>
-                        <ul className="ml-4 list-disc space-y-1">
-                            {astObject.volumes.map((volume, index) => (
-                                <li key={index} className="text-sm text-gray-600">
-                                    {volume.name} - {volume.driver}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </div>
-
-            <details className="mt-4">
-                <summary className="cursor-pointer font-medium text-gray-700 py-1">
-                    Raw AST Object
-                </summary>
-                <div className="mt-2">
-                    <pre className="p-2 bg-gray-200 rounded text-xs whitespace-pre-wrap break-words">
-                        {JSON.stringify(astObject, null, 2)}
-                    </pre>
-                </div>
-            </details>
-        </div>
+            
+        </Card>
     );
 };
 
