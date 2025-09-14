@@ -113,38 +113,10 @@ export default function DockerComposeViewer() {
                 closable: true,
                 children: (
                     <div className="h-full w-full overflow-hidden">
-                        <Editor
-                            height="100%"
-                            width="100%"
-                            className="h-full w-full"
-                            language="json"
-                            value={astString}
-                            theme={themeMode === 'dark' ? "vs-dark" : "vs-light"}
-                            options={{
-                                readOnly: true,
-                                minimap: { enabled: true },
-                                scrollBeyondLastLine: false,
-                                fontSize: 13,
-                                lineNumbers: 'on',
-                                glyphMargin: false,
-                                folding: true,
-                                lineDecorationsWidth: 0,
-                                lineNumbersMinChars: 3,
-                                renderWhitespace: 'selection',
-                                tabSize: 2,
-                                insertSpaces: true,
-                                wordWrap: 'on',
-                                automaticLayout: true,
-                                scrollbar: {
-                                    vertical: 'auto',
-                                    horizontal: 'auto'
-                                }
-                            }}
-                            loading={
-                                <div className="flex items-center justify-center h-full">
-                                    <div className="text-gray-400">Loading AST editor...</div>
-                                </div>
-                            }
+                        <MonacoEditor
+                        className="h-full w-full"
+                        yamlString={astString}
+                        themeMode={themeMode}
                         />
                     </div>
                 ),

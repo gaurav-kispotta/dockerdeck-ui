@@ -1,5 +1,5 @@
-import { Radio, Space, Tag, Typography } from 'antd'
-import { GlobalOutlined } from '@ant-design/icons'
+import { Radio, Space, Tag, Tooltip, Typography } from 'antd'
+import { ApartmentOutlined, GlobalOutlined, LayoutOutlined } from '@ant-design/icons'
 import { useAppSelector } from "../../store/hooks"
 import { useViewer } from "../../hooks/useReduxHooks"
 
@@ -50,10 +50,18 @@ export default function StatusBar() {
                 <Text>made with ❤️ in Bengaluru 🇮🇳</Text>
             </div>
             <div className="flex-1 flex justify-end space-x-4">
-                <Radio.Group block value={isViewerVisible ? "AST" : "YAML"} onChange={toggleViewer} optionType="button"
+                <Radio.Group block value={isViewerVisible ? "yaml-view" : "map-view"} onChange={toggleViewer} optionType="button"
                     buttonStyle="solid" size='small'>
-                    <Radio value="YAML">YAML</Radio>
-                    <Radio value="AST">AST</Radio>
+                    <Radio value="yaml-view">
+                        <Tooltip placement="topRight" title="Docker Compose YAML view" >
+                            <LayoutOutlined />
+                        </Tooltip>
+                    </Radio>
+                    <Radio value="map-view">
+                        <Tooltip placement="topRight" title="Docker Compose Map view" >
+                            <ApartmentOutlined />
+                        </Tooltip>
+                    </Radio>
                 </Radio.Group>
             </div>
         </Space>
