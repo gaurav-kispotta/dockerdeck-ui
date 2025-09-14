@@ -27,7 +27,7 @@ export default function SideBar() {
                     expandIconPosition="end"
                     size="small"
                 />
-            <CollapsableSettings />
+            <CollapsableSettings title="General Settings" />
         </div>
     )
 }

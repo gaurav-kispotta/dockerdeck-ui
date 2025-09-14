@@ -5,7 +5,7 @@ interface CollapsableSettingsProps {
 }
 
 function CollapsableSettings({ title }: CollapsableSettingsProps) {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
     return (
         <div className="collapse collapse-arrow bg-base-100 border border-base-300">
             <input type="radio" name="my-accordion-2" checked={isOpen} onChange={() => setIsOpen(!isOpen)} />

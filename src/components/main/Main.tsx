@@ -50,9 +50,9 @@ export default function Main() {
                 width="15%" 
                 collapsed={!isSidebarOpen}
                 collapsedWidth={0}
-                className=" transition-all duration-300 bg-white dark:bg-gray-800"
+                className=" bg-white dark:bg-gray-800"
             >
-                <SideBar></SideBar>
+                {isSidebarOpen && <SideBar></SideBar>}
             </Sider>
             
             {/* Toggle Button */}
