@@ -137,13 +137,13 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         console.log(yamlObject)
         const maker = new MapMaker();
         if (yamlObject) {
-            maker.buildMap3(yamlObject, settings)
+            maker.buildMap3(yamlObject, settings, dispatch)
                 .then(() => {
                     setNodes(maker.nodes)
                     setEdges(maker.edges)
                 })
         }
-    }, [yamlObject, settings])
+    }, [yamlObject, settings, dispatch])
 
     return (
         <ReactFlow

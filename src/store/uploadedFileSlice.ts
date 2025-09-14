@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { IDockerComposeAst } from '../modules/ast/DockerComposeAstBuilder'
 
 export type FileContentType = string | ArrayBuffer
 
@@ -12,6 +13,7 @@ export type YamlDockerCompose = {
 interface UploadedFileState {
   fileContent?: FileContentType
   yamlObject?: YamlDockerCompose | null
+  astObject?: IDockerComposeAst | null
   isProcessing: boolean
   error?: string
   isViewerVisible: boolean
@@ -20,6 +22,7 @@ interface UploadedFileState {
 const initialState: UploadedFileState = {
   fileContent: undefined,
   yamlObject: null,
+  astObject: null,
   isProcessing: false,
   error: undefined,
   isViewerVisible: false
@@ -39,6 +42,9 @@ const uploadedFileSlice = createSlice({
       state.isProcessing = false
       state.error = undefined
     },
+    setAstObject: (state, action: PayloadAction<IDockerComposeAst | null>) => {
+      state.astObject = action.payload
+    },
     setProcessingError: (state, action: PayloadAction<string>) => {
       state.error = action.payload
       state.isProcessing = false
@@ -46,6 +52,7 @@ const uploadedFileSlice = createSlice({
     clearFile: (state) => {
       state.fileContent = undefined
       state.yamlObject = null
+      state.astObject = null
       state.isProcessing = false
       state.error = undefined
       state.isViewerVisible = false
@@ -68,6 +75,7 @@ const uploadedFileSlice = createSlice({
 export const { 
   setFileContent, 
   setYamlObject, 
+  setAstObject,
   setProcessingError, 
   clearFile, 
   setProcessing,

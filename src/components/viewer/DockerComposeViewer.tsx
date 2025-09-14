@@ -2,6 +2,7 @@ import Editor from '@monaco-editor/react';
 import yaml from 'yaml';
 import { useAppSelector } from '../../store/hooks';
 import { Tabs } from 'antd';
+import AstDebugViewer from '../debug/AstDebugViewer';
 
 type MonacoEditorProps = {
     yamlString: string;
@@ -112,12 +113,8 @@ export default function DockerComposeViewer() {
                 key: '2',
                 closable: true,
                 children: (
-                    <div className="h-full w-full overflow-hidden">
-                        <MonacoEditor
-                        className="h-full w-full"
-                        yamlString={astString}
-                        themeMode={themeMode}
-                        />
+                    <div className="h-full w-full overflow">
+                        <AstDebugViewer />
                     </div>
                 ),
                 },
