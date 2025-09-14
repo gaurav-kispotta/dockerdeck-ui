@@ -21,8 +21,8 @@ export default function Settings() {
   }
 
   return (
-    <Card title="Layout Settings" size="small" className="m-4 theme-transition">
-      <Space direction="vertical" size="large" className="w-full">
+
+      <Space direction="vertical" size="small" className="w-full">
         <div>
           <Text strong className="dark:text-gray-200">Platform Padding: {platformPadding}px</Text>
           <Slider
@@ -56,6 +56,6 @@ export default function Settings() {
           />
         </div>
       </Space>
-    </Card>
+
   )
 }

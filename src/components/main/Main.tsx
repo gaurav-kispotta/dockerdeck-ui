@@ -1,5 +1,5 @@
 import { useContextMenu } from "react-contexify";
-import { Button, Layout, Typography } from 'antd'
+import { Button, Empty, Layout, Typography } from 'antd'
 import { LeftOutlined, RightOutlined, UpOutlined, DownOutlined } from '@ant-design/icons'
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
@@ -51,14 +51,9 @@ export default function Main() {
                 width="15%" 
                 collapsed={!isSidebarOpen}
                 collapsedWidth={0}
-                className="bg-slate-500 dark:bg-slate-800 transition-all duration-300"
-                style={{ 
-                    overflow: 'hidden',
-                }}
+                className=" transition-all duration-300 bg-white dark:bg-gray-800"
             >
-                <div className="overflow-scroll h-full">
-                    <SideBar></SideBar>
-                </div>
+                <SideBar></SideBar>
             </Sider>
             
             {/* Toggle Button */}
@@ -86,7 +81,10 @@ export default function Main() {
                         { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
                         { !yamlObject && (
                             <div className="flex items-center justify-center h-full">
-                                <Text className="text-gray-500 dark:text-gray-400 text-lg">Please load a docker-compose.yaml.</Text>
+                                
+                                <Empty description={
+                                    <Text strong className="text-gray-500 dark:text-gray-400 text-lg">Please load a docker-compose.yaml or .yml file</Text>
+                                } />
                             </div>
                         )}
                     </div>

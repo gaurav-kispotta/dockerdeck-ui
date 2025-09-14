@@ -7,7 +7,7 @@ type ToolBoxProp = {
 
 export default function ToolBox({ items }: ToolBoxProp) {
     return (
-        <Card title="Toolbox" size="small" className="m-4 theme-transition">
+        <Card size="small">
             <div className="grid grid-cols-3 gap-3">
                 {
                     items.map(t => (

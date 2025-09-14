@@ -107,27 +107,6 @@ export function Navbar() {
             <div className="flex-none">
                 <Space size="middle">
                     <ThemeToggle />
-                    
-                    <Dropdown menu={{ items: cartItems }} placement="bottomRight" trigger={['click']}>
-                        <Button 
-                            type="text" 
-                            shape="circle" 
-                            icon={
-                                <Badge count={8} size="small">
-                                    <ShoppingCartOutlined className="text-lg" />
-                                </Badge>
-                            }
-                        />
-                    </Dropdown>
-                    
-                    <Dropdown menu={{ items: userItems }} placement="bottomRight" trigger={['click']}>
-                        <Avatar 
-                            size="default" 
-                            src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                            icon={<UserOutlined />}
-                            className="cursor-pointer"
-                        />
-                    </Dropdown>
                 </Space>
             </div>
         </div>
