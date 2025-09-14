@@ -1,4 +1,4 @@
-import { Layout, Upload, Button, Dropdown, Avatar, Badge, Space, Typography } from 'antd'
+import { Layout, Upload, Button, Dropdown, Avatar, Badge, Space, Typography, Tag } from 'antd'
 import { UploadOutlined, ShoppingCartOutlined, UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useFileUpload } from "../../context/ReduxAppContext"
@@ -96,7 +96,9 @@ export function Navbar() {
     return (
         <div className="px-6 flex items-center justify-between h-16 theme-transition ">
             <div className="flex-none">
-                <Title level={3} className="text-gray-900 dark:text-gray-100">docker deck</Title>
+                <Title level={3} className="text-gray-900 dark:text-gray-100">
+                    docker deck<sup className="text-xs text-blue-500 ml-1"><Tag color="blue">alpha </Tag></sup>
+                </Title>
             </div>
             <div className="flex-grow flex justify-center items-center">
                 <Upload {...uploadProps}>
