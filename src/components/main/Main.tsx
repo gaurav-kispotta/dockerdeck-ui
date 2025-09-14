@@ -1,5 +1,5 @@
 import { useContextMenu } from "react-contexify";
-import { Button, Empty, Layout, Typography } from 'antd'
+import { Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'antd'
 import { LeftOutlined, RightOutlined, UpOutlined, DownOutlined } from '@ant-design/icons'
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
@@ -45,6 +45,14 @@ export default function Main() {
     };
 
     return (
+        <ConfigProvider theme={{
+            components: {
+                Splitter: {
+                    splitBarSize: isViewerOpen || !yamlObject ? 5 : 0,
+                    splitBarDraggableSize: 500
+                }
+            }
+    }}>
         <Layout className='h-full relative'>
             {/* Sidebar */}
             <Sider 
@@ -71,47 +79,49 @@ export default function Main() {
             
             <Content className="flex flex-col">
                 {/* Main Content - Split into top and bottom */}
-                <div className="flex flex-col h-full">
-                    {/* Top half - Design Deck */}
-                    <div 
-                        id="docker-deck-ui" 
-                        className={`${isViewerOpen && yamlObject ? 'h-1/2' : 'h-full'} bg-slate-50 dark:bg-slate-900 transition-all duration-300`} 
-                        onContextMenu={displayMenu}
-                    >
-                        { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
-                        { !yamlObject && (
-                            <div className="flex items-center justify-center h-full">
-                                
-                                <Empty description={
-                                    <Text strong className="text-gray-500 dark:text-gray-400 text-lg">Please load a docker-compose.yaml or .yml file</Text>
-                                } />
-                            </div>
-                        )}
-                    </div>
-                    
-                    {/* Bottom half - Docker Compose Viewer */}
-                    {yamlObject && isViewerOpen && (
-                        <div className="h-1/2 border-t border-gray-200 dark:border-gray-700">
-                            <DockerComposeViewer 
-                                yamlObject={yamlObject} 
-                                onClose={handleViewerClose}
-                            />
+                <Splitter layout="vertical">
+                    <Splitter.Panel>
+                        <div 
+                            className="h-full w-full"
+                            onContextMenu={displayMenu}
+                            >
+                            { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
+                            { !yamlObject && (
+                                <div className="flex items-center justify-center h-full">
+                                    
+                                    <Empty description={
+                                        <Text strong className="text-gray-500 dark:text-gray-400 text-lg">Please load a docker-compose.yaml or .yml file</Text>
+                                    } />
+                                </div>
+                            )}
                         </div>
-                    )}
-                    
-                    {/* Show/Hide Viewer Toggle Button - only show when yamlObject exists */}
-                    {yamlObject && (
-                        <Button
-                            onClick={toggleViewer}
-                            className="absolute bottom-4 right-4 z-10 shadow-lg"
-                            icon={isViewerOpen ? <DownOutlined /> : <UpOutlined />}
-                            shape="circle"
-                            type="primary"
-                            size="large"
-                        />
-                    )}
-                </div>
+                    </Splitter.Panel>
+                    { yamlObject && <Splitter.Panel size={isViewerOpen ? '50%' : '0%'} className="">
+                        <div className="h-full w-full">
+                            {/* Bottom half - Docker Compose Viewer */}
+                            {yamlObject && isViewerOpen && (
+                                <DockerComposeViewer 
+                                    yamlObject={yamlObject} 
+                                    onClose={handleViewerClose}
+                                />
+                            )}
+                            
+                            {/* Show/Hide Viewer Toggle Button - only show when yamlObject exists */}
+                            {yamlObject && (
+                                <Button
+                                    onClick={toggleViewer}
+                                    className="absolute bottom-4 right-4 z-10 shadow-lg"
+                                    icon={isViewerOpen ? <DownOutlined /> : <UpOutlined />}
+                                    shape="circle"
+                                    type="primary"
+                                    size="large"
+                                />
+                            )}
+                        </div>
+                    </Splitter.Panel> }
+                </Splitter>
             </Content>
         </Layout>
+        </ConfigProvider>
     )
 }
