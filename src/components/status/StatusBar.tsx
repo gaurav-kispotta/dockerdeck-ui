@@ -1,11 +1,13 @@
-import { Space, Tag, Typography } from 'antd'
+import { Radio, Space, Tag, Typography } from 'antd'
 import { GlobalOutlined } from '@ant-design/icons'
 import { useAppSelector } from "../../store/hooks"
+import { useViewer } from "../../hooks/useReduxHooks"
 
 const { Text } = Typography
 
 export default function StatusBar() {
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
+    const { isViewerVisible, toggleViewer } = useViewer()
 
     const networkCounter = () => {
         let counter = 0
@@ -48,7 +50,11 @@ export default function StatusBar() {
                 <Text>made with ❤️ in Bengaluru 🇮🇳</Text>
             </div>
             <div className="flex-1 flex justify-end space-x-4">
-                <Tag onClick={() => {}}><a>Docker: YAML</a></Tag>
+                <Radio.Group block value={isViewerVisible ? "AST" : "YAML"} onChange={toggleViewer} optionType="button"
+                    buttonStyle="solid" size='small'>
+                    <Radio value="YAML">YAML</Radio>
+                    <Radio value="AST">AST</Radio>
+                </Radio.Group>
             </div>
         </Space>
     )

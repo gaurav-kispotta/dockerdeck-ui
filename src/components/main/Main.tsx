@@ -1,10 +1,9 @@
 import { useContextMenu } from "react-contexify";
 import { Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'antd'
-import { LeftOutlined, RightOutlined, UpOutlined, DownOutlined } from '@ant-design/icons'
+import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
-import { useAppSelector, useAppDispatch } from "../../store/hooks";
-import { toggleViewer, hideViewer } from "../../store/uploadedFileSlice";
+import { useAppSelector } from "../../store/hooks";
 import SideBar from "../sidebar/SideBar";
 import DockerComposeViewer from "../viewer/DockerComposeViewer";
 import { useState } from "react";
@@ -19,7 +18,6 @@ const MENU_ID = "menu-id";
 export default function Main() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     
-    const dispatch = useAppDispatch();
     const { show } = useContextMenu({
         id: MENU_ID
     });
@@ -35,14 +33,6 @@ export default function Main() {
 
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
-    };
-
-    const handleToggleViewer = () => {
-        dispatch(toggleViewer());
-    };
-
-    const handleViewerClose = () => {
-        dispatch(hideViewer());
     };
 
     return (
@@ -101,21 +91,7 @@ export default function Main() {
                         <div className="h-full w-full">
                             {/* Bottom half - Docker Compose Viewer */}
                             {yamlObject && isViewerVisible && (
-                                <DockerComposeViewer 
-                                    onClose={handleViewerClose}
-                                />
-                            )}
-                            
-                            {/* Show/Hide Viewer Toggle Button - only show when yamlObject exists */}
-                            {yamlObject && (
-                                <Button
-                                    onClick={handleToggleViewer}
-                                    className="absolute bottom-4 right-4 z-10 shadow-lg"
-                                    icon={isViewerVisible ? <DownOutlined /> : <UpOutlined />}
-                                    shape="circle"
-                                    type="primary"
-                                    size="large"
-                                />
+                                <DockerComposeViewer />
                             )}
                         </div>
                     </Splitter.Panel> }
