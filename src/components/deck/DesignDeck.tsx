@@ -26,7 +26,7 @@ interface DesignDeckProperties extends IDesignElement {
 
 // Inner component that has access to ReactFlow context
 function FlowWithCentering() {
-    const { getNode, setCenter } = useReactFlow();
+    const { getNode, setCenter, fitView } = useReactFlow();
     const selection = useAppSelector((state) => state.selection);
     
     // Effect to center on node when selected from AST viewer
@@ -35,12 +35,7 @@ function FlowWithCentering() {
         if (selection.selectedNodeId && selection.connectedNodeIds.length === 0) {
             const node = getNode(selection.selectedNodeId);
             if (node && node.position) {
-                // Calculate center point of the node
-                const centerX = node.position.x + (node.width || 150) / 2;
-                const centerY = node.position.y + (node.height || 150) / 2;
-                
-                // Center the view on the selected node with zoom
-                setCenter(centerX, centerY, { zoom: 1.2, duration: 800 });
+                fitView({ nodes: [node], duration: 800, maxZoom: 1 }); // Fit view first (zoomed out, instant)
             }
         }
     }, [selection.selectedNodeId, selection.connectedNodeIds, getNode, setCenter]);
