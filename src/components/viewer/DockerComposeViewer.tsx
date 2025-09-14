@@ -113,7 +113,7 @@ export default function DockerComposeViewer() {
                 key: '2',
                 closable: true,
                 children: (
-                    <div className="h-full w-full overflow">
+                    <div className="h-full w-full overflow-y-auto overflow-x-hidden p-2">
                         <AstDebugViewer />
                     </div>
                 ),
