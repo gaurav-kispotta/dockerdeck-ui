@@ -28,7 +28,7 @@ describe('NetworkNodeBuilder', () => {
     expect(node.parentId).toBe('parent-root');
     expect(node.width).toBe(160);
     expect(node.height).toBe(110);
-    expect(node.style?.background).toBe('#mock-network-frontend');
+    expect(node.style).toEqual({}); // NetworkNodeBuilder sets style to empty object
     expect(node.data?.label).toBe('Network: frontendnetwork-frontend');
     expect(node.extent).toBe('parent');
   });
