@@ -17,7 +17,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ yamlString, themeMode, clas
             className={className}
             language="yaml"
             value={yamlString}
-            theme={themeMode === 'dark' ? "vs-dark" : "vs-light"}
+            theme={themeMode === 'dark' || themeMode === 'system' ? "vs-dark" : "vs-light"}
             options={{
                 readOnly: true,
                 minimap: { enabled: true },
