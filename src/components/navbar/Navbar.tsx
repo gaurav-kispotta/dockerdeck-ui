@@ -4,6 +4,7 @@ import type { MenuProps } from 'antd'
 import { useFileUpload } from "../../context/ReduxAppContext"
 import { ThemeToggle } from '../theme/ThemeToggle'
 import { useState } from 'react'
+import packageJson from '../../../package.json'
 
 const { Header } = Layout
 const { Title } = Typography
@@ -97,7 +98,10 @@ export function Navbar() {
         <div className="px-6 flex items-center justify-between h-16 theme-transition ">
             <div className="flex-none">
                 <Title level={3} className="text-gray-900 dark:text-gray-100">
-                    docker deck<sup className="text-xs text-blue-500 ml-1"><Tag color="blue">alpha </Tag></sup>
+                    docker deck<sup className="text-xs text-blue-500 ml-1">
+                        <Tag color="blue">alpha</Tag>
+                        <Tag color="green" className="ml-1">v{packageJson.version}</Tag>
+                    </sup>
                 </Title>
             </div>
             <div className="flex-grow flex justify-center items-center">
