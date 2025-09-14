@@ -25,9 +25,35 @@ interface DesignDeckProperties extends IDesignElement {
 }
 
 // Inner component that has access to ReactFlow context
-function FlowWithCentering() {
+function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
     const { getNode, setCenter, fitView } = useReactFlow();
     const selection = useAppSelector((state) => state.selection);
+    const yamlObject = useAppSelector((state) => state.uploadedFile.yamlObject);
+    const [hasNewFile, setHasNewFile] = useState(false);
+    
+    // Effect to detect when a new file is uploaded
+    useEffect(() => {
+        if (yamlObject) {
+            setHasNewFile(true);
+        }
+    }, [yamlObject]);
+    
+    // Effect to fit view to complete graph when nodes are updated after a new file upload
+    useEffect(() => {
+        if (hasNewFile && propNodes.length > 0) {
+            // Small delay to ensure nodes are fully rendered before fitting view
+            const timeoutId = setTimeout(() => {
+                fitView({ 
+                    padding: 0.1, // 10% padding around the nodes
+                    duration: 800, // Smooth animation
+                    includeHiddenNodes: false 
+                });
+                setHasNewFile(false); // Reset flag after fitting view
+            }, 100);
+            
+            return () => clearTimeout(timeoutId);
+        }
+    }, [hasNewFile, propNodes.length, fitView]);
     
     // Effect to center on node when selected from AST viewer
     useEffect(() => {
@@ -38,7 +64,7 @@ function FlowWithCentering() {
                 fitView({ nodes: [node], duration: 800, maxZoom: 1 }); // Fit view first (zoomed out, instant)
             }
         }
-    }, [selection.selectedNodeId, selection.connectedNodeIds, getNode, setCenter]);
+    }, [selection.selectedNodeId, selection.connectedNodeIds, getNode, setCenter, fitView]);
 
     return null; // This component only handles side effects
 }
@@ -187,7 +213,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             className='overview'
             
         >
-            <FlowWithCentering />
+            <FlowWithCentering nodes={nodes} />
             <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable={true} zoomable={true} />
             <Background />
             <Controls position={'bottom-left'} orientation={'horizontal'} />
