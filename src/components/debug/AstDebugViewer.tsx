@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Tree, Switch, Space, Card, Typography } from 'antd';
+import React, { useMemo } from 'react';
+import { Tree, Card, Typography } from 'antd';
 import { 
     ContainerOutlined, 
     ApiOutlined, 
@@ -27,8 +27,7 @@ export const AstDebugViewer: React.FC = () => {
     const { isDark } = useAppSelector((state) => state.theme);
     const dispatch = useAppDispatch();
     
-    const [showLine, setShowLine] = useState<boolean>(true);
-    const [showIcon, setShowIcon] = useState<boolean>(true);
+
 
     // Transform AST object into tree data
     const treeData: TreeDataNode[] = useMemo(() => {
@@ -237,19 +236,10 @@ export const AstDebugViewer: React.FC = () => {
                     )}
                 </div>
             )}
-            
-            <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
-                <Space>
-                    <span>Show Lines:</span>
-                    <Switch checked={showLine} onChange={setShowLine} size="small" />
-                    <span>Show Icons:</span>
-                    <Switch checked={showIcon} onChange={setShowIcon} size="small" />
-                </Space>
-            </Space>
 
             <Tree
-                showLine={showLine ? { showLeafIcon: true } : false}
-                showIcon={showIcon}
+                showLine={{ showLeafIcon: true }}
+                showIcon={true}
                 defaultExpandedKeys={['root', 'services']}
                 expandedKeys={selection.expandedAstKeys.length > 0 ? selection.expandedAstKeys : ['root', 'services']}
                 selectedKeys={selection.selectedAstNodeKey ? [selection.selectedAstNodeKey] : []}
