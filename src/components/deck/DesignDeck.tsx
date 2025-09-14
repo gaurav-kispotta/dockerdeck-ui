@@ -8,6 +8,7 @@ import {
     type Edge,
     type NodeMouseHandler,
     MiniMap,
+    useReactFlow
 } from '@xyflow/react'
 import { useCallback, useState, useEffect, useMemo } from 'react'
 
@@ -21,6 +22,30 @@ import { selectNode, clearSelection } from '../../store/selectionSlice'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
+}
+
+// Inner component that has access to ReactFlow context
+function FlowWithCentering() {
+    const { getNode, setCenter } = useReactFlow();
+    const selection = useAppSelector((state) => state.selection);
+    
+    // Effect to center on node when selected from AST viewer
+    useEffect(() => {
+        // Only center if selection came from AST (indicated by empty connectedNodeIds)
+        if (selection.selectedNodeId && selection.connectedNodeIds.length === 0) {
+            const node = getNode(selection.selectedNodeId);
+            if (node && node.position) {
+                // Calculate center point of the node
+                const centerX = node.position.x + (node.width || 150) / 2;
+                const centerY = node.position.y + (node.height || 150) / 2;
+                
+                // Center the view on the selected node with zoom
+                setCenter(centerX, centerY, { zoom: 1.2, duration: 800 });
+            }
+        }
+    }, [selection.selectedNodeId, selection.connectedNodeIds, getNode, setCenter]);
+
+    return null; // This component only handles side effects
 }
 
 function DesignDeck({ clear = false }: DesignDeckProperties) {
@@ -167,6 +192,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             className='overview'
             
         >
+            <FlowWithCentering />
             <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable={true} zoomable={true} />
             <Background />
             <Controls position={'bottom-left'} orientation={'horizontal'} />
