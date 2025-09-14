@@ -29,6 +29,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
     const { themeMode } = useAppSelector((state) => state.theme)
 
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
+    const astObject = useAppSelector((state) => state.uploadedFile.astObject)
     const settings = useAppSelector((state) => state.settings)
     const selection = useAppSelector((state) => state.selection)
     const dispatch = useAppDispatch()
@@ -47,6 +48,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
     );
 
     const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
+        console.log('Graph: Clicked node:', node.id);
+        
         // Find all connected edges and nodes
         const connectedEdgeIds: string[] = []
         const connectedNodeIds: string[] = []
@@ -62,12 +65,15 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             }
         })
 
+        console.log('Graph: Dispatching selectNode with nodeId:', node.id, 'astObject:', astObject);
+
         dispatch(selectNode({
             nodeId: node.id,
             connectedNodeIds,
-            connectedEdgeIds
+            connectedEdgeIds,
+            astObject
         }))
-    }, [dispatch, edges])
+    }, [dispatch, edges, astObject])
 
     const onPaneClick = useCallback(() => {
         dispatch(clearSelection())

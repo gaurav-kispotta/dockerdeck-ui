@@ -12,7 +12,8 @@ import {
     FileOutlined
 } from '@ant-design/icons';
 import type { TreeDataNode } from 'antd';
-import { useAppSelector } from '../../store/hooks';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { selectAstNode } from '../../store/selectionSlice';
 
 const { Title } = Typography;
 
@@ -22,6 +23,9 @@ const { Title } = Typography;
  */
 export const AstDebugViewer: React.FC = () => {
     const astObject = useAppSelector((state) => state.uploadedFile.astObject);
+    const selection = useAppSelector((state) => state.selection);
+    const dispatch = useAppDispatch();
+    
     const [showLine, setShowLine] = useState<boolean>(true);
     const [showIcon, setShowIcon] = useState<boolean>(true);
 
@@ -164,7 +168,46 @@ export const AstDebugViewer: React.FC = () => {
     }, [astObject]);
 
     const onSelect = (selectedKeys: React.Key[], info: any) => {
-        console.log('Selected AST node:', selectedKeys, info);
+        console.log('AST Tree: Selected keys:', selectedKeys, 'info:', info);
+        
+        if (selectedKeys.length > 0) {
+            const selectedKey = selectedKeys[0] as string;
+            
+            // Get all currently expanded keys from the tree state
+            const allExpandedKeys = [...(selection.expandedAstKeys.length > 0 ? selection.expandedAstKeys : ['root', 'services'])];
+            
+            // Add the parent keys of the selected node to ensure it's visible
+            const parentKeys = selectedKey.split('-').reduce((acc: string[], part: string, index: number) => {
+                if (index === 0) {
+                    acc.push(part);
+                } else {
+                    acc.push(acc[acc.length - 1] + '-' + part);
+                }
+                return acc;
+            }, []);
+            
+            const newExpandedKeys = Array.from(new Set([...allExpandedKeys, ...parentKeys]));
+            
+            console.log('AST Tree: Dispatching selectAstNode with key:', selectedKey, 'expanded keys:', newExpandedKeys);
+            
+            dispatch(selectAstNode({
+                astNodeKey: selectedKey,
+                expandedKeys: newExpandedKeys,
+                astObject
+            }));
+        }
+    };
+
+    const onExpand = (expandedKeys: React.Key[]) => {
+        console.log('AST Tree: Expanded keys changed:', expandedKeys);
+        // Update expanded keys while maintaining current selection
+        if (selection.selectedAstNodeKey) {
+            dispatch(selectAstNode({
+                astNodeKey: selection.selectedAstNodeKey,
+                expandedKeys: expandedKeys as string[],
+                astObject
+            }));
+        }
     };
 
     if (!astObject) {
@@ -180,6 +223,20 @@ export const AstDebugViewer: React.FC = () => {
         <Card>
             <Title level={4}>Docker Compose AST Debug</Title>
             
+            {/* Debug info */}
+            {selection.selectedNodeId && (
+                <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded">
+                    <div className="text-sm">
+                        <strong>Selected Graph Node:</strong> {selection.selectedNodeId}
+                    </div>
+                    {selection.selectedAstNodeKey && (
+                        <div className="text-sm">
+                            <strong>Selected AST Node:</strong> {selection.selectedAstNodeKey}
+                        </div>
+                    )}
+                </div>
+            )}
+            
             <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
                 <Space>
                     <span>Show Lines:</span>
@@ -193,7 +250,10 @@ export const AstDebugViewer: React.FC = () => {
                 showLine={showLine ? { showLeafIcon: true } : false}
                 showIcon={showIcon}
                 defaultExpandedKeys={['root', 'services']}
+                expandedKeys={selection.expandedAstKeys.length > 0 ? selection.expandedAstKeys : ['root', 'services']}
+                selectedKeys={selection.selectedAstNodeKey ? [selection.selectedAstNodeKey] : []}
                 onSelect={onSelect}
+                onExpand={onExpand}
                 treeData={treeData}
                 height={400}
                 style={{ 
