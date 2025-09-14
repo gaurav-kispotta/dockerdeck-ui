@@ -7,6 +7,7 @@ import {
     type Node,
     type Edge,
     type NodeMouseHandler,
+    MiniMap,
 } from '@xyflow/react'
 import { useCallback, useState, useEffect, useMemo } from 'react'
 
@@ -160,8 +161,9 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             className='overview'
             
         >
-            <Background/>
-            <Controls position={'bottom-left'} orientation={'horizontal'}/>
+            <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable={true} zoomable={true} />
+            <Background />
+            <Controls position={'bottom-left'} orientation={'horizontal'} />
 
         </ReactFlow>
     )
