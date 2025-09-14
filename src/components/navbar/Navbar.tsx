@@ -1,12 +1,10 @@
-import { Layout, Upload, Button, Dropdown, Avatar, Badge, Space, Typography, Tag } from 'antd'
-import { UploadOutlined, ShoppingCartOutlined, UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons'
-import type { MenuProps } from 'antd'
+import { Upload, Button, Space, Typography, Tag } from 'antd'
+import { UploadOutlined } from '@ant-design/icons'
 import { useFileUpload } from "../../context/ReduxAppContext"
 import { ThemeToggle } from '../theme/ThemeToggle'
 import { useState } from 'react'
 import packageJson from '../../../package.json'
 
-const { Header } = Layout
 const { Title } = Typography
 
 export function Navbar() {
@@ -50,41 +48,6 @@ export function Navbar() {
             }
         }
     }
-
-    const cartItems: MenuProps['items'] = [
-        {
-            key: '1',
-            label: (
-                <div className="p-4 w-52">
-                    <div className="text-lg font-bold mb-2">8 Items</div>
-                    <div className="text-blue-600 mb-4">Subtotal: $999</div>
-                    <Button type="primary" block>View cart</Button>
-                </div>
-            ),
-        },
-    ]
-
-    const userItems: MenuProps['items'] = [
-        {
-            key: '1',
-            label: (
-                <Space>
-                    Profile
-                    <Badge count="New" size="small" />
-                </Space>
-            ),
-        },
-        {
-            key: '2',
-            icon: <SettingOutlined />,
-            label: 'Settings',
-        },
-        {
-            key: '3',
-            icon: <LogoutOutlined />,
-            label: 'Logout',
-        },
-    ]
 
     const uploadProps = {
         accept: '.yaml,.yml',

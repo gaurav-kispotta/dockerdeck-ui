@@ -60,9 +60,6 @@ export default function DockerComposeViewer() {
         singleQuote: false
     }) : '';
 
-    // Convert the YAML object to formatted JSON for AST view
-    const astString = yamlObject ? JSON.stringify(yamlObject.services, null, 2) : '';
-
     if (!isViewerVisible || !yamlObject) {
         return null;
     }

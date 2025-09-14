@@ -1,4 +1,4 @@
-import { Handle, Position, useStore } from '@xyflow/react'
+import { Handle, Position } from '@xyflow/react'
 
 import '@xyflow/react/dist/style.css';
 
@@ -7,15 +7,6 @@ interface RedisNodeProperties {
 }
 
 function RedisNode({ id }: RedisNodeProperties) {
-  const label = useStore((s) => {
-    const node = s.nodeLookup.get(id)
-
-    if (!node) {
-      return null
-    }
-
-    return `Position of node is ${node.position.x}:${node.position.y}`
-  })
   return (
     <div className="flex items-center justify-center h-full w-full rounded-full">
       <div className='flex flex-col items-center justify-center rounded-md p-2 relative'>

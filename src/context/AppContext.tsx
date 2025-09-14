@@ -1,7 +1,6 @@
 import { useState } from "react";
 import GlobalContextMenu from "../components/context-menu/GlobalContextMenu";
 import { FileContentType, UploadedFileContext } from "./UploadedFileContext";
-import { getYamlObjects } from "../utils/yamlHelper";
 import YamlObjectTransformer from "../modules/YamlObjectTransformer";
 
 interface AppContextProp {

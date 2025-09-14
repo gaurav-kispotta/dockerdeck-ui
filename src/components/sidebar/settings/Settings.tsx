@@ -1,4 +1,4 @@
-import { Card, Slider, Typography, Space } from 'antd'
+import { Slider, Typography, Space } from 'antd'
 import { useAppDispatch, useAppSelector } from '../../../store/hooks'
 import { setPlatformPadding, setNodeLevelPadding, setNodeSize } from '../../../store/settingsSlice'
 
