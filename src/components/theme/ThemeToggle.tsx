@@ -1,10 +1,17 @@
 import { Button, Dropdown } from 'antd'
 import { SunOutlined, MoonOutlined, DesktopOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
-import { useTheme } from '../../context/ThemeContext'
+import { useAppSelector, useAppDispatch } from '../../store/hooks'
+import { setThemeMode } from '../../store/themeSlice'
+import type { ThemeMode } from '../../store/themeSlice'
 
 export const ThemeToggle = () => {
-  const { themeMode, setThemeMode } = useTheme()
+  const dispatch = useAppDispatch()
+  const { themeMode } = useAppSelector((state) => state.theme)
+
+  const handleSetThemeMode = (mode: ThemeMode) => {
+    dispatch(setThemeMode(mode))
+  }
 
   const getIcon = () => {
     switch (themeMode) {
@@ -24,19 +31,19 @@ export const ThemeToggle = () => {
       key: 'light',
       icon: <SunOutlined />,
       label: 'Light',
-      onClick: () => setThemeMode('light'),
+      onClick: () => handleSetThemeMode('light'),
     },
     {
       key: 'dark',
       icon: <MoonOutlined />,
       label: 'Dark',
-      onClick: () => setThemeMode('dark'),
+      onClick: () => handleSetThemeMode('dark'),
     },
     {
       key: 'system',
       icon: <DesktopOutlined />,
       label: 'System',
-      onClick: () => setThemeMode('system'),
+      onClick: () => handleSetThemeMode('system'),
     },
   ]
 

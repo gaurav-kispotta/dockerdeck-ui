@@ -1,7 +1,7 @@
 import { Layout, Upload, Button, Dropdown, Avatar, Badge, Space, Typography } from 'antd'
 import { UploadOutlined, ShoppingCartOutlined, UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
-import { useUploadFileContext } from "../../context/UploadedFileContext"
+import { useFileUpload } from "../../context/ReduxAppContext"
 import { ThemeToggle } from '../theme/ThemeToggle'
 import { useState } from 'react'
 
@@ -9,7 +9,7 @@ const { Header } = Layout
 const { Title } = Typography
 
 export function Navbar() {
-    const { setContent } = useUploadFileContext()
+    const { setContent } = useFileUpload()
     const [fileName, setFileName] = useState<string | null>(null)
 
     const readFile = (file: File): Promise<string> => {

@@ -13,12 +13,10 @@ import { useCallback, useState, useEffect, useMemo } from 'react'
 import '@xyflow/react/dist/style.css'
 import { IDesignElement } from '../../interface/IDesignElements'
 import nodeTypes from './NodeTypes'
-import { useUploadFileContext } from '../../context/UploadedFileContext'
 import MapMaker from '../../modules/MapMaker'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
 import { selectNode, clearSelection } from '../../store/selectionSlice'
-import { useTheme } from '../../context/ThemeContext'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -27,9 +25,9 @@ interface DesignDeckProperties extends IDesignElement {
 function DesignDeck({ clear = false }: DesignDeckProperties) {
     const [nodes, setNodes] = useState<Node[]>([])
     const [edges, setEdges] = useState<Edge[]>([])
-    const {themeMode} = useTheme()
+    const { themeMode } = useAppSelector((state) => state.theme)
 
-    const { yamlObject } = useUploadFileContext()
+    const { yamlObject } = useAppSelector((state) => state.uploadedFile)
     const settings = useAppSelector((state) => state.settings)
     const selection = useAppSelector((state) => state.selection)
     const dispatch = useAppDispatch()

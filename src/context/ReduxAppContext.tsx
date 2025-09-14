@@ -1,0 +1,42 @@
+import { ReactNode } from 'react'
+import { useAppDispatch } from '../store/hooks'
+import { setFileContent, setYamlObject, setProcessingError } from '../store/uploadedFileSlice'
+import GlobalContextMenu from '../components/context-menu/GlobalContextMenu'
+import YamlObjectTransformer from '../modules/YamlObjectTransformer'
+import type { FileContentType } from '../store/uploadedFileSlice'
+
+interface ReduxAppContextProps {
+  children: ReactNode
+}
+
+// Custom hook to handle file upload logic
+export const useFileUpload = () => {
+  const dispatch = useAppDispatch()
+
+  const setContent = (fc: FileContentType) => {
+    try {
+      console.log('Processing uploaded file...')
+      dispatch(setFileContent(fc))
+      
+      const yt = new YamlObjectTransformer()
+      const yamlObject = yt.yamlToObjects(fc.toString())
+      console.log('YAML object parsed:', yamlObject)
+      
+      dispatch(setYamlObject(yamlObject))
+    } catch (error) {
+      console.error('Error processing file:', error)
+      dispatch(setProcessingError(error instanceof Error ? error.message : 'Unknown error'))
+    }
+  }
+
+  return { setContent }
+}
+
+export default function ReduxAppContext({ children }: ReduxAppContextProps) {
+  return (
+    <>
+      {children}
+      <GlobalContextMenu />
+    </>
+  )
+}

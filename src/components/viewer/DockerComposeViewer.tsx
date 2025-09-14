@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import yaml from 'yaml';
-import { useTheme } from '../../context/ThemeContext';
+import { useAppSelector } from '../../store/hooks';
 
 interface DockerComposeViewerProps {
     yamlObject: any;
@@ -10,7 +10,7 @@ interface DockerComposeViewerProps {
 
 export default function DockerComposeViewer({ yamlObject, onClose }: DockerComposeViewerProps) {
     const [isVisible, setIsVisible] = useState(true);
-    const { themeMode } = useTheme();
+    const { themeMode } = useAppSelector((state) => state.theme);
 
     // Convert the YAML object back to a prettified YAML string
     const yamlString = yamlObject ? yaml.stringify(yamlObject, {

@@ -3,7 +3,7 @@ import { Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'ant
 import { LeftOutlined, RightOutlined, UpOutlined, DownOutlined } from '@ant-design/icons'
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
-import { useUploadFileContext } from "../../context/UploadedFileContext";
+import { useAppSelector } from "../../store/hooks";
 import SideBar from "../sidebar/SideBar";
 import DockerComposeViewer from "../viewer/DockerComposeViewer";
 import { useState } from "react";
@@ -22,7 +22,7 @@ export default function Main() {
     const { show } = useContextMenu({
         id: MENU_ID
     });
-    const { yamlObject } = useUploadFileContext()
+    const { yamlObject } = useAppSelector((state) => state.uploadedFile)
 
     function displayMenu(e: any) {
         // put whatever custom logic you need

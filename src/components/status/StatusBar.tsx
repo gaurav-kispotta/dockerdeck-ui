@@ -1,11 +1,11 @@
 import { Space, Tag, Typography } from 'antd'
 import { GlobalOutlined } from '@ant-design/icons'
-import { useUploadFileContext } from "../../context/UploadedFileContext"
+import { useAppSelector } from "../../store/hooks"
 
 const { Text } = Typography
 
 export default function StatusBar() {
-    const { yamlObject } = useUploadFileContext()
+    const { yamlObject } = useAppSelector((state) => state.uploadedFile)
 
     const networkCounter = () => {
         let counter = 0
