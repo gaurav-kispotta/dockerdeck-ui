@@ -129,10 +129,25 @@ export default class MapMaker {
         });
 
         const dockerDeckRoot: DockerDeckNode[] = [
-                serviceGroupNode.build('services', ''),
                 networkGroupNode.build('networks', ''),
+                serviceGroupNode.build('services', ''),
                 volumeGroupNode.build('volumes', '')
             ]
+
+        // Add positional priorities to ensure networks->services->volumes order (top to bottom)
+        dockerDeckRoot[0].layoutOptions = {
+            ...dockerDeckRoot[0].layoutOptions,
+            'elk.priority': '1', // Highest priority for networks (top)
+            'elk.position': '(0,0)' // Start at top
+        };
+        dockerDeckRoot[1].layoutOptions = {
+            ...dockerDeckRoot[1].layoutOptions,
+            'elk.priority': '2' // Medium priority for services (middle)
+        };
+        dockerDeckRoot[2].layoutOptions = {
+            ...dockerDeckRoot[2].layoutOptions,
+            'elk.priority': '3' // Lowest priority for volumes (bottom)
+        };
 
         // Build edges using the EdgeBuilder
         const edgeBuilder = new EdgeBuilder(dockerComposeAst);

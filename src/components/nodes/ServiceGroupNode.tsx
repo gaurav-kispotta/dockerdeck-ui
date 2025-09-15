@@ -19,7 +19,6 @@ function ServiceGroupNode({ id }: ServiceGroupNodeProperties) {
     return (
         <>
             <div>{id}</div>
-            <div>{label}</div>
         </>
     )
 }
