@@ -1,0 +1,2 @@
+docker run --rm -v $(pwd):/data derlin/docker-compose-viz-mermaid docker-compose-2.yaml -f png
+docker run --rm -v $(pwd):/data derlin/docker-compose-viz-mermaid docker-compose-3.yml -f png

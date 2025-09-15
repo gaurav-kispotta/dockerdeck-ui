@@ -6,7 +6,7 @@ import DesignDeck from "../deck/DesignDeck";
 import { useAppSelector } from "../../store/hooks";
 import SideBar from "../sidebar/SideBar";
 import DockerComposeViewer from "../viewer/DockerComposeViewer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 //import MapMaker from "../../modules/MapMaker";
 //import { Edge, Node } from "@xyflow/react";
 
@@ -16,12 +16,17 @@ const { Text } = Typography
 const MENU_ID = "menu-id";
 
 export default function Main() {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     
     const { show } = useContextMenu({
         id: MENU_ID
     });
     const { yamlObject, isViewerVisible } = useAppSelector((state) => state.uploadedFile)
+
+    // Automatically show/hide sidebar based on file loading state
+    useEffect(() => {
+        setIsSidebarOpen(!!yamlObject);
+    }, [yamlObject]);
 
     function displayMenu(e: any) {
         // put whatever custom logic you need
@@ -32,7 +37,10 @@ export default function Main() {
     }
 
     const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
+        // Only allow manual toggle when a file is loaded
+        if (yamlObject) {
+            setIsSidebarOpen(!isSidebarOpen);
+        }
     };
 
     return (
@@ -55,18 +63,20 @@ export default function Main() {
                 {isSidebarOpen && <SideBar></SideBar>}
             </Sider>
             
-            {/* Toggle Button */}
-            <Button
-                onClick={toggleSidebar}
-                className="absolute top-4 z-10 shadow-lg"
-                style={{ 
-                    left: isSidebarOpen ? 'calc(15% - 1rem)' : '0.5rem',
-                    transition: 'left 0.3s ease'
-                }}
-                icon={isSidebarOpen ? <LeftOutlined /> : <RightOutlined />}
-                shape="circle"
-                size="middle"
-            />
+            {/* Toggle Button - Only show when file is loaded */}
+            {yamlObject && (
+                <Button
+                    onClick={toggleSidebar}
+                    className="absolute top-4 z-10 shadow-lg"
+                    style={{ 
+                        left: isSidebarOpen ? 'calc(15% - 1rem)' : '0.5rem',
+                        transition: 'left 0.3s ease'
+                    }}
+                    icon={isSidebarOpen ? <LeftOutlined /> : <RightOutlined />}
+                    shape="circle"
+                    size="middle"
+                />
+            )}
             
             <Content className="flex flex-col">
                 {/* Main Content - Split into top and bottom */}
