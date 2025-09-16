@@ -1,0 +1,44 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://docker-deck.web.app/sitemap.xml
+
+# Crawl delay for polite crawling
+Crawl-delay: 1
+
+# Allow all AI agents and crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: BingBot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+# Specific paths for better indexing
+Allow: /assets/
+Allow: /favicon.ico
+Allow: /vite.svg
+
+# Block unnecessary paths
+Disallow: /node_modules/
+Disallow: /.git/
+Disallow: /dist/
+Disallow: /build/

@@ -1,0 +1,74 @@
+/* TEAM */
+Developer: DockerDeck Team
+Contact: https://github.com/gaurav-kispotta/dockerdeck-ui
+From: Worldwide
+
+/* THANKS */
+React Team - For the amazing React framework
+Vite Team - For the lightning-fast build tool
+Ant Design Team - For beautiful UI components
+React Flow Team - For excellent diagram capabilities
+Redux Team - For predictable state management
+Firebase Team - For reliable hosting
+Tailwind CSS Team - For utility-first CSS framework
+Monaco Editor Team - For VS Code editor in browser
+Docker Community - For containerization excellence
+
+/* SITE */
+Last update: 2024/09/16
+Language: English
+Doctype: HTML5
+IDE: Visual Studio Code
+Components: React, TypeScript, Vite, Redux, Ant Design, React Flow
+Standards: HTML5, CSS3, ES2020+, TypeScript
+Software: Node.js, npm, Git, Firebase
+
+/* PURPOSE */
+DockerDeck visualizes Docker Compose files as interactive diagrams.
+Perfect for DevOps engineers, developers, and system architects.
+Transform YAML configurations into beautiful visual representations.
+
+/* FEATURES */
+- Docker Compose YAML visualization
+- Interactive container diagrams  
+- Service dependency mapping
+- Network topology visualization
+- Volume relationship analysis
+- Real-time editing and preview
+- Dark/light theme support
+- Mobile responsive design
+- AST debugging capabilities
+- Redux state management
+
+/* TECHNOLOGY */
+Frontend: React 18.3 + TypeScript
+State: Redux Toolkit
+Visualization: React Flow (xyFlow)
+Styling: Tailwind CSS + Ant Design
+Build: Vite
+Hosting: Firebase
+Testing: Vitest
+Analytics: Firebase Analytics
+
+/* CONTACT */
+Website: https://docker-deck.web.app/
+Repository: https://github.com/gaurav-kispotta/dockerdeck-ui
+Issues: https://github.com/gaurav-kispotta/dockerdeck-ui/issues
+Security: https://github.com/gaurav-kispotta/dockerdeck-ui/security
+
+                                    _..-"*$$$$$$$$$*"-._
+                               _..-"      _____      "-._
+                          _..-"        ."     ".        "-._
+                     _..-"            /  _   _  \            "-._
+                _..-"               /  /"\-/"/\  \               "-._
+           _..-"                  /  /   \ /   \  \                  "-._
+      _..-"                     /  /     |      \  \                     "-._
+ _..-"                         /  /      |       \  \                         "-._
+'-._                          /  /       |        \  \                          _.-'
+    ''-._                    /  /        |         \  \                    _..-''
+         ''-._              /  /         |          \  \              _..-''
+              ''-._        /  /          |           \  \        _..-''
+                   ''-._  /  /___________|____________\  \  _..-''
+                        '-'                              '-'
+
+                    🐳 DockerDeck - Making Docker Visible 🐳

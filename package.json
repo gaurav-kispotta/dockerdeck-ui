@@ -1,8 +1,41 @@
 {
     "name": "dockerdeck-ui",
-    "private": true,
+    "private": false,
     "version": "0.0.8",
     "type": "module",
+    "description": "A powerful web-based tool for visualizing Docker Compose files as interactive diagrams. Transform your container architecture into beautiful, understandable visual representations.",
+    "keywords": [
+        "docker",
+        "docker-compose",
+        "visualization",
+        "diagrams", 
+        "containers",
+        "devops",
+        "architecture",
+        "yaml",
+        "react",
+        "typescript",
+        "interactive",
+        "microservices",
+        "orchestration"
+    ],
+    "author": {
+        "name": "DockerDeck Team",
+        "url": "https://docker-deck.web.app"
+    },
+    "license": "MIT",
+    "homepage": "https://docker-deck.web.app",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gaurav-kispotta/dockerdeck-ui.git"
+    },
+    "bugs": {
+        "url": "https://github.com/gaurav-kispotta/dockerdeck-ui/issues"
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=8.0.0"
+    },
     "scripts": {
         "tailwind": "npx tailwindcss -i ./src/input.css -o ./src/index.css",
         "dev": "npm run tailwind && vite",
