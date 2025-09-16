@@ -7,6 +7,7 @@ import {
     type Node,
     type Edge,
     type NodeMouseHandler,
+    type EdgeMouseHandler,
     MiniMap,
     useReactFlow
 } from '@xyflow/react'
@@ -19,6 +20,7 @@ import MapMaker from '../../modules/MapMaker'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
 import { selectNode, clearSelection } from '../../store/selectionSlice'
+import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -125,6 +127,21 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         dispatch(clearSelection())
     }, [dispatch])
 
+    const onEdgeClick: EdgeMouseHandler = useCallback((_event, edge) => {
+        console.log('Graph: Clicked edge:', edge.id);
+        
+        // Log edge selection event
+        logInteractionEvent(AnalyticsEvent.EDGE_SELECTED, {
+            component: 'graph',
+            action: 'edge_selected',
+            edgeId: edge.id,
+            edgeType: edge.type || 'default',
+            connectionType: edge.data?.connectionType || 'unknown',
+            source: edge.source,
+            target: edge.target
+        });
+    }, [])
+
     const edgeTypes = {
         default: SimpleFloatingEdge,
     };
@@ -205,6 +222,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onNodeClick={onNodeClick}
+            onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
             nodes={styledNodes}
             edges={styledEdges}

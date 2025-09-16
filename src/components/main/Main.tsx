@@ -7,6 +7,7 @@ import { useAppSelector } from "../../store/hooks";
 import SideBar from "../sidebar/SideBar";
 import DockerComposeViewer from "../viewer/DockerComposeViewer";
 import { useState, useEffect } from "react";
+import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
 //import MapMaker from "../../modules/MapMaker";
 //import { Edge, Node } from "@xyflow/react";
 
@@ -34,12 +35,27 @@ export default function Main() {
         show({
             event: e,
         });
+        
+        // Log context menu opened
+        logInteractionEvent(AnalyticsEvent.CONTEXT_MENU_OPENED, {
+            component: 'main',
+            action: 'context_menu_open',
+            target: e.target?.tagName || 'unknown'
+        });
     }
 
     const toggleSidebar = () => {
         // Only allow manual toggle when a file is loaded
         if (yamlObject) {
-            setIsSidebarOpen(!isSidebarOpen);
+            const newState = !isSidebarOpen;
+            setIsSidebarOpen(newState);
+            
+            // Log sidebar toggle
+            logInteractionEvent(AnalyticsEvent.SIDEBAR_TOGGLED, {
+                component: 'sidebar',
+                action: 'toggle',
+                newState: newState ? 'open' : 'closed'
+            });
         }
     };
 

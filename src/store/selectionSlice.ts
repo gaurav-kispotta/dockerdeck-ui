@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { logInteractionEvent, AnalyticsEvent } from '../utils/analytics'
 
 // Helper functions for mapping between graph nodes and AST keys
 function mapGraphNodeToAstKey(graphNodeId: string, astObject?: any): string | null {
@@ -139,6 +140,15 @@ export const selectionSlice = createSlice({
       state.selectedNodeId = action.payload.nodeId
       state.connectedNodeIds = action.payload.connectedNodeIds
       state.connectedEdgeIds = action.payload.connectedEdgeIds
+      
+      // Log node selection event
+      logInteractionEvent(AnalyticsEvent.NODE_SELECTED, {
+        component: 'graph',
+        action: 'node_selected',
+        nodeId: action.payload.nodeId,
+        connectedNodesCount: action.payload.connectedNodeIds.length,
+        connectedEdgesCount: action.payload.connectedEdgeIds.length
+      });
       
       // Map graph node to AST node key
       const astNodeKey = mapGraphNodeToAstKey(action.payload.nodeId, action.payload.astObject)

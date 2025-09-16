@@ -29,9 +29,19 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 analytics.app.automaticDataCollectionEnabled = true;
 
+// Import analytics utilities
+import { logAppInitialization, startMemoryMonitoring } from './utils/analytics';
+
 logEvent(analytics, 'browser_device', {
   "browser_agent": navigator.userAgent
 });
+
+// Delay app initialization logging to ensure Firebase is fully ready
+setTimeout(() => {
+  logAppInitialization();
+  // Start periodic memory monitoring (every 50 minutes)
+  startMemoryMonitoring(50 * 60 * 1000); // 50 minutes in milliseconds
+}, 1000);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
