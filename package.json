@@ -1,7 +1,7 @@
 {
     "name": "dockerdeck-ui",
     "private": true,
-    "version": "0.0.6",
+    "version": "0.0.7",
     "type": "module",
     "scripts": {
         "tailwind": "npx tailwindcss -i ./src/input.css -o ./src/index.css",
@@ -10,7 +10,8 @@
         "lint": "eslint .",
         "test": "vitest run",
         "test:watch": "vitest",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "firebase:deploy": "firebase deploy"
     },
     "dependencies": {
         "@ant-design/icons": "^6.0.2",
