@@ -13,6 +13,8 @@ import { DockerDeckEdge } from "../model/DockerDeckEdge";
 import { ElkJsLayoutOptions } from "./layout-engine/ElkJsLayoutOption";
 import { SettingsState } from "../store/settingsSlice";
 import EdgeBuilder from "./node-builder/EdgeBuilder";
+import { AppDispatch } from "../store/store";
+import { setAstObject } from "../store/uploadedFileSlice";
 
 export type GroupNode = Node & { children: Node[] }
 export type AnyArrayOrUndefined = any[] | undefined
@@ -58,7 +60,7 @@ export default class MapMaker {
     // First find the groups and then find its each child nodes
     // then build Elkjs Node mapping and get the plotted layout
     // then flatten the nodes to get its actual positions
-    public async buildMap3(yamlObject: YamlDockerCompose, settings?: SettingsState) {
+    public async buildMap3(yamlObject: YamlDockerCompose, settings?: SettingsState, dispatch?: AppDispatch) {
         /**
          * IMPORTANT: HERE IS THE DOCKER COMPOSE SPECIFICATION
          * 
@@ -67,6 +69,11 @@ export default class MapMaker {
 
         const astBuilder = new DockerComposeAstBuilder(yamlObject);
         const dockerComposeAst = astBuilder.buildAst();
+
+        // Store the AST in Redux state if dispatch is provided
+        if (dispatch) {
+            dispatch(setAstObject(dockerComposeAst));
+        }
 
         // Calculate node dimensions based on settings
         const nodeWidth = settings ? settings.nodeSize : 100; // Direct use
@@ -122,10 +129,25 @@ export default class MapMaker {
         });
 
         const dockerDeckRoot: DockerDeckNode[] = [
-                serviceGroupNode.build('services', ''),
                 networkGroupNode.build('networks', ''),
+                serviceGroupNode.build('services', ''),
                 volumeGroupNode.build('volumes', '')
             ]
+
+        // Add positional priorities to ensure networks->services->volumes order (top to bottom)
+        dockerDeckRoot[0].layoutOptions = {
+            ...dockerDeckRoot[0].layoutOptions,
+            'elk.priority': '1', // Highest priority for networks (top)
+            'elk.position': '(0,0)' // Start at top
+        };
+        dockerDeckRoot[1].layoutOptions = {
+            ...dockerDeckRoot[1].layoutOptions,
+            'elk.priority': '2' // Medium priority for services (middle)
+        };
+        dockerDeckRoot[2].layoutOptions = {
+            ...dockerDeckRoot[2].layoutOptions,
+            'elk.priority': '3' // Lowest priority for volumes (bottom)
+        };
 
         // Build edges using the EdgeBuilder
         const edgeBuilder = new EdgeBuilder(dockerComposeAst);

@@ -1,4 +1,4 @@
-import { Handle, Position, useStore } from '@xyflow/react'
+import { useStore } from '@xyflow/react'
 
 import '@xyflow/react/dist/style.css';
 
@@ -19,7 +19,6 @@ function ServiceGroupNode({ id }: ServiceGroupNodeProperties) {
     return (
         <>
             <div>{id}</div>
-            <div>{label}</div>
         </>
     )
 }

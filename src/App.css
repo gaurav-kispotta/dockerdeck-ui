@@ -46,6 +46,32 @@ path.react-flow__edge-path:hover {
 
 .react-flow__node.selected {
     animation: pulse 2s infinite;
+    border: 2px solid #3b82f6; /* Tailwind blue-500 */
+}
+
+/* Ant Design Tabs styling for full height scaling */
+.ant-tabs {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.ant-tabs .ant-tabs-content-holder {
+    flex: 1 !important;
+    overflow: hidden !important;
+}
+
+.ant-tabs .ant-tabs-content {
+    height: 100% !important;
+}
+
+.ant-tabs .ant-tabs-tabpane {
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+.ant-tabs .ant-tabs-tab-btn {
+    outline: none !important;
 }
 
 #docker-deck-ui {

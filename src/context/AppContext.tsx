@@ -1,7 +1,6 @@
 import { useState } from "react";
 import GlobalContextMenu from "../components/context-menu/GlobalContextMenu";
 import { FileContentType, UploadedFileContext } from "./UploadedFileContext";
-import { getYamlObjects } from "../utils/yamlHelper";
 import YamlObjectTransformer from "../modules/YamlObjectTransformer";
 
 interface AppContextProp {
@@ -12,9 +11,10 @@ export default function AppContext({ children }: AppContextProp) {
     const [yamlObject, setYamlObject] = useState<object | null>(null);
 
     function setContent(fc: FileContentType) {
+        console.log('Processing uploaded file...')
         const yt = new YamlObjectTransformer()
         const yamlObject = yt.yamlToObjects(fc.toString())
-        console.log(yamlObject)
+        console.log('YAML object parsed:', yamlObject)
         setYamlObject(yamlObject)
     }
 

@@ -7,13 +7,14 @@ import {
     type Node,
     type Edge,
     type NodeMouseHandler,
+    MiniMap,
+    useReactFlow
 } from '@xyflow/react'
 import { useCallback, useState, useEffect, useMemo } from 'react'
 
 import '@xyflow/react/dist/style.css'
 import { IDesignElement } from '../../interface/IDesignElements'
 import nodeTypes from './NodeTypes'
-import { useUploadFileContext } from '../../context/UploadedFileContext'
 import MapMaker from '../../modules/MapMaker'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
@@ -23,11 +24,58 @@ interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
 }
 
+// Inner component that has access to ReactFlow context
+function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
+    const { getNode, setCenter, fitView } = useReactFlow();
+    const selection = useAppSelector((state) => state.selection);
+    const yamlObject = useAppSelector((state) => state.uploadedFile.yamlObject);
+    const [hasNewFile, setHasNewFile] = useState(false);
+    
+    // Effect to detect when a new file is uploaded
+    useEffect(() => {
+        if (yamlObject) {
+            setHasNewFile(true);
+        }
+    }, [yamlObject]);
+    
+    // Effect to fit view to complete graph when nodes are updated after a new file upload
+    useEffect(() => {
+        if (hasNewFile && propNodes.length > 0) {
+            // Small delay to ensure nodes are fully rendered before fitting view
+            const timeoutId = setTimeout(() => {
+                fitView({ 
+                    padding: 0.1, // 10% padding around the nodes
+                    duration: 800, // Smooth animation
+                    includeHiddenNodes: false 
+                });
+                setHasNewFile(false); // Reset flag after fitting view
+            }, 100);
+            
+            return () => clearTimeout(timeoutId);
+        }
+    }, [hasNewFile, propNodes.length, fitView]);
+    
+    // Effect to center on node when selected from AST viewer
+    useEffect(() => {
+        // Only center if selection came from AST (indicated by empty connectedNodeIds)
+        if (selection.selectedNodeId && selection.connectedNodeIds.length === 0) {
+            const node = getNode(selection.selectedNodeId);
+            if (node && node.position) {
+                fitView({ nodes: [node], duration: 800, maxZoom: 1 }); // Fit view first (zoomed out, instant)
+            }
+        }
+    }, [selection.selectedNodeId, selection.connectedNodeIds, getNode, setCenter, fitView]);
+
+    return null; // This component only handles side effects
+}
+
 function DesignDeck({ clear = false }: DesignDeckProperties) {
     const [nodes, setNodes] = useState<Node[]>([])
     const [edges, setEdges] = useState<Edge[]>([])
+    const { themeMode } = useAppSelector((state) => state.theme)
 
-    const { yamlObject } = useUploadFileContext()
+    const { yamlObject } = useAppSelector((state) => state.uploadedFile)
+    const astObject = useAppSelector((state) => state.uploadedFile.astObject)
     const settings = useAppSelector((state) => state.settings)
     const selection = useAppSelector((state) => state.selection)
     const dispatch = useAppDispatch()
@@ -46,6 +94,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
     );
 
     const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
+        console.log('Graph: Clicked node:', node.id);
+        
         // Find all connected edges and nodes
         const connectedEdgeIds: string[] = []
         const connectedNodeIds: string[] = []
@@ -61,12 +111,15 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             }
         })
 
+        console.log('Graph: Dispatching selectNode with nodeId:', node.id, 'astObject:', astObject);
+
         dispatch(selectNode({
             nodeId: node.id,
             connectedNodeIds,
-            connectedEdgeIds
+            connectedEdgeIds,
+            astObject
         }))
-    }, [dispatch, edges])
+    }, [dispatch, edges, astObject])
 
     const onPaneClick = useCallback(() => {
         dispatch(clearSelection())
@@ -136,13 +189,13 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         console.log(yamlObject)
         const maker = new MapMaker();
         if (yamlObject) {
-            maker.buildMap3(yamlObject, settings)
+            maker.buildMap3(yamlObject, settings, dispatch)
                 .then(() => {
                     setNodes(maker.nodes)
                     setEdges(maker.edges)
                 })
         }
-    }, [yamlObject, settings])
+    }, [yamlObject, settings, dispatch])
 
     return (
         <ReactFlow
@@ -156,13 +209,15 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             nodes={styledNodes}
             edges={styledEdges}
             edgeTypes={edgeTypes}
-            colorMode={'system'}
+            colorMode={themeMode}
             className='overview'
             
         >
-            <Background className='bg-white' color='blue'/>
-            <Controls position={'bottom-right'} orientation={'horizontal'}/>
-            
+            <FlowWithCentering nodes={nodes} />
+            <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable={true} zoomable={true} />
+            <Background />
+            <Controls position={'bottom-left'} orientation={'horizontal'} />
+
         </ReactFlow>
     )
 }

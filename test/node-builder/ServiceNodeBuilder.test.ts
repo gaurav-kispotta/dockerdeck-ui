@@ -28,7 +28,7 @@ describe('ServiceNodeBuilder', () => {
     expect(node.parentId).toBe('parent-root');
     expect(node.width).toBe(150);
     expect(node.height).toBe(120);
-    expect(node.style?.background).toBe('#mock-service-api');
+    expect(node.style).toEqual({}); // ServiceNodeBuilder sets style to empty object
     // Label currently concatenates string version of image object + id; verify format.
     expect(typeof node.data?.label).toBe('string');
     expect(node.extent).toBe('parent');

@@ -1,81 +1,83 @@
-import { useUploadFileContext } from "../../context/UploadedFileContext"
-import { FileReaderModule } from "../../modules/FileReaderModule"
+import { Upload, Button, Space, Typography, Tag } from 'antd'
+import { UploadOutlined } from '@ant-design/icons'
+import { useFileUpload } from "../../context/ReduxAppContext"
+import { ThemeToggle } from '../theme/ThemeToggle'
+import { useState } from 'react'
+import packageJson from '../../../package.json'
+
+const { Title } = Typography
 
 export function Navbar() {
-    const { setContent } = useUploadFileContext()
+    const { setContent } = useFileUpload()
+    const [fileName, setFileName] = useState<string | null>(null)
 
-    const fileReader = new FileReaderModule()
+    const readFile = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = (event) => {
+                if (event.target?.result) {
+                    resolve(event.target.result as string)
+                } else {
+                    reject(new Error("Error while reading file or file is empty"))
+                }
+            }
+            reader.onerror = () => {
+                reject(new Error("Error reading file"))
+            }
+            reader.readAsText(file)
+        })
+    }
 
-    async function handleChange(inputEvent: any) {
-        const fileContent = await fileReader.onChangeOfFileInput(inputEvent);
-        //console.log(fileContent)
-        setContent && setContent(fileContent)
+    async function handleChange(info: any) {
+        const { file } = info
+        
+        // For Ant Design Upload, we need to check file.status and handle accordingly
+        if (file.status !== 'uploading') {
+            const actualFile = file.originFileObj || file
+            if (actualFile) {
+                try {
+                    console.log('Reading docker-compose file...')
+                    const fileContent = await readFile(actualFile)
+                    console.log('File loaded successfully')
+                    setContent && setContent(fileContent)
+                    setFileName(file.name)
+                } catch (error) {
+                    console.error('Error reading file:', error)
+                    setFileName(null)
+                }
+            }
+        }
+    }
+
+    const uploadProps = {
+        accept: '.yaml,.yml',
+        beforeUpload: () => false, // Prevent automatic upload
+        onChange: handleChange,
+        showUploadList: false,
+        maxCount: 1,
     }
 
     return (
-        <div className="navbar bg-base-100">
-            <div className="flex-1">
-                <a className="btn btn-ghost text-xl">docker deck</a>
+        <div className="px-6 flex items-center justify-between h-16 theme-transition ">
+            <div className="flex-none">
+                <Title level={3} className="text-gray-900 dark:text-gray-100">
+                    docker deck<sup className="text-xs text-blue-500 ml-1">
+                        <Tag color="blue">alpha</Tag>
+                        <Tag color="green" className="ml-1">v{packageJson.version}</Tag>
+                    </sup>
+                </Title>
             </div>
-            <div className="flex-grow">
-                <input id="dockerdeck-yaml-file-upload"
-                    type="file"
-                    className="file-input file-input-bordered file-input-sm w-full max-w-xs"
-                    onChange={handleChange}
-                    accept=".yaml,.yml" />
+            <div className="flex-grow flex justify-center items-center">
+                <Upload {...uploadProps}>
+                    <Button icon={<UploadOutlined />} className="w-full max-w-xs">
+                        {fileName ? fileName : "Upload Docker Compose"}
+                    </Button>
+                </Upload>
             </div>
             <div className="flex-none">
-                <div className="dropdown dropdown-end">
-                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                        <div className="indicator">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            <span className="badge badge-sm indicator-item">8</span>
-                        </div>
-                    </div>
-                    <div
-                        tabIndex={0}
-                        className="card card-compact dropdown-content bg-base-100 z-[1] mt-3 w-52 shadow">
-                        <div className="card-body">
-                            <span className="text-lg font-bold">8 Items</span>
-                            <span className="text-info">Subtotal: $999</span>
-                            <div className="card-actions">
-                                <button className="btn btn-primary btn-block">View cart</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="dropdown dropdown-end">
-                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
-                        <div className="w-10 rounded-full">
-                            <img
-                                alt="Tailwind CSS Navbar component"
-                                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
-                        </div>
-                    </div>
-                    <ul
-                        tabIndex={0}
-                        className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-                        <li>
-                            <a className="justify-between">
-                                Profile
-                                <span className="badge">New</span>
-                            </a>
-                        </li>
-                        <li><a>Settings</a></li>
-                        <li><a>Logout</a></li>
-                    </ul>
-                </div>
+                <Space size="middle">
+                    <ThemeToggle />
+                </Space>
             </div>
         </div>
     )

@@ -1,23 +1,32 @@
 import { useContextMenu } from "react-contexify";
+import { Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'antd'
+import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
-import { useUploadFileContext } from "../../context/UploadedFileContext";
+import { useAppSelector } from "../../store/hooks";
 import SideBar from "../sidebar/SideBar";
 import DockerComposeViewer from "../viewer/DockerComposeViewer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 //import MapMaker from "../../modules/MapMaker";
 //import { Edge, Node } from "@xyflow/react";
+
+const { Content, Sider } = Layout
+const { Text } = Typography
 
 const MENU_ID = "menu-id";
 
 export default function Main() {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [isViewerOpen, setIsViewerOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     
     const { show } = useContextMenu({
         id: MENU_ID
     });
-    const { yamlObject } = useUploadFileContext()
+    const { yamlObject, isViewerVisible } = useAppSelector((state) => state.uploadedFile)
+
+    // Automatically show/hide sidebar based on file loading state
+    useEffect(() => {
+        setIsSidebarOpen(!!yamlObject);
+    }, [yamlObject]);
 
     function displayMenu(e: any) {
         // put whatever custom logic you need
@@ -28,98 +37,77 @@ export default function Main() {
     }
 
     const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
-    };
-
-    const toggleViewer = () => {
-        setIsViewerOpen(!isViewerOpen);
-    };
-
-    const handleViewerClose = () => {
-        setIsViewerOpen(false);
+        // Only allow manual toggle when a file is loaded
+        if (yamlObject) {
+            setIsSidebarOpen(!isSidebarOpen);
+        }
     };
 
     return (
-        <div className='flex flex-row h-full relative'>
+        <ConfigProvider theme={{
+            components: {
+                Splitter: {
+                    splitBarSize: isViewerVisible || !yamlObject ? 5 : 0,
+                    splitBarDraggableSize: 500
+                }
+            }
+    }}>
+        <Layout className='h-full relative'>
             {/* Sidebar */}
-            {isSidebarOpen && (<div className={`w-1/4 transition-all duration-300 overflow-hidden bg-slate-500`}>
-                <div className="overflow-scroll h-full">
-                    <SideBar></SideBar>
-                </div>
-            </div>)}
-            
-            {/* Toggle Button */}
-            <button
-                onClick={toggleSidebar}
-                className="absolute top-4 left-2 z-10 bg-slate-600 hover:bg-slate-700 text-white p-2 rounded-md shadow-lg transition-all duration-200 border border-slate-400"
-                style={{ 
-                    left: isSidebarOpen ? 'calc(25% - 1rem)' : '0.5rem',
-                    transition: 'left 0.3s ease'
-                }}
-                aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+            <Sider 
+                width="15%" 
+                collapsed={!isSidebarOpen}
+                collapsedWidth={0}
+                className=" bg-white dark:bg-gray-800"
             >
-                {isSidebarOpen ? (
-                    // Left-pointing triangle (close)
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                    </svg>
-                ) : (
-                    // Right-pointing triangle (open)
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                    </svg>
-                )}
-            </button>
+                {isSidebarOpen && <SideBar></SideBar>}
+            </Sider>
             
-            <div className="grow flex flex-col">
+            {/* Toggle Button - Only show when file is loaded */}
+            {yamlObject && (
+                <Button
+                    onClick={toggleSidebar}
+                    className="absolute top-4 z-10 shadow-lg"
+                    style={{ 
+                        left: isSidebarOpen ? 'calc(15% - 1rem)' : '0.5rem',
+                        transition: 'left 0.3s ease'
+                    }}
+                    icon={isSidebarOpen ? <LeftOutlined /> : <RightOutlined />}
+                    shape="circle"
+                    size="middle"
+                />
+            )}
+            
+            <Content className="flex flex-col">
                 {/* Main Content - Split into top and bottom */}
-                <div className="flex flex-col h-full">
-                    {/* Top half - Design Deck */}
-                    <div 
-                        id="docker-deck-ui" 
-                        className={`${isViewerOpen && yamlObject ? 'h-1/2' : 'h-full'} bg-slate-50 transition-all duration-300`} 
-                        onContextMenu={displayMenu}
-                    >
-                        { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
-                        { !yamlObject && (
-                            <div className="flex items-center justify-center h-full">
-                                <div className="text-gray-500 text-lg">Please load a docker-compose.yaml.</div>
-                            </div>
-                        )}
-                    </div>
-                    
-                    {/* Bottom half - Docker Compose Viewer */}
-                    {yamlObject && isViewerOpen && (
-                        <div className="h-1/2 border-t">
-                            <DockerComposeViewer 
-                                yamlObject={yamlObject} 
-                                onClose={handleViewerClose}
-                            />
-                        </div>
-                    )}
-                    
-                    {/* Show/Hide Viewer Toggle Button - only show when yamlObject exists */}
-                    {yamlObject && (
-                        <button
-                            onClick={toggleViewer}
-                            className="absolute bottom-4 right-4 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 border border-blue-400"
-                            aria-label={isViewerOpen ? "Hide Docker Compose viewer" : "Show Docker Compose viewer"}
-                        >
-                            {isViewerOpen ? (
-                                // Down arrow (hide)
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M7 10l5 5 5-5z"/>
-                                </svg>
-                            ) : (
-                                // Up arrow (show)
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M7 14l5-5 5 5z"/>
-                                </svg>
+                <Splitter layout="vertical">
+                    <Splitter.Panel>
+                        <div 
+                            className="h-full w-full"
+                            onContextMenu={displayMenu}
+                            >
+                            { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
+                            { !yamlObject && (
+                                <div className="flex items-center justify-center h-full">
+                                    
+                                    <Empty description={
+                                        <Text strong className="text-gray-500 dark:text-gray-400 text-lg">Please load a docker-compose.yaml or .yml file</Text>
+                                    } />
+                                </div>
                             )}
-                        </button>
-                    )}
-                </div>
-            </div>
-        </div>
+                        </div>
+                    </Splitter.Panel>
+                    { yamlObject && <Splitter.Panel size={isViewerVisible ? '50%' : '0%'} className="">
+                        <div className="h-full w-full">
+                            {/* Bottom half - Docker Compose Viewer */}
+                            {yamlObject && isViewerVisible && (
+                                <DockerComposeViewer />
+                            )}
+                        </div>
+                    </Splitter.Panel> }
+                </Splitter>
+            </Content>
+        </Layout>
+        </ConfigProvider>
     )
 }

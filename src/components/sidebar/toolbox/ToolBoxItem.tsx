@@ -1,18 +1,14 @@
+import { Button } from 'antd'
+import { HeartOutlined } from '@ant-design/icons'
+
 export default function ToolBoxItem() {
     return (
-        <button className="flex items-center justify-center rounded-xl w-20 h-20 bg-slate-300" draggable>
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-        </button>
+        <Button 
+            className="flex items-center justify-center w-16 h-16" 
+            draggable
+            shape="round"
+            size="large"
+            icon={<HeartOutlined />}
+        />
     )
 }

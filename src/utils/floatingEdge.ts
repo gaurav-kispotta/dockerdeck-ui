@@ -1,22 +1,6 @@
 import { InternalNode, Node, Position } from '@xyflow/react';
 
 // returns the position (top,right,bottom or right) passed node compared to
-interface NodeInternals {
-    positionAbsolute: {
-        x: number;
-        y: number;
-    };
-    handleBounds: {
-        source: Array<{
-            position: Position;
-            width: number;
-            height: number;
-            x: number;
-            y: number;
-        }>;
-    };
-}
-
 function getParams(nodeA: InternalNode<Node>, nodeB: InternalNode<Node>): [number, number, Position] {
     const centerA = getNodeCenter(nodeA);
     const centerB = getNodeCenter(nodeB);

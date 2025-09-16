@@ -4,7 +4,7 @@ import { IDockerService } from '../../interface/ast/IDockerService';
 import { IDockerVolume } from '../../interface/ast/IDockerVolume';
 import { JsonPathParser } from '../JsonPathParser';
 
-interface IDockerComposeAst {
+export interface IDockerComposeAst {
     services: IDockerService[];
     networks?: IDockerNetwork[];
     volumes?: IDockerVolume[];

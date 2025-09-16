@@ -1,4 +1,4 @@
-import { Edge, Node } from '@xyflow/react';
+import { Edge } from '@xyflow/react';
 import ELK, { ElkExtendedEdge, ElkNode, LayoutOptions } from 'elkjs/lib/elk.bundled.js';
 import { GroupNode } from '../modules/MapMaker';
 

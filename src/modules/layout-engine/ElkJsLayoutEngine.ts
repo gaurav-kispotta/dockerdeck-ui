@@ -18,11 +18,13 @@ export class ElkJsLayoutEngine implements ILayoutEngine {
         const padding = this.settings ? this.settings.platformPadding : 100; // Direct use
         
         return {
-            'elk.algorithm': 'org.eclipse.elk.box',
-            'elk.box.packingMode': 'GROUP_DEC',
+            'elk.algorithm': 'org.eclipse.elk.rectpacking',
+            //'elk.box.packingMode': 'GROUP_DEC',
+            'elk.direction': 'DOWN', // Ensure vertical arrangement from top to bottom
             'elk.spacing.nodeNode': spacing.toString(),
             'elk.padding': `[top=${padding},left=${padding},bottom=${padding},right=${padding}]`,
-            'org.eclipse.elk.expandNodes': 'true'
+            'org.eclipse.elk.expandNodes': 'true',
+            'elk.aspectRatio': '1.0' // Prefer more vertical arrangement
         };
     }
 
