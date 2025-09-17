@@ -28,6 +28,10 @@ class GroupNodeBuilder extends BaseNodeBuilder {
         baseNode.data.label = "Group: " + id;
         baseNode.children = this.children;
         baseNode.type = "group";
+        baseNode.style = {
+            backgroundColor: "transparent",
+            border: "0px"
+        };
 
         // Set parentNode on all children for React Flow
         this.children.forEach(child => {
