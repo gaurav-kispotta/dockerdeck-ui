@@ -19,6 +19,7 @@ import nodeTypes from './NodeTypes'
 import MapMaker from '../../modules/MapMaker'
 // import SimpleFloatingEdge from './SimpleFloatingEdge'
 import SimpleEdge from './SimpleEdge'
+import DownloadControls from './DownloadControls'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
 import { selectNode, clearSelection } from '../../store/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
@@ -241,6 +242,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             
         >
             <FlowWithCentering nodes={nodes} />
+            <DownloadControls />
             <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable={true} zoomable={true} />
             <Background />
             <Controls position={'bottom-left'} orientation={'horizontal'} />
