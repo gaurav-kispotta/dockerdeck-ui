@@ -50,8 +50,8 @@ export class EdgeBuilder {
                         id: `${service.name}-to-${networkName}`,
                         source: service.name,
                         target: networkName,
-                        type: 'smoothstep',
-                        animated: true,
+                        type: 'default', // Use default instead of smoothstep
+                        animated: false, // Disable animation for now
                         style: {
                             stroke: '#10b981', // Green color for network connections
                             strokeWidth: 2,
@@ -92,8 +92,8 @@ export class EdgeBuilder {
                             id: `${service.name}-to-${volumeName}`,
                             source: service.name,
                             target: volumeName,
-                            type: 'smoothstep',
-                            animated: false,
+                            type: 'default', // Use default instead of smoothstep
+                            animated: false, // Disable animation for now
                             style: {
                                 stroke: '#f59e0b', // Amber color for volume connections
                                 strokeWidth: 2,
@@ -180,7 +180,7 @@ export class EdgeBuilder {
                                 id: `${serviceA.name}-to-${serviceB.name}`,
                                 source: serviceA.name,
                                 target: serviceB.name,
-                                type: 'smoothstep',
+                                type: 'default', // Use default instead of smoothstep
                                 animated: false,
                                 style: {
                                     stroke: '#6366f1', // Indigo color for service-to-service connections

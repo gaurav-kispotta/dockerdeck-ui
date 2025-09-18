@@ -17,7 +17,8 @@ import '@xyflow/react/dist/style.css'
 import { IDesignElement } from '../../interface/IDesignElements'
 import nodeTypes from './NodeTypes'
 import MapMaker from '../../modules/MapMaker'
-import SimpleFloatingEdge from './SimpleFloatingEdge'
+// import SimpleFloatingEdge from './SimpleFloatingEdge'
+import SimpleEdge from './SimpleEdge'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
 import { selectNode, clearSelection } from '../../store/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
@@ -142,8 +143,9 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         });
     }, [])
 
+    // Use our safe simple edge that doesn't require specific handles
     const edgeTypes = {
-        default: SimpleFloatingEdge,
+        default: SimpleEdge,
     };
 
     // Apply styling based on selection
@@ -208,9 +210,16 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         if (yamlObject) {
             maker.buildMap3(yamlObject, settings, dispatch)
                 .then(() => {
+                    console.log('MapMaker completed successfully');
                     setNodes(maker.nodes)
                     setEdges(maker.edges)
                 })
+                .catch((error) => {
+                    console.error('Error in MapMaker.buildMap3:', error);
+                    // Set empty arrays to prevent rendering errors
+                    setNodes([]);
+                    setEdges([]);
+                });
         }
     }, [yamlObject, settings, dispatch])
 
