@@ -8,7 +8,7 @@ import GroupNodeBuilder from "./node-builder/GroupNodeBuilder";
 import NetworkNodeBuilder from "./node-builder/NetworkNodeBuilder";
 import VolumeNodeBuilder from "./node-builder/VolumeNodeBuilder";
 import { DockerDeckNode } from "../model/DockerDeckNode";
-import { ElkJsLayoutEngine } from "./layout-engine/ElkJsLayoutEngine";
+import { DagreLayoutEngine } from "./layout-engine/DagreLayoutEngine";
 import { DockerDeckEdge } from "../model/DockerDeckEdge";
 import { ElkJsLayoutOptions } from "./layout-engine/ElkJsLayoutOption";
 import { SettingsState } from "../store/settingsSlice";
@@ -60,7 +60,7 @@ export default class MapMaker {
     // First find the groups and then find its each child nodes
     // then build Elkjs Node mapping and get the plotted layout
     // then flatten the nodes to get its actual positions
-    public async buildMap3(yamlObject: YamlDockerCompose, settings?: SettingsState, dispatch?: AppDispatch) {
+    public async buildMap4(yamlObject: YamlDockerCompose, settings?: SettingsState, dispatch?: AppDispatch) {
         /**
          * IMPORTANT: HERE IS THE DOCKER COMPOSE SPECIFICATION
          * 
@@ -153,7 +153,7 @@ export default class MapMaker {
         const edgeBuilder = new EdgeBuilder(dockerComposeAst);
         const generatedEdges = edgeBuilder.getAllEdges();
 
-        const layoutEngine = new ElkJsLayoutEngine(settings);
+    const layoutEngine = new DagreLayoutEngine(settings);
 
         const plottedElements = await layoutEngine.layout(dockerDeckRoot, generatedEdges)
 
@@ -178,6 +178,133 @@ export default class MapMaker {
 
         // Map the plotted elements to the internal node and edge structures
         this.nodes = flattenNodes(plottedElements.nodes as DockerDeckNode[])
+        this.edges = plottedElements.edges as DockerDeckEdge[]
+
+        console.log('All nodes:', this.nodes)
+        console.log('All edges:', this.edges)
+    }
+
+    public async buildMap3(yamlObject: YamlDockerCompose, settings?: SettingsState, dispatch?: AppDispatch) {
+        // Hierarchical layout strategy: networks -> services -> volumes with proper edges
+        const astBuilder = new DockerComposeAstBuilder(yamlObject);
+        const dockerComposeAst = astBuilder.buildAst();
+
+        // Store the AST in Redux state if dispatch is provided
+        if (dispatch) {
+            dispatch(setAstObject(dockerComposeAst));
+        }
+
+        // Calculate node dimensions based on settings
+        const nodeWidth = settings ? settings.nodeSize : 100;
+        const nodeHeight = settings ? settings.nodeSize : 100;
+
+        // Create group builders for each category
+        const serviceGroupNode = new GroupNodeBuilder(new UniqueColorBuilder(), nodeWidth, nodeHeight, settings)
+        const networkGroupNode = new GroupNodeBuilder(new UniqueColorBuilder(), nodeWidth, nodeHeight, settings)
+        const volumeGroupNode = new GroupNodeBuilder(new UniqueColorBuilder(), nodeWidth, nodeHeight, settings)
+
+        // Build network nodes and add to network group
+        dockerComposeAst.networks?.forEach(n => {
+            const typeNodeBuilder = new NetworkNodeBuilder(n, new UniqueColorBuilder(), nodeWidth, nodeHeight)
+            const networkNode = typeNodeBuilder.build(n.name, 'networks')
+            networkGroupNode.pushChild(networkNode)
+        });
+
+        // Build service nodes and add to service group
+        dockerComposeAst.services.forEach(s => {
+            const typeNodeBuilder = new ServiceNodeBuilder(s, new UniqueColorBuilder(), nodeWidth, nodeHeight)
+            const serviceNode = typeNodeBuilder.build(s.name, 'services')
+            serviceGroupNode.pushChild(serviceNode)
+        });
+
+        // Build volume nodes and add to volume group
+        dockerComposeAst.volumes?.forEach(v => {
+            const typeNodeBuilder = new VolumeNodeBuilder(v, new UniqueColorBuilder(), nodeWidth, nodeHeight)
+            const volumeNode = typeNodeBuilder.build(v.name, 'volumes')
+            volumeGroupNode.pushChild(volumeNode)
+        });
+
+        // Create flat node arrays for horizontal layering
+        const allNodes: DockerDeckNode[] = [];
+        const networkNodes = networkGroupNode.build('networks', '').children || [];
+        const serviceNodes = serviceGroupNode.build('services', '').children || [];
+        const volumeNodes = volumeGroupNode.build('volumes', '').children || [];
+
+        // Add all nodes to flat array
+        allNodes.push(...(networkNodes as DockerDeckNode[]));
+        allNodes.push(...(serviceNodes as DockerDeckNode[]));
+        allNodes.push(...(volumeNodes as DockerDeckNode[]));
+
+        // Build edges using the EdgeBuilder to connect related nodes
+        const edgeBuilder = new EdgeBuilder(dockerComposeAst);
+        const generatedEdges = edgeBuilder.getAllEdges();
+
+        // Use Dagre layout engine with flat structure
+        const layoutEngine = new DagreLayoutEngine(settings);
+        const plottedElements = await layoutEngine.layout(allNodes, generatedEdges);
+
+        // Post-process to create horizontal layers: networks->services->volumes
+        const spacing = settings ? settings.nodeLevelPadding * 3 : 300; // Layer separation
+        const nodeMap = new Map<string, DockerDeckNode>();
+        plottedElements.nodes.forEach(n => nodeMap.set(n.id, n));
+
+        // Calculate layer positions
+        let networkY = 0;
+        let serviceY = networkY + spacing;
+        let volumeY = serviceY + spacing;
+
+        // Position networks horizontally at top
+        const networkNodeIds = networkNodes.map(n => n.id);
+        const placedNetworks = plottedElements.nodes.filter(n => networkNodeIds.includes(n.id));
+        placedNetworks.forEach((n, index) => {
+            const centerX = (index * (nodeWidth + 50)) - ((placedNetworks.length - 1) * (nodeWidth + 50)) / 2;
+            n.position = { x: centerX, y: networkY };
+        });
+
+        // Position services horizontally in middle
+        const serviceNodeIds = serviceNodes.map(n => n.id);
+        const placedServices = plottedElements.nodes.filter(n => serviceNodeIds.includes(n.id));
+        placedServices.forEach((n, index) => {
+            const centerX = (index * (nodeWidth + 50)) - ((placedServices.length - 1) * (nodeWidth + 50)) / 2;
+            n.position = { x: centerX, y: serviceY };
+        });
+
+        // Position volumes horizontally at bottom
+        const volumeNodeIds = volumeNodes.map(n => n.id);
+        const placedVolumes = plottedElements.nodes.filter(n => volumeNodeIds.includes(n.id));
+        placedVolumes.forEach((n, index) => {
+            const centerX = (index * (nodeWidth + 50)) - ((placedVolumes.length - 1) * (nodeWidth + 50)) / 2;
+            n.position = { x: centerX, y: volumeY };
+        });
+
+        // Calculate overall bounds and center the entire layout
+        const allPlacedNodes = [...placedNetworks, ...placedServices, ...placedVolumes];
+        if (allPlacedNodes.length > 0) {
+            // Find the bounds of the layout
+            const minX = Math.min(...allPlacedNodes.map(n => n.position?.x || 0));
+            const maxX = Math.max(...allPlacedNodes.map(n => (n.position?.x || 0) + nodeWidth));
+            const minY = Math.min(...allPlacedNodes.map(n => n.position?.y || 0));
+            const maxY = Math.max(...allPlacedNodes.map(n => (n.position?.y || 0) + nodeHeight));
+
+            // Calculate layout dimensions and center offset
+            const layoutWidth = maxX - minX;
+            const layoutHeight = maxY - minY;
+            
+            // Center the layout (assuming viewport of reasonable size, can be adjusted)
+            const centerOffsetX = -layoutWidth / 2;
+            const centerOffsetY = -layoutHeight / 2;
+
+            // Apply centering offset to all nodes
+            allPlacedNodes.forEach(n => {
+                if (n.position) {
+                    n.position.x += centerOffsetX;
+                    n.position.y += centerOffsetY;
+                }
+            });
+        }
+
+        // Map the plotted elements to the internal node and edge structures (already flat)
+        this.nodes = plottedElements.nodes as DockerDeckNode[]
         this.edges = plottedElements.edges as DockerDeckEdge[]
 
         console.log('All nodes:', this.nodes)

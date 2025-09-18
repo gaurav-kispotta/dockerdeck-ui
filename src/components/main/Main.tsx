@@ -26,7 +26,7 @@ export default function Main() {
 
     // Automatically show/hide sidebar based on file loading state
     useEffect(() => {
-        setIsSidebarOpen(!!yamlObject);
+        //setIsSidebarOpen(!!yamlObject);
     }, [yamlObject]);
 
     function displayMenu(e: any) {

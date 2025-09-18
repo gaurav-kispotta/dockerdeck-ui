@@ -38,7 +38,7 @@ export const useFileUpload = () => {
       console.log('YAML object parsed:', yamlObject)
       
       dispatch(setYamlObject(yamlObject))
-      dispatch(showViewer()) // Automatically show the viewer when file is loaded
+      //dispatch(showViewer()) // Automatically show the viewer when file is loaded
       
       const processingTime = performance.now() - startTime
       
