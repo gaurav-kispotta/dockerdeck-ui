@@ -225,7 +225,6 @@ export class EdgeBuilder {
      * The AST builder should have already normalized depends_on to dependsOn array.
      */
     private extractDependsOnNames(service: IDockerService): string[] {
-        console.log(`Checking dependencies for service ${service.name}:`, service.dependsOn);
         return service.dependsOn || [];
     }
 
@@ -234,20 +233,10 @@ export class EdgeBuilder {
      * Direction: source service -> target dependency service.
      */
     private buildServiceDependencyEdges(): void {
-        console.log('Building service dependency edges...');
-        console.log('Available services:', this.ast.services.map(s => s.name));
-        
         const serviceNames = new Set(this.ast.services.map(s => s.name));
 
         this.ast.services.forEach(service => {
-            console.log(`Processing service: ${service.name}`);
             const dependencies = this.extractDependsOnNames(service);
-            
-            if (dependencies.length > 0) {
-                console.log(`Found dependencies for ${service.name}:`, dependencies);
-            } else {
-                console.log(`No dependencies found for ${service.name}`);
-            }
 
             dependencies.forEach(depName => {
                 if (!serviceNames.has(depName)) {
@@ -257,10 +246,7 @@ export class EdgeBuilder {
 
                 const edgeId = `${service.name}-depends-on-${depName}`;
                 const alreadyExists = this.edges.some(e => e.id === edgeId);
-                if (alreadyExists) {
-                    console.log(`Edge ${edgeId} already exists, skipping`);
-                    return;
-                }
+                if (alreadyExists) return;
 
                 const edge: DockerDeckEdge = {
                     id: edgeId,
@@ -285,23 +271,16 @@ export class EdgeBuilder {
                 };
 
                 this.edges.push(edge);
-                console.log(`Successfully created dependency edge: ${edgeId}`);
             });
         });
-        
-        console.log(`Total dependency edges created: ${this.edges.filter(e => e.data?.connectionType === 'depends_on').length}`);
     }
 
     /**
      * Get all edges (infrastructure + service-to-service)
      */
     getAllEdges(): DockerDeckEdge[] {
-        console.log('Getting all edges...');
         const infrastructureEdges = this.buildEdges();
         const serviceToServiceEdges = this.buildServiceToServiceEdges();
-        console.log(`Total infrastructure edges built: ${infrastructureEdges.length}`);
-        console.log(`Total service-to-service edges built: ${serviceToServiceEdges.length}`);
-        console.log('Infrastructure edge types:', infrastructureEdges.map(e => e.data?.connectionType || 'unknown'));
         
         return [...infrastructureEdges, ...serviceToServiceEdges];
     }
