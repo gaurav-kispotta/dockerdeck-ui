@@ -222,7 +222,7 @@ export class EdgeBuilder {
     getAllEdges(): DockerDeckEdge[] {
         const infrastructureEdges = this.buildEdges();
         const serviceToServiceEdges = this.buildServiceToServiceEdges();
-        
+
         return [...infrastructureEdges, ...serviceToServiceEdges];
     }
 }

@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { useAppDispatch } from '../store/hooks'
-import { setFileContent, setYamlObject, setProcessingError, showViewer } from '../store/uploadedFileSlice'
+import { setFileContent, setYamlObject, setProcessingError } from '../store/uploadedFileSlice'
 import { clearSelection } from '../store/selectionSlice'
 import GlobalContextMenu from '../components/context-menu/GlobalContextMenu'
 import YamlObjectTransformer from '../modules/YamlObjectTransformer'

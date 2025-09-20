@@ -1,9 +1,11 @@
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, useInternalNode, EdgeProps } from '@xyflow/react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 function SimpleEdge({ id, source, target, markerEnd, style, label }: EdgeProps) {
     const sourceNode = useInternalNode(source);
     const targetNode = useInternalNode(target);
+
+    const [isLabelVisible, setIsLabelVisible] = useState(false);
 
     // Return null if nodes aren't ready yet
     if (!sourceNode || !targetNode) {
@@ -34,13 +36,18 @@ function SimpleEdge({ id, source, target, markerEnd, style, label }: EdgeProps) 
 
     return (
         <>
-            <BaseEdge 
-                id={id}
-                path={edgePath} 
-                markerEnd={markerEnd}
-                style={style}
-            />
-            {label && (
+            <g
+                onMouseEnter={() => setIsLabelVisible(true)}
+                onMouseLeave={() => setIsLabelVisible(false)}
+            >
+                <BaseEdge 
+                    id={id}
+                    path={edgePath} 
+                    markerEnd={markerEnd}
+                    style={style}
+                />
+            </g>
+            {label && isLabelVisible && (
                 <EdgeLabelRenderer>
                     <div
                         style={{
