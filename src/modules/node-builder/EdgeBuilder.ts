@@ -221,39 +221,12 @@ export class EdgeBuilder {
     }
 
     /**
-     * Normalize depends_on to a list of service names.
-     * Supports both array and object forms from docker-compose YAML.
+     * Extract dependency service names from the service.
+     * The AST builder should have already normalized depends_on to dependsOn array.
      */
     private extractDependsOnNames(service: IDockerService): string[] {
-        // The interface uses dependsOn (camelCase), but also check for depends_on (snake_case)
-        const serviceAny = service as any;
-        const dependsOn = service.dependsOn || serviceAny.depends_on || serviceAny['depends_on'];
-        
-        console.log(`Checking depends_on for service ${service.name}:`, dependsOn);
-        console.log('Service object keys:', Object.keys(serviceAny));
-        console.log('Service.dependsOn (camelCase):', service.dependsOn);
-        console.log('ServiceAny.depends_on (snake_case):', serviceAny.depends_on);
-        
-        if (!dependsOn) return [];
-        
-        if (Array.isArray(dependsOn)) {
-            console.log(`Found array depends_on for ${service.name}:`, dependsOn);
-            return dependsOn;
-        }
-        
-        if (typeof dependsOn === 'object' && dependsOn !== null) {
-            const keys = Object.keys(dependsOn);
-            console.log(`Found object depends_on for ${service.name}:`, keys);
-            return keys;
-        }
-        
-        // Handle string case (single dependency)
-        if (typeof dependsOn === 'string') {
-            console.log(`Found string depends_on for ${service.name}:`, [dependsOn]);
-            return [dependsOn];
-        }
-        
-        return [];
+        console.log(`Checking dependencies for service ${service.name}:`, service.dependsOn);
+        return service.dependsOn || [];
     }
 
     /**
@@ -325,10 +298,12 @@ export class EdgeBuilder {
     getAllEdges(): DockerDeckEdge[] {
         console.log('Getting all edges...');
         const infrastructureEdges = this.buildEdges();
-        console.log(`Total edges built: ${infrastructureEdges.length}`);
-        console.log('Edge types:', infrastructureEdges.map(e => e.data?.connectionType || 'unknown'));
+        const serviceToServiceEdges = this.buildServiceToServiceEdges();
+        console.log(`Total infrastructure edges built: ${infrastructureEdges.length}`);
+        console.log(`Total service-to-service edges built: ${serviceToServiceEdges.length}`);
+        console.log('Infrastructure edge types:', infrastructureEdges.map(e => e.data?.connectionType || 'unknown'));
         
-        return infrastructureEdges;
+        return [...infrastructureEdges, ...serviceToServiceEdges];
     }
 }
 
