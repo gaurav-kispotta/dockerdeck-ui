@@ -23,6 +23,7 @@ export class EdgeBuilder {
      * Creates edges for:
      * 1. Service to Network connections
      * 2. Service to Volume connections
+     * 3. Service depends_on connections
      */
     buildEdges(): DockerDeckEdge[] {
         this.edges = [];
@@ -32,6 +33,9 @@ export class EdgeBuilder {
         
         // Build service to volume edges
         this.buildServiceVolumeEdges();
+
+        // Build service dependency edges (depends_on)
+        this.buildServiceDependencyEdges();
 
         return this.edges;
     }
@@ -217,13 +221,114 @@ export class EdgeBuilder {
     }
 
     /**
+     * Normalize depends_on to a list of service names.
+     * Supports both array and object forms from docker-compose YAML.
+     */
+    private extractDependsOnNames(service: IDockerService): string[] {
+        // The interface uses dependsOn (camelCase), but also check for depends_on (snake_case)
+        const serviceAny = service as any;
+        const dependsOn = service.dependsOn || serviceAny.depends_on || serviceAny['depends_on'];
+        
+        console.log(`Checking depends_on for service ${service.name}:`, dependsOn);
+        console.log('Service object keys:', Object.keys(serviceAny));
+        console.log('Service.dependsOn (camelCase):', service.dependsOn);
+        console.log('ServiceAny.depends_on (snake_case):', serviceAny.depends_on);
+        
+        if (!dependsOn) return [];
+        
+        if (Array.isArray(dependsOn)) {
+            console.log(`Found array depends_on for ${service.name}:`, dependsOn);
+            return dependsOn;
+        }
+        
+        if (typeof dependsOn === 'object' && dependsOn !== null) {
+            const keys = Object.keys(dependsOn);
+            console.log(`Found object depends_on for ${service.name}:`, keys);
+            return keys;
+        }
+        
+        // Handle string case (single dependency)
+        if (typeof dependsOn === 'string') {
+            console.log(`Found string depends_on for ${service.name}:`, [dependsOn]);
+            return [dependsOn];
+        }
+        
+        return [];
+    }
+
+    /**
+     * Create edges representing service dependencies using depends_on.
+     * Direction: source service -> target dependency service.
+     */
+    private buildServiceDependencyEdges(): void {
+        console.log('Building service dependency edges...');
+        console.log('Available services:', this.ast.services.map(s => s.name));
+        
+        const serviceNames = new Set(this.ast.services.map(s => s.name));
+
+        this.ast.services.forEach(service => {
+            console.log(`Processing service: ${service.name}`);
+            const dependencies = this.extractDependsOnNames(service);
+            
+            if (dependencies.length > 0) {
+                console.log(`Found dependencies for ${service.name}:`, dependencies);
+            } else {
+                console.log(`No dependencies found for ${service.name}`);
+            }
+
+            dependencies.forEach(depName => {
+                if (!serviceNames.has(depName)) {
+                    console.warn(`Dependency ${depName} not found as a service for ${service.name}`);
+                    return;
+                }
+
+                const edgeId = `${service.name}-depends-on-${depName}`;
+                const alreadyExists = this.edges.some(e => e.id === edgeId);
+                if (alreadyExists) {
+                    console.log(`Edge ${edgeId} already exists, skipping`);
+                    return;
+                }
+
+                const edge: DockerDeckEdge = {
+                    id: edgeId,
+                    source: service.name,
+                    target: depName,
+                    type: 'default',
+                    animated: true,
+                    style: {
+                        stroke: '#ef4444', // Red for dependency edges
+                        strokeWidth: 3, // Make it thicker to be more visible
+                        strokeDasharray: '10,5', // Add dashing for distinction
+                    },
+                    label: 'depends_on',
+                    path: [`services.${service.name}.depends_on`, `services.${depName}`],
+                    sources: [service.name],
+                    targets: [depName],
+                    data: {
+                        connectionType: 'depends_on',
+                        sourceService: service.name,
+                        targetService: depName,
+                    }
+                };
+
+                this.edges.push(edge);
+                console.log(`Successfully created dependency edge: ${edgeId}`);
+            });
+        });
+        
+        console.log(`Total dependency edges created: ${this.edges.filter(e => e.data?.connectionType === 'depends_on').length}`);
+    }
+
+    /**
      * Get all edges (infrastructure + service-to-service)
      */
     getAllEdges(): DockerDeckEdge[] {
+        console.log('Getting all edges...');
         const infrastructureEdges = this.buildEdges();
-        //const serviceToServiceEdges = this.buildServiceToServiceEdges();
-
-        return [...infrastructureEdges, /*...serviceToServiceEdges*/];
+        console.log(`Total edges built: ${infrastructureEdges.length}`);
+        console.log('Edge types:', infrastructureEdges.map(e => e.data?.connectionType || 'unknown'));
+        
+        return infrastructureEdges;
     }
 }
 
