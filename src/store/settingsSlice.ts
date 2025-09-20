@@ -1,33 +1,43 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export interface SettingsState {
-  platformPadding: number
-  nodeLevelPadding: number
-  nodeSize: number
+interface SettingsState {
+  platformPadding: number;
+  nodeLevelPadding: number;
+  nodeSize: number;
+  showDependencies: boolean;
 }
 
 const initialState: SettingsState = {
-  platformPadding: 100,
-  nodeLevelPadding: 80,
+  platformPadding: 50,
+  nodeLevelPadding: 30,
   nodeSize: 100,
-}
+  showDependencies: false, // Default to not showing dependencies
+};
 
 export const settingsSlice = createSlice({
   name: 'settings',
   initialState,
   reducers: {
     setPlatformPadding: (state, action: PayloadAction<number>) => {
-      state.platformPadding = action.payload
+      state.platformPadding = action.payload;
     },
     setNodeLevelPadding: (state, action: PayloadAction<number>) => {
-      state.nodeLevelPadding = action.payload
+      state.nodeLevelPadding = action.payload;
     },
     setNodeSize: (state, action: PayloadAction<number>) => {
-      state.nodeSize = action.payload
+      state.nodeSize = action.payload;
+    },
+    setShowDependencies: (state, action: PayloadAction<boolean>) => {
+      state.showDependencies = action.payload;
     },
   },
-})
+});
 
-export const { setPlatformPadding, setNodeLevelPadding, setNodeSize } = settingsSlice.actions
+export const { 
+  setPlatformPadding, 
+  setNodeLevelPadding, 
+  setNodeSize, 
+  setShowDependencies,
+} = settingsSlice.actions;
 
-export default settingsSlice.reducer
+export default settingsSlice.reducer;

@@ -9,6 +9,10 @@ interface IDockerComposeAst {
     volumes?: IDockerVolume[];
 }
 
+interface IEdgeBuilderOptions {
+    showDependencyEdges?: boolean;
+}
+
 export class EdgeBuilder {
     private ast: IDockerComposeAst;
     private edges: DockerDeckEdge[];
@@ -23,9 +27,10 @@ export class EdgeBuilder {
      * Creates edges for:
      * 1. Service to Network connections
      * 2. Service to Volume connections
-     * 3. Service depends_on connections
+     * 3. Service depends_on connections (optional)
      */
-    buildEdges(): DockerDeckEdge[] {
+    buildEdges(options: IEdgeBuilderOptions = {}): DockerDeckEdge[] {
+        const { showDependencyEdges = true } = options;
         this.edges = [];
         
         // Build service to network edges
@@ -35,7 +40,9 @@ export class EdgeBuilder {
         this.buildServiceVolumeEdges();
 
         // Build service dependency edges (depends_on)
-        this.buildServiceDependencyEdges();
+        if (showDependencyEdges) {
+            this.buildServiceDependencyEdges();
+        }
 
         return this.edges;
     }
@@ -278,8 +285,8 @@ export class EdgeBuilder {
     /**
      * Get all edges (infrastructure + service-to-service)
      */
-    getAllEdges(): DockerDeckEdge[] {
-        const infrastructureEdges = this.buildEdges();
+    getAllEdges(options: IEdgeBuilderOptions = {}): DockerDeckEdge[] {
+        const infrastructureEdges = this.buildEdges(options);
         const serviceToServiceEdges = this.buildServiceToServiceEdges();
         
         return [...infrastructureEdges, ...serviceToServiceEdges];
