@@ -1,7 +1,7 @@
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, useInternalNode, EdgeProps } from '@xyflow/react';
 import { useMemo, useState } from 'react';
 
-function SimpleEdge({ id, source, target, markerEnd, style, label }: EdgeProps) {
+function SimpleEdge({ id, source, target, markerEnd, style, label, selected }: EdgeProps) {
     const sourceNode = useInternalNode(source);
     const targetNode = useInternalNode(target);
 
@@ -14,16 +14,11 @@ function SimpleEdge({ id, source, target, markerEnd, style, label }: EdgeProps) 
 
     // Simple edge path calculation using node centers
     const { sx, sy, tx, ty } = useMemo(() => {
-        const sourceX = (sourceNode.position?.x || 0) + (sourceNode.width || 100) / 2;
-        const sourceY = (sourceNode.position?.y || 0) + (sourceNode.height || 100) / 2;
-        const targetX = (targetNode.position?.x || 0) + (targetNode.width || 100) / 2;
-        const targetY = (targetNode.position?.y || 0) + (targetNode.height || 100) / 2;
-
         return {
-            sx: sourceX,
-            sy: sourceY,
-            tx: targetX,
-            ty: targetY,
+            sx: (sourceNode.position?.x || 0) + (sourceNode.width || 100) / 2,
+            sy: (sourceNode.position?.y || 0) + (sourceNode.height || 100) / 2,
+            tx: (targetNode.position?.x || 0) + (targetNode.width || 100) / 2,
+            ty: (targetNode.position?.y || 0) + (targetNode.height || 100) / 2,
         };
     }, [sourceNode, targetNode]);
 
@@ -33,6 +28,9 @@ function SimpleEdge({ id, source, target, markerEnd, style, label }: EdgeProps) 
         targetX: tx,
         targetY: ty,
     });
+
+    // Show label if connected to a selected node
+    const isConnectedToSelected = (sourceNode?.selected ?? false) || (targetNode?.selected ?? false);
 
     return (
         <>
@@ -47,14 +45,14 @@ function SimpleEdge({ id, source, target, markerEnd, style, label }: EdgeProps) 
                     style={style}
                 />
             </g>
-            {label && isLabelVisible && (
+            {label && (isLabelVisible || selected || isConnectedToSelected) && (
                 <EdgeLabelRenderer>
                     <div
                         style={{
                             position: 'absolute',
                             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
                             fontSize: 12,
-                            pointerEvents: 'all',
+                            pointerEvents: 'none',
                         }}
                         className="nodrag nopan"
                     >
