@@ -9,6 +9,10 @@ interface IDockerComposeAst {
     volumes?: IDockerVolume[];
 }
 
+interface IEdgeBuilderOptions {
+    showDependencyEdges?: boolean;
+}
+
 export class EdgeBuilder {
     private ast: IDockerComposeAst;
     private edges: DockerDeckEdge[];
@@ -23,8 +27,10 @@ export class EdgeBuilder {
      * Creates edges for:
      * 1. Service to Network connections
      * 2. Service to Volume connections
+     * 3. Service depends_on connections (optional)
      */
-    buildEdges(): DockerDeckEdge[] {
+    buildEdges(options: IEdgeBuilderOptions = {}): DockerDeckEdge[] {
+        const { showDependencyEdges } = options;
         this.edges = [];
         
         // Build service to network edges
@@ -32,6 +38,11 @@ export class EdgeBuilder {
         
         // Build service to volume edges
         this.buildServiceVolumeEdges();
+
+        // Build service dependency edges (depends_on)
+        if (showDependencyEdges) {
+            this.buildServiceDependencyEdges();
+        }
 
         return this.edges;
     }
@@ -50,8 +61,8 @@ export class EdgeBuilder {
                         id: `${service.name}-to-${networkName}`,
                         source: service.name,
                         target: networkName,
-                        type: 'smoothstep',
-                        animated: true,
+                        type: 'default', // Use default instead of smoothstep
+                        animated: false, // Disable animation for now
                         style: {
                             stroke: '#10b981', // Green color for network connections
                             strokeWidth: 2,
@@ -92,8 +103,8 @@ export class EdgeBuilder {
                             id: `${service.name}-to-${volumeName}`,
                             source: service.name,
                             target: volumeName,
-                            type: 'smoothstep',
-                            animated: false,
+                            type: 'default', // Use default instead of smoothstep
+                            animated: false, // Disable animation for now
                             style: {
                                 stroke: '#f59e0b', // Amber color for volume connections
                                 strokeWidth: 2,
@@ -180,7 +191,7 @@ export class EdgeBuilder {
                                 id: `${serviceA.name}-to-${serviceB.name}`,
                                 source: serviceA.name,
                                 target: serviceB.name,
-                                type: 'smoothstep',
+                                type: 'default', // Use default instead of smoothstep
                                 animated: false,
                                 style: {
                                     stroke: '#6366f1', // Indigo color for service-to-service connections
@@ -217,10 +228,65 @@ export class EdgeBuilder {
     }
 
     /**
+     * Extract dependency service names from the service.
+     * The AST builder should have already normalized depends_on to dependsOn array.
+     */
+    private extractDependsOnNames(service: IDockerService): string[] {
+        return service.dependsOn || [];
+    }
+
+    /**
+     * Create edges representing service dependencies using depends_on.
+     * Direction: source service -> target dependency service.
+     */
+    private buildServiceDependencyEdges(): void {
+        const serviceNames = new Set(this.ast.services.map(s => s.name));
+
+        this.ast.services.forEach(service => {
+            const dependencies = this.extractDependsOnNames(service);
+
+            dependencies.forEach(depName => {
+                if (!serviceNames.has(depName)) {
+                    console.warn(`Dependency ${depName} not found as a service for ${service.name}`);
+                    return;
+                }
+
+                const edgeId = `${service.name}-depends-on-${depName}`;
+                const alreadyExists = this.edges.some(e => e.id === edgeId);
+                if (alreadyExists) return;
+
+                const edge: DockerDeckEdge = {
+                    id: edgeId,
+                    source: service.name,
+                    target: depName,
+                    type: 'default',
+                    animated: true,
+                    style: {
+                        stroke: '#ef4444', // Red for dependency edges
+                        strokeWidth: 3, // Make it thicker to be more visible
+                        strokeDasharray: '10,5', // Add dashing for distinction
+                    },
+                    label: 'depends_on',
+                    path: [`services.${service.name}.depends_on`, `services.${depName}`],
+                    sources: [service.name],
+                    targets: [depName],
+                    data: {
+                        connectionType: 'depends_on',
+                        sourceService: service.name,
+                        targetService: depName,
+                    }
+                };
+
+                this.edges.push(edge);
+            });
+        });
+    }
+
+    /**
      * Get all edges (infrastructure + service-to-service)
      */
-    getAllEdges(): DockerDeckEdge[] {
-        const infrastructureEdges = this.buildEdges();
+    getAllEdges(options: IEdgeBuilderOptions = {}): DockerDeckEdge[] {
+        const infrastructureEdges = this.buildEdges(options);
         const serviceToServiceEdges = this.buildServiceToServiceEdges();
         
         return [...infrastructureEdges, ...serviceToServiceEdges];

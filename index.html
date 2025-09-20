@@ -2,9 +2,111 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    
+    <!-- Favicon and Icons -->
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="shortcut icon" href="/vite.svg" />
+    <link rel="apple-touch-icon" href="/vite.svg" />
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>DockerDeck - Docker Compose Visualizer | Interactive Docker Architecture Diagrams</title>
+    <meta name="title" content="DockerDeck - Docker Compose Visualizer | Interactive Docker Architecture Diagrams" />
+    <meta name="description" content="DockerDeck is a powerful web-based tool for visualizing Docker Compose files as interactive diagrams. Upload your docker-compose.yml files and get instant visual representations of services, networks, volumes, and dependencies. Perfect for DevOps engineers, developers, and system architects." />
+    <meta name="keywords" content="docker compose visualizer, docker diagram tool, docker architecture visualization, container orchestration diagrams, docker compose parser, devops tools, docker yaml visualizer, container dependency graph, docker network visualization, microservices architecture diagram" />
+    <meta name="author" content="DockerDeck" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://docker-deck.web.app/" />
+    <meta property="og:title" content="DockerDeck - Docker Compose Visualizer | Interactive Docker Architecture Diagrams" />
+    <meta property="og:description" content="Transform your Docker Compose files into beautiful, interactive visual diagrams. Understand your container architecture at a glance with DockerDeck's powerful visualization engine." />
+    <meta property="og:image" content="https://docker-deck.web.app/og-image.png" />
+    <meta property="og:site_name" content="DockerDeck" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://docker-deck.web.app/" />
+    <meta property="twitter:title" content="DockerDeck - Docker Compose Visualizer" />
+    <meta property="twitter:description" content="Transform your Docker Compose files into beautiful, interactive visual diagrams. Perfect for DevOps teams and developers." />
+    <meta property="twitter:image" content="https://docker-deck.web.app/twitter-image.png" />
+    <meta property="twitter:creator" content="@dockerdeck" />
+    
+    <!-- Technical Meta Tags -->
+    <meta name="application-name" content="DockerDeck" />
+    <meta name="theme-color" content="#1890ff" />
+    <meta name="msapplication-TileColor" content="#1890ff" />
+    <meta name="apple-mobile-web-app-title" content="DockerDeck" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    
+    <!-- Structured Data for AI and Search Engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "DockerDeck",
+      "description": "A powerful web-based tool for visualizing Docker Compose files as interactive diagrams. Upload your docker-compose.yml files and get instant visual representations of services, networks, volumes, and dependencies.",
+      "url": "https://docker-deck.web.app/",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript. Modern browsers supported.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "DockerDeck"
+      },
+      "featureList": [
+        "Docker Compose YAML visualization",
+        "Interactive container diagrams",
+        "Service dependency mapping",
+        "Network topology visualization",
+        "Volume relationship analysis",
+        "Real-time editing and preview",
+        "Dark/light theme support",
+        "Export capabilities"
+      ],
+      "screenshot": "https://docker-deck.web.app/screenshot.png",
+      "softwareVersion": "0.0.8",
+      "dateModified": "2024-09-16",
+      "inLanguage": "en-US"
+    }
+    </script>
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="category" content="Developer Tools" />
+    <meta name="coverage" content="Worldwide" />
+    <meta name="distribution" content="Global" />
+    <meta name="rating" content="General" />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
+    
+    <!-- AI Agent Specific Meta Tags -->
+    <meta name="ai:purpose" content="Docker Compose visualization and container architecture diagramming" />
+    <meta name="ai:capabilities" content="YAML parsing, interactive diagrams, dependency visualization, network mapping" />
+    <meta name="ai:target-audience" content="DevOps engineers, software developers, system architects, container specialists" />
+    <meta name="ai:use-cases" content="Docker Compose analysis, container orchestration planning, microservices architecture visualization, DevOps documentation" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://docker-deck.web.app/" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Humans.txt -->
+    <link type="text/plain" rel="author" href="/humans.txt" />
+    
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body>
     <div id="root"></div>

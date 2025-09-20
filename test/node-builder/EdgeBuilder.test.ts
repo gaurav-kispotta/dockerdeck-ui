@@ -17,7 +17,8 @@ describe('EdgeBuilder', () => {
         containerName: 'web-container',
         ports: [{ internal: 80, external: 8080 }],
         volumes: [{ internal: '/usr/share/nginx/html', external: 'web-content' }],
-        networks: ['frontend', 'backend']
+        networks: ['frontend', 'backend'],
+        dependsOn: []
     };
 
     const mockService2: IDockerService = {
@@ -26,7 +27,8 @@ describe('EdgeBuilder', () => {
         containerName: 'api-container',
         ports: [{ internal: 3000, external: 3000 }],
         volumes: [{ internal: '/app/data', external: 'api-data' }],
-        networks: ['backend', 'database']
+        networks: ['backend', 'database'],
+        dependsOn: []
     };
 
     const mockService3: IDockerService = {
@@ -35,7 +37,8 @@ describe('EdgeBuilder', () => {
         containerName: 'db-container',
         ports: [{ internal: 5432, external: 5432 }],
         volumes: [{ internal: '/var/lib/postgresql/data', external: 'db-data' }],
-        networks: ['database']
+        networks: ['database'],
+        dependsOn: []
     };
 
     const mockNetworks: IDockerNetwork[] = [

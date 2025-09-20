@@ -4,11 +4,9 @@ import { DockerDeckNode } from "../../model/DockerDeckNode";
 import BaseNodeBuilder from "./BaseNodeBuilder";
 
 class VolumeNodeBuilder extends BaseNodeBuilder {
-    private volumeAst: IDockerVolume;
-
-    constructor(volumeAst: IDockerVolume, uniqueColorBuilder: IUniqueColorBuilder, width = 100, height = 100) {
+    constructor(_volumeAst: IDockerVolume, uniqueColorBuilder: IUniqueColorBuilder, width = 100, height = 100) {
         super(uniqueColorBuilder, width, height);
-        this.volumeAst = volumeAst;
+        // volumeAst stored for potential future use
     }
 
     build(id: string, parentId: string): DockerDeckNode {
@@ -16,6 +14,7 @@ class VolumeNodeBuilder extends BaseNodeBuilder {
 
         baseNode.data.label = id;
         baseNode.extent = 'parent';
+        baseNode.type = "redis"; // Set proper node type
 
         return baseNode;
     }

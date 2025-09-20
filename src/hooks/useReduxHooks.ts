@@ -1,5 +1,6 @@
 import { useAppSelector, useAppDispatch } from '../store/hooks'
 import { showViewer, hideViewer, toggleViewer } from '../store/uploadedFileSlice'
+import { logInteractionEvent, AnalyticsEvent } from '../utils/analytics'
 
 // Custom hook to replace useUploadFileContext
 export const useUploadedFile = () => {
@@ -18,9 +19,29 @@ export const useViewer = () => {
   
   return {
     isViewerVisible,
-    showViewer: () => dispatch(showViewer()),
-    hideViewer: () => dispatch(hideViewer()),
-    toggleViewer: () => dispatch(toggleViewer())
+    showViewer: () => {
+      dispatch(showViewer())
+      logInteractionEvent(AnalyticsEvent.VIEWER_OPENED, {
+        component: 'viewer',
+        action: 'show'
+      })
+    },
+    hideViewer: () => {
+      dispatch(hideViewer())
+      logInteractionEvent(AnalyticsEvent.VIEWER_CLOSED, {
+        component: 'viewer',
+        action: 'hide'
+      })
+    },
+    toggleViewer: () => {
+      const newState = !isViewerVisible
+      dispatch(toggleViewer())
+      logInteractionEvent(newState ? AnalyticsEvent.VIEWER_OPENED : AnalyticsEvent.VIEWER_CLOSED, {
+        component: 'viewer',
+        action: 'toggle',
+        newState: newState ? 'visible' : 'hidden'
+      })
+    }
   }
 }
 

@@ -1,0 +1,47 @@
+{
+  "name": "DockerDeck - Docker Compose Visualizer",
+  "short_name": "DockerDeck",
+  "description": "A powerful web-based tool for visualizing Docker Compose files as interactive diagrams",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1890ff",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "en-US",
+  "categories": ["developer", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "DockerDeck main interface showing Docker Compose visualization"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "DockerDeck mobile interface"
+    }
+  ],
+  "features": [
+    "Docker Compose YAML visualization",
+    "Interactive container diagrams",
+    "Service dependency mapping",
+    "Network topology visualization",
+    "Volume relationship analysis",
+    "Real-time editing and preview"
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

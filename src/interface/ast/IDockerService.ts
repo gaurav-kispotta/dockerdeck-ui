@@ -14,4 +14,5 @@ export interface IDockerService {
         external: string;
     }[];
     networks: string[];
+    dependsOn: string[];
 }
