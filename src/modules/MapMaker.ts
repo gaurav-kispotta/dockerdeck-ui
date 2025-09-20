@@ -151,7 +151,9 @@ export default class MapMaker {
 
         // Build edges using the EdgeBuilder
         const edgeBuilder = new EdgeBuilder(dockerComposeAst);
-        const generatedEdges = edgeBuilder.getAllEdges();
+        const generatedEdges = edgeBuilder.getAllEdges({
+            showDependencyEdges: settings?.showDependencies
+        });
 
     const layoutEngine = new DagreLayoutEngine(settings);
 
