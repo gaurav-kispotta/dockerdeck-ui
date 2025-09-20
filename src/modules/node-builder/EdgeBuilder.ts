@@ -23,6 +23,7 @@ export class EdgeBuilder {
      * Creates edges for:
      * 1. Service to Network connections
      * 2. Service to Volume connections
+     * 3. Service depends_on connections
      */
     buildEdges(): DockerDeckEdge[] {
         this.edges = [];
@@ -32,6 +33,9 @@ export class EdgeBuilder {
         
         // Build service to volume edges
         this.buildServiceVolumeEdges();
+
+        // Build service dependency edges (depends_on)
+        this.buildServiceDependencyEdges();
 
         return this.edges;
     }
@@ -217,13 +221,68 @@ export class EdgeBuilder {
     }
 
     /**
+     * Extract dependency service names from the service.
+     * The AST builder should have already normalized depends_on to dependsOn array.
+     */
+    private extractDependsOnNames(service: IDockerService): string[] {
+        return service.dependsOn || [];
+    }
+
+    /**
+     * Create edges representing service dependencies using depends_on.
+     * Direction: source service -> target dependency service.
+     */
+    private buildServiceDependencyEdges(): void {
+        const serviceNames = new Set(this.ast.services.map(s => s.name));
+
+        this.ast.services.forEach(service => {
+            const dependencies = this.extractDependsOnNames(service);
+
+            dependencies.forEach(depName => {
+                if (!serviceNames.has(depName)) {
+                    console.warn(`Dependency ${depName} not found as a service for ${service.name}`);
+                    return;
+                }
+
+                const edgeId = `${service.name}-depends-on-${depName}`;
+                const alreadyExists = this.edges.some(e => e.id === edgeId);
+                if (alreadyExists) return;
+
+                const edge: DockerDeckEdge = {
+                    id: edgeId,
+                    source: service.name,
+                    target: depName,
+                    type: 'default',
+                    animated: true,
+                    style: {
+                        stroke: '#ef4444', // Red for dependency edges
+                        strokeWidth: 3, // Make it thicker to be more visible
+                        strokeDasharray: '10,5', // Add dashing for distinction
+                    },
+                    label: 'depends_on',
+                    path: [`services.${service.name}.depends_on`, `services.${depName}`],
+                    sources: [service.name],
+                    targets: [depName],
+                    data: {
+                        connectionType: 'depends_on',
+                        sourceService: service.name,
+                        targetService: depName,
+                    }
+                };
+
+                this.edges.push(edge);
+            });
+        });
+    }
+
+    /**
      * Get all edges (infrastructure + service-to-service)
      */
     getAllEdges(): DockerDeckEdge[] {
         const infrastructureEdges = this.buildEdges();
-        //const serviceToServiceEdges = this.buildServiceToServiceEdges();
-
-        return [...infrastructureEdges, /*...serviceToServiceEdges*/];
+        const serviceToServiceEdges = this.buildServiceToServiceEdges();
+        
+        return [...infrastructureEdges, ...serviceToServiceEdges];
     }
 }
 

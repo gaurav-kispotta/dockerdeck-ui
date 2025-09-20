@@ -36,6 +36,15 @@ export class DockerComposeAstBuilder {
             const imageName = lastColon === -1 ? imageString : imageString.substring(0, lastColon);
             const imageTag = lastColon === -1 ? 'latest' : imageString.substring(lastColon + 1);
 
+            // Extract depends_on and normalize to array of strings
+            const extractDependsOn = (dependsOnValue: any): string[] => {
+                if (!dependsOnValue) return [];
+                if (Array.isArray(dependsOnValue)) return dependsOnValue;
+                if (typeof dependsOnValue === 'object') return Object.keys(dependsOnValue);
+                if (typeof dependsOnValue === 'string') return [dependsOnValue];
+                return [];
+            };
+
             const service: IDockerService = {
                 name: serviceName,
                 image: { name: imageName, tag: imageTag },
@@ -49,6 +58,7 @@ export class DockerComposeAstBuilder {
                     return { internal, external };
                 }) || [],
                 networks: Array.isArray(rawService.networks) ? rawService.networks : [],
+                dependsOn: extractDependsOn(rawService.depends_on),
             };
             this.ast.services.push(service);
         });
