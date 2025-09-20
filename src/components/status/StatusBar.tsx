@@ -1,13 +1,16 @@
-import { Radio, Space, Tag, Tooltip, Typography } from 'antd'
-import { ApartmentOutlined, GlobalOutlined, LayoutOutlined } from '@ant-design/icons'
-import { useAppSelector } from "../../store/hooks"
+import { Radio, Space, Tag, Tooltip, Typography, Switch } from 'antd'
+import { ApartmentOutlined, GlobalOutlined, LayoutOutlined, ShareAltOutlined } from '@ant-design/icons'
+import { useAppSelector, useAppDispatch } from "../../store/hooks"
 import { useViewer } from "../../hooks/useReduxHooks"
+import { setShowDependencies } from "../../store/settingsSlice"
 
 const { Text } = Typography
 
 export default function StatusBar() {
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
+    const { showDependencies } = useAppSelector((state) => state.settings)
     const { isViewerVisible, toggleViewer } = useViewer()
+    const dispatch = useAppDispatch()
 
     const networkCounter = () => {
         let counter = 0
@@ -33,6 +36,10 @@ export default function StatusBar() {
         return counter
     }
 
+    const handleDependencyToggle = (checked: boolean) => {
+        dispatch(setShowDependencies(checked))
+    }
+
     return (
         <Space className="flex w-full items-center justify-between" size="small">
             <div className="flex-1 flex items-center">
@@ -45,6 +52,17 @@ export default function StatusBar() {
                 <Tag icon={<GlobalOutlined />} color="blue">
                     Volumes: {volumeCounter()}
                 </Tag>
+                <div className="flex items-center space-x-2 ml-4">
+                    <ShareAltOutlined />
+                    <Switch 
+                        checked={showDependencies}
+                        onChange={handleDependencyToggle}
+                        size="small"
+                    />
+                    <Tooltip placement="top" title="Show dependency relationships and restructure as dependency tree">
+                        <Text className="text-sm">Show Dependencies</Text>
+                    </Tooltip>
+                </div>
             </div>
             <div className="flex-1 flex justify-center">
                 <Text>made with ❤️ in Bengaluru 🇮🇳</Text>

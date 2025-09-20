@@ -12,6 +12,7 @@ import {
     useReactFlow
 } from '@xyflow/react'
 import { useCallback, useState, useEffect, useMemo } from 'react'
+import dagre from 'dagre'
 
 import '@xyflow/react/dist/style.css'
 import { IDesignElement } from '../../interface/IDesignElements'
@@ -76,6 +77,7 @@ function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
 function DesignDeck({ clear = false }: DesignDeckProperties) {
     const [nodes, setNodes] = useState<Node[]>([])
     const [edges, setEdges] = useState<Edge[]>([])
+    const [originalNodePositions, setOriginalNodePositions] = useState<Record<string, { x: number; y: number }>>({})
     const { themeMode } = useAppSelector((state) => state.theme)
 
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
@@ -96,6 +98,88 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         (connection: any) => setEdges((eds) => addEdge(connection, eds)),
         [setEdges],
     );
+
+    // Function to calculate dependency tree layout using Dagre
+    const getDependencyLayout = useCallback((nodes: Node[], dependencyEdges: Edge[]) => {
+        const dagreGraph = new dagre.graphlib.Graph();
+        dagreGraph.setDefaultEdgeLabel(() => ({}));
+        dagreGraph.setGraph({ 
+            rankdir: 'TB', // Top to bottom layout
+            ranksep: 100,  // Vertical spacing between ranks
+            nodesep: 100,  // Horizontal spacing between nodes
+            marginx: 50,
+            marginy: 50
+        });
+        
+        // Add nodes to dagre graph
+        nodes.forEach(node => {
+            dagreGraph.setNode(node.id, { 
+                width: node.measured?.width || 180, 
+                height: node.measured?.height || 80 
+            });
+        });
+        
+        // Add only dependency edges to dagre graph
+        dependencyEdges.forEach(edge => {
+            if (edge.data?.connectionType === 'depends_on') {
+                dagreGraph.setEdge(edge.source, edge.target);
+            }
+        });
+        
+        // Calculate layout
+        dagre.layout(dagreGraph);
+        
+        // Apply calculated positions to nodes
+        return nodes.map(node => {
+            const nodeWithPosition = dagreGraph.node(node.id);
+            
+            if (nodeWithPosition) {
+                return {
+                    ...node,
+                    position: {
+                        x: nodeWithPosition.x - (nodeWithPosition.width / 2),
+                        y: nodeWithPosition.y - (nodeWithPosition.height / 2)
+                    }
+                };
+            }
+            return node;
+        });
+    }, []);
+
+    // Effect to handle dependency layout when showDependencies toggle changes
+    useEffect(() => {
+        if (nodes.length === 0) return;
+
+        // Store original positions when first enabling dependency view
+        if (settings.showDependencies && Object.keys(originalNodePositions).length === 0) {
+            const positionMap: Record<string, { x: number; y: number }> = {};
+            nodes.forEach(node => {
+                positionMap[node.id] = { x: node.position.x, y: node.position.y };
+            });
+            setOriginalNodePositions(positionMap);
+        }
+
+        // Apply dependency tree layout when enabled
+        if (settings.showDependencies) {
+            const dependencyEdges = edges.filter(edge => 
+                edge.data?.connectionType === 'depends_on'
+            );
+            
+            if (dependencyEdges.length > 0) {
+                const layoutedNodes = getDependencyLayout(nodes, dependencyEdges);
+                setNodes(layoutedNodes);
+            }
+        } else {
+            // Restore original positions when disabling dependency view
+            if (Object.keys(originalNodePositions).length > 0) {
+                const restoredNodes = nodes.map(node => ({
+                    ...node,
+                    position: originalNodePositions[node.id] || node.position
+                }));
+                setNodes(restoredNodes);
+            }
+        }
+    }, [settings.showDependencies, getDependencyLayout]); // Removed nodes and edges from dependencies to avoid infinite loop
 
     const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
         console.log('Graph: Clicked node:', node.id);
@@ -149,8 +233,42 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         default: SimpleEdge,
     };
 
-    // Apply styling based on selection
+    // Apply styling based on selection and dependency mode
     const styledNodes = useMemo(() => {
+        // In dependency mode, highlight nodes involved in dependency relationships
+        if (settings.showDependencies) {
+            // Find nodes involved in dependency edges
+            const dependencyEdges = edges.filter(edge => 
+                edge.data?.connectionType === 'depends_on'
+            );
+            
+            const involvedNodeIds = new Set<string>();
+            dependencyEdges.forEach(edge => {
+                involvedNodeIds.add(edge.source);
+                involvedNodeIds.add(edge.target);
+            });
+
+            return nodes.map(node => {
+                const isInvolved = involvedNodeIds.has(node.id);
+                
+                return {
+                    ...node,
+                    style: {
+                        ...node.style,
+                        opacity: isInvolved ? 1 : 0.3,
+                        filter: isInvolved ? 'none' : 'grayscale(100%)',
+                        transition: 'opacity 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease',
+                        boxShadow: isInvolved 
+                            ? '0 0 15px rgba(239, 68, 68, 0.5)' // Red glow for dependency nodes
+                            : 'none',
+                        border: isInvolved ? '2px solid #ef4444' : node.style?.border
+                    },
+                    className: isInvolved ? 'dependency-involved' : 'dependency-grayed'
+                }
+            });
+        }
+
+        // Regular selection-based styling
         if (!selection.selectedNodeId) return nodes
 
         return nodes.map(node => {
@@ -174,9 +292,29 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                 className: isSelected ? 'selected' : isConnected ? 'connected' : ''
             }
         })
-    }, [nodes, selection])
+    }, [nodes, selection, settings.showDependencies, edges])
 
     const styledEdges = useMemo(() => {
+        // In dependency mode, highlight dependency edges
+        if (settings.showDependencies) {
+            return edges.map(edge => {
+                const isDependencyEdge = edge.data?.connectionType === 'depends_on';
+                
+                return {
+                    ...edge,
+                    style: {
+                        ...edge.style,
+                        opacity: isDependencyEdge ? 1 : 0.2, // Hide non-dependency edges
+                        strokeWidth: isDependencyEdge ? 4 : 1,
+                        transition: 'opacity 0.3s ease, stroke-width 0.3s ease',
+                    },
+                    animated: isDependencyEdge ? true : false,
+                    className: isDependencyEdge ? 'dependency-edge' : 'grayed-edge'
+                }
+            });
+        }
+
+        // Regular selection-based styling
         if (!selection.selectedNodeId) return edges
 
         return edges.map(edge => {
@@ -196,7 +334,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                 className: isConnected ? 'highlighted' : ''
             }
         })
-    }, [edges, selection])
+    }, [edges, selection, settings.showDependencies])
 
     useEffect(() => {
         if (clear) {

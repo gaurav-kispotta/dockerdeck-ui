@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface SettingsState {
+export interface SettingsState {
   platformPadding: number;
   nodeLevelPadding: number;
   nodeSize: number;
