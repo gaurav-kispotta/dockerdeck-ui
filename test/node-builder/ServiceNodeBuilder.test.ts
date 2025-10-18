@@ -16,7 +16,8 @@ describe('ServiceNodeBuilder', () => {
     containerName: 'api-container',
     ports: [{ internal: 3000, external: 3000 }],
     volumes: [{ internal: '/app', external: 'app-data' }],
-    networks: ['default-net']
+    networks: ['default-net'],
+    dependsOn: []
   };
 
   it('builds a service node with expected base properties', () => {
@@ -41,5 +42,33 @@ describe('ServiceNodeBuilder', () => {
 
     expect(node.width).toBe(100);
     expect(node.height).toBe(100);
+  });
+
+  it('sets node type to the docker image name', () => {
+    const colorBuilder = new MockColorBuilder();
+    const builder = new ServiceNodeBuilder(mockService, colorBuilder);
+    const node = builder.build('service-api', 'parent-root');
+
+    // Node type should match the docker image name
+    expect(node.type).toBe('node');
+  });
+
+  it('uses different image names for different services', () => {
+    const redisService: IDockerService = {
+      name: 'cache',
+      image: { name: 'redis', tag: '7.2' },
+      containerName: 'cache-container',
+      ports: [{ internal: 6379, external: 6379 }],
+      volumes: [],
+      networks: ['default-net'],
+      dependsOn: []
+    };
+
+    const colorBuilder = new MockColorBuilder();
+    const builder = new ServiceNodeBuilder(redisService, colorBuilder);
+    const node = builder.build('service-cache', 'parent-root');
+
+    // Node type should be 'redis' for a Redis service
+    expect(node.type).toBe('redis');
   });
 });

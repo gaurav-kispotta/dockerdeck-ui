@@ -17,7 +17,9 @@ class ServiceNodeBuilder extends BaseNodeBuilder {
         baseNode.data.label = "Service: " + id;
         baseNode.data.nodeType = 'service';
         baseNode.extent = 'parent';
-        baseNode.type = "redis";
+        // Use the docker image name as the node type
+        // This will map to the dynamically generated node types from NodesConfig.json
+        baseNode.type = this.serviceAst.image.name;
         baseNode.style = {}
 
         return baseNode;
