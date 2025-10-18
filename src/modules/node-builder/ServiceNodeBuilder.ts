@@ -14,7 +14,8 @@ class ServiceNodeBuilder extends BaseNodeBuilder {
     build(id: string, parentId: string): DockerDeckNode {
         const baseNode: DockerDeckNode = super.build(id, parentId);
 
-        baseNode.data.label = "Service: " + this.serviceAst.image + id;
+        baseNode.data.label = "Service: " + id;
+        baseNode.data.nodeType = 'service';
         baseNode.extent = 'parent';
         baseNode.type = "redis";
         baseNode.style = {}

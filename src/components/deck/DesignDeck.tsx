@@ -164,10 +164,19 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             const dependencyEdges = edges.filter(edge => 
                 edge.data?.connectionType === 'depends_on'
             );
+
+            const onlyDependencyNodes = nodes.filter(node => 
+                node.data?.nodeType === 'service'
+            );
             
             if (dependencyEdges.length > 0) {
-                const layoutedNodes = getDependencyLayout(nodes, dependencyEdges);
-                setNodes(layoutedNodes);
+                const layoutedNodes = getDependencyLayout(onlyDependencyNodes, dependencyEdges);
+                // Only update the service nodes to new positions
+                const updatedNodes = nodes.map(node => {
+                    const layoutedNode = layoutedNodes.find(n => n.id === node.id);
+                    return layoutedNode ? layoutedNode : node;
+                });
+                setNodes(updatedNodes);
             }
         } else {
             // Restore original positions when disabling dependency view
@@ -179,7 +188,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                 setNodes(restoredNodes);
             }
         }
-    }, [settings.showDependencies, getDependencyLayout]); // Removed nodes and edges from dependencies to avoid infinite loop
+    }, [settings.showDependencies, getDependencyLayout, nodes, edges]); // Ensure dependencies are included
 
     const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
         console.log('Graph: Clicked node:', node.id);
