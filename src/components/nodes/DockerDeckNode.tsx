@@ -35,7 +35,6 @@ function DockerDeckNode({ dockerServiceId, dockerImageName, dockerIconUrl }: Doc
           <img src={ dockerIconUrl } />
         </div>
         <div className='absolute top-10 left-10'>{dockerServiceId}</div>
-        <div className='absolute bottom-10 left-10 text-xs'>{dockerImageName}</div>
       </div>
     </BaseNode>
   )

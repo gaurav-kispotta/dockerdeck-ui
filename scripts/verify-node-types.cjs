@@ -27,3 +27,4 @@ console.log('4. The postgres node will display with the Postgres icon from the c
 console.log('=== Backward Compatibility ===');
 console.log('Legacy node types (nodejs, group) are still available');
 console.log('Redis exists in both legacy and config - config version takes precedence\n');
+
