@@ -30,7 +30,7 @@ export class EdgeBuilder {
      * 3. Service depends_on connections (optional)
      */
     buildEdges(options: IEdgeBuilderOptions = {}): DockerDeckEdge[] {
-        const { showDependencyEdges } = options;
+        const { showDependencyEdges = true } = options;
         this.edges = [];
         
         // Build service to network edges
@@ -40,7 +40,7 @@ export class EdgeBuilder {
         this.buildServiceVolumeEdges();
 
         // Build service dependency edges (depends_on)
-        if (showDependencyEdges) {
+        if (true) {
             this.buildServiceDependencyEdges();
         }
 

@@ -102,6 +102,12 @@ export default class MapMaker {
                     try {
                         const typeNodeBuilder = new ServiceNodeBuilder(s, new UniqueColorBuilder(), nodeWidth, nodeHeight)
                         const serviceNode = typeNodeBuilder.build(s.name, '') // No parent for flat layout
+                        s.dependsOn?.forEach(dep => {
+                            serviceNode.data = {
+                                ...serviceNode.data,
+                                dependsOn: s.dependsOn
+                            }
+                        })
                         serviceGroupNode.pushChild(serviceNode)
                     } catch (error) {
                         console.error('Error building service node:', s, error);
