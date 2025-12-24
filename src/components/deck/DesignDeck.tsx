@@ -106,8 +106,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         const serviceNodes = nodes.filter(n => n.data?.label?.startsWith('Service: '));
         const volumeNodes = nodes.filter(n => !n.data?.label?.startsWith('Network: ') && !n.data?.label?.startsWith('Service: '));
         
-        // Calculate layer spacing (use same spacing as in MapMaker.ts)
-        const layerSpacing = 300; // This matches the spacing used in MapMaker
+        // Calculate layer spacing consistent with MapMaker.ts (settings.nodeLevelPadding * 3)
+        const layerSpacing = settings ? settings.nodeLevelPadding * 3 : 300;
         const nodeWidth = 180;
         const nodeHeight = 80;
         
@@ -185,7 +185,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         }
         
         return allLayoutedNodes;
-    }, []);
+    }, [settings]);
 
     // Effect to handle dependency layout when showDependencies toggle changes
     useEffect(() => {
