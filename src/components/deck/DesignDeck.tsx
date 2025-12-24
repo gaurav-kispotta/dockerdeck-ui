@@ -99,51 +99,92 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         [setEdges],
     );
 
-    // Function to calculate dependency tree layout using Dagre
+    // Function to calculate dependency tree layout using Dagre while maintaining sandwich structure
     const getDependencyLayout = useCallback((nodes: Node[], dependencyEdges: Edge[]) => {
-        const dagreGraph = new dagre.graphlib.Graph();
-        dagreGraph.setDefaultEdgeLabel(() => ({}));
-        dagreGraph.setGraph({ 
-            rankdir: 'TB', // Top to bottom layout
-            ranksep: 100,  // Vertical spacing between ranks
-            nodesep: 100,  // Horizontal spacing between nodes
-            marginx: 50,
-            marginy: 50
-        });
+        // Separate nodes by type to maintain sandwich layout (networks -> services -> volumes)
+        const networkNodes = nodes.filter(n => n.data?.label?.startsWith('Network: '));
+        const serviceNodes = nodes.filter(n => n.data?.label?.startsWith('Service: '));
+        const volumeNodes = nodes.filter(n => !n.data?.label?.startsWith('Network: ') && !n.data?.label?.startsWith('Service: '));
         
-        // Add nodes to dagre graph
-        nodes.forEach(node => {
-            dagreGraph.setNode(node.id, { 
-                width: node.measured?.width || 180, 
-                height: node.measured?.height || 80 
-            });
-        });
+        // Calculate layer spacing (use same spacing as in MapMaker.ts)
+        const layerSpacing = 300; // This matches the spacing used in MapMaker
+        const nodeWidth = 180;
+        const nodeHeight = 80;
         
-        // Add only dependency edges to dagre graph
-        dependencyEdges.forEach(edge => {
-            if (edge.data?.connectionType === 'depends_on') {
-                dagreGraph.setEdge(edge.source, edge.target);
-            }
-        });
-        
-        // Calculate layout
-        dagre.layout(dagreGraph);
-        
-        // Apply calculated positions to nodes
-        return nodes.map(node => {
-            const nodeWithPosition = dagreGraph.node(node.id);
+        // Helper function to layout nodes within a layer
+        const layoutLayer = (layerNodes: Node[], layerY: number) => {
+            if (layerNodes.length === 0) return [];
             
-            if (nodeWithPosition) {
-                return {
-                    ...node,
-                    position: {
-                        x: nodeWithPosition.x - (nodeWithPosition.width / 2),
-                        y: nodeWithPosition.y - (nodeWithPosition.height / 2)
-                    }
-                };
-            }
-            return node;
-        });
+            // Create a Dagre graph for this layer only
+            const dagreGraph = new dagre.graphlib.Graph();
+            dagreGraph.setDefaultEdgeLabel(() => ({}));
+            dagreGraph.setGraph({ 
+                rankdir: 'LR', // Left to right for horizontal arrangement
+                ranksep: 100,  
+                nodesep: 100,  
+                marginx: 50,
+                marginy: 50
+            });
+            
+            // Add layer nodes to dagre graph
+            const layerNodeIds = new Set(layerNodes.map(n => n.id));
+            layerNodes.forEach(node => {
+                dagreGraph.setNode(node.id, { 
+                    width: node.measured?.width || nodeWidth, 
+                    height: node.measured?.height || nodeHeight 
+                });
+            });
+            
+            // Add only dependency edges within this layer
+            dependencyEdges.forEach(edge => {
+                if (edge.data?.connectionType === 'depends_on' && 
+                    layerNodeIds.has(edge.source) && 
+                    layerNodeIds.has(edge.target)) {
+                    dagreGraph.setEdge(edge.source, edge.target);
+                }
+            });
+            
+            // Calculate layout
+            dagre.layout(dagreGraph);
+            
+            // Apply calculated positions to nodes with fixed Y position
+            return layerNodes.map(node => {
+                const nodeWithPosition = dagreGraph.node(node.id);
+                
+                if (nodeWithPosition) {
+                    return {
+                        ...node,
+                        position: {
+                            x: nodeWithPosition.x - (nodeWithPosition.width / 2),
+                            y: layerY // Fixed Y position for this layer
+                        }
+                    };
+                }
+                return { ...node, position: { ...node.position, y: layerY } };
+            });
+        };
+        
+        // Layout each layer at its designated Y position
+        const layoutedNetworks = layoutLayer(networkNodes, 0);
+        const layoutedServices = layoutLayer(serviceNodes, layerSpacing);
+        const layoutedVolumes = layoutLayer(volumeNodes, layerSpacing * 2);
+        
+        // Combine all layouts
+        const allLayoutedNodes = [...layoutedNetworks, ...layoutedServices, ...layoutedVolumes];
+        
+        // Center the entire layout horizontally
+        if (allLayoutedNodes.length > 0) {
+            const minX = Math.min(...allLayoutedNodes.map(n => n.position.x));
+            const maxX = Math.max(...allLayoutedNodes.map(n => n.position.x + (n.measured?.width || nodeWidth)));
+            const layoutWidth = maxX - minX;
+            const centerOffsetX = -layoutWidth / 2;
+            
+            allLayoutedNodes.forEach(n => {
+                n.position.x += centerOffsetX;
+            });
+        }
+        
+        return allLayoutedNodes;
     }, []);
 
     // Effect to handle dependency layout when showDependencies toggle changes
