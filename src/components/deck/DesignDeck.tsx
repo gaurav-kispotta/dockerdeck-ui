@@ -270,7 +270,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                         boxShadow: isInvolved 
                             ? '0 0 15px rgba(239, 68, 68, 0.5)' // Red glow for dependency nodes
                             : 'none',
-                        border: isInvolved ? '2px solid #ef4444' : node.style?.border
+                        border: isInvolved ? '2px solid #ef4444' : node.style?.border,
+                        transform: 'none' // Prevent scaling to maintain alignment
                     },
                     className: isInvolved ? 'dependency-involved' : 'dependency-grayed'
                 }

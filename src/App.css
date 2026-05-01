@@ -15,7 +15,7 @@ path.react-flow__edge-path:hover {
     cursor: pointer;
 }
 
-.react-flow__node:hover {
+.react-flow__node:hover:not(.dependency-involved):not(.dependency-grayed) {
     transform: scale(1.05);
 }
 
@@ -28,6 +28,15 @@ path.react-flow__edge-path:hover {
 .react-flow__node.connected {
     z-index: 99;
     transform: scale(1.05);
+}
+
+/* Dependency mode styling - no transform to keep alignment */
+.react-flow__node.dependency-involved {
+    z-index: 100;
+}
+
+.react-flow__node.dependency-grayed {
+    z-index: 1;
 }
 
 .react-flow__edge.highlighted {

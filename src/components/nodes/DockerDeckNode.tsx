@@ -9,7 +9,7 @@ interface DockerDeckNodeProperties {
     dockerIconUrl?: string;
 }
 
-function DockerDeckNode({ dockerServiceId, dockerImageName, dockerIconUrl }: DockerDeckNodeProperties) {
+function DockerDeckNode({ dockerServiceId, dockerImageName: _dockerImageName, dockerIconUrl }: DockerDeckNodeProperties) {
   const handles = [
     // Source handles
     { type: 'source' as const, position: Position.Top, id: 'a' },

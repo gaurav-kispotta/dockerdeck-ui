@@ -10,7 +10,6 @@ import VolumeNodeBuilder from "./node-builder/VolumeNodeBuilder";
 import { DockerDeckNode } from "../model/DockerDeckNode";
 import { DagreLayoutEngine } from "./layout-engine/DagreLayoutEngine";
 import { DockerDeckEdge } from "../model/DockerDeckEdge";
-import { ElkJsLayoutOptions } from "./layout-engine/ElkJsLayoutOption";
 import { SettingsState } from "../store/settingsSlice";
 import EdgeBuilder from "./node-builder/EdgeBuilder";
 import { AppDispatch } from "../store/store";
@@ -102,7 +101,7 @@ export default class MapMaker {
                     try {
                         const typeNodeBuilder = new ServiceNodeBuilder(s, new UniqueColorBuilder(), nodeWidth, nodeHeight)
                         const serviceNode = typeNodeBuilder.build(s.name, '') // No parent for flat layout
-                        s.dependsOn?.forEach(dep => {
+                        s.dependsOn?.forEach(_dep => {
                             serviceNode.data = {
                                 ...serviceNode.data,
                                 dependsOn: s.dependsOn
