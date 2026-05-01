@@ -78,13 +78,13 @@ export function Navbar() {
                 </Title>
             </div>
             <div className="flex-grow flex justify-center items-center">
-                <Upload {...uploadProps}>
+                <Upload className="electron-no-drag" {...uploadProps}>
                     <Button icon={<UploadOutlined />} className="w-full max-w-xs">
                         {fileName ? fileName : "Upload Docker Compose"}
                     </Button>
                 </Upload>
             </div>
-            <div className="flex-none">
+            <div className="flex-none electron-no-drag">
                 <Space size="middle">
                     <MemoryStatus />
                     <ThemeToggle />
