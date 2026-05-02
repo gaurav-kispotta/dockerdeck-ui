@@ -1,8 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit'
-import settingsReducer from './settingsSlice'
-import selectionReducer from './selectionSlice'
-import themeReducer from './themeSlice'
-import uploadedFileReducer from './uploadedFileSlice'
+import settingsReducer from './slices/settingsSlice'
+import selectionReducer from './slices/selectionSlice'
+import themeReducer from './slices/themeSlice'
+import uploadedFileReducer from './slices/uploadedFileSlice'
+import dockerdeckReducer from './slices/dockerdeckSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     selection: selectionReducer,
     theme: themeReducer,
     uploadedFile: uploadedFileReducer,
+    dockerdeck: dockerdeckReducer, // Dynamically import dockerdeckSlice to avoid circular dependency
   },
 })
 

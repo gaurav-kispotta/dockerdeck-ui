@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { logInteractionEvent, AnalyticsEvent } from '../utils/analytics'
+import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
 
 // Helper functions for mapping between graph nodes and AST keys
 function mapGraphNodeToAstKey(graphNodeId: string, astObject?: any): string | null {

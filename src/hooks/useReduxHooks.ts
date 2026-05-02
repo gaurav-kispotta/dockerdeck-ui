@@ -1,5 +1,5 @@
 import { useAppSelector, useAppDispatch } from '../store/hooks'
-import { showViewer, hideViewer, toggleViewer } from '../store/uploadedFileSlice'
+import { showViewer, hideViewer, toggleViewer } from '../store/slices/uploadedFileSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../utils/analytics'
 
 // Custom hook to replace useUploadFileContext

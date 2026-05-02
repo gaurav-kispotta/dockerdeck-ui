@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { IDockerComposeAst } from '../modules/ast/DockerComposeAstBuilder'
+import { IDockerComposeAst } from '../../modules/ast/DockerComposeAstBuilder'
 
 export type FileContentType = string | ArrayBuffer
 

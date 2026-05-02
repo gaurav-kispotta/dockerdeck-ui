@@ -3,7 +3,7 @@ import ELK, { ElkExtendedEdge, ElkNode, LayoutOptions } from 'elkjs/lib/elk.bund
 import { DockerDeckNode } from "../../model/DockerDeckNode";
 import { DockerDeckEdge } from "../../model/DockerDeckEdge";
 import { ElkJsLayoutOptions } from "./ElkJsLayoutOption";
-import { SettingsState } from "../../store/settingsSlice";
+import { SettingsState } from "../../store/slices/settingsSlice";
 
 export class ElkJsLayoutEngine implements ILayoutEngine {
     elk = new ELK();

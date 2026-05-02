@@ -13,7 +13,7 @@ import {
 } from '@ant-design/icons';
 import type { TreeDataNode } from 'antd';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
-import { selectAstNode } from '../../store/selectionSlice';
+import { selectAstNode } from '../../store/slices/selectionSlice';
 
 const { Title } = Typography;
 

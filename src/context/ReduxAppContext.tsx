@@ -1,10 +1,10 @@
 import { ReactNode } from 'react'
 import { useAppDispatch } from '../store/hooks'
-import { setFileContent, setYamlObject, setProcessingError } from '../store/uploadedFileSlice'
-import { clearSelection } from '../store/selectionSlice'
+import { setFileContent, setYamlObject, setProcessingError } from '../store/slices/uploadedFileSlice'
+import { clearSelection } from '../store/slices/selectionSlice'
 import GlobalContextMenu from '../components/context-menu/GlobalContextMenu'
 import YamlObjectTransformer from '../modules/YamlObjectTransformer'
-import type { FileContentType } from '../store/uploadedFileSlice'
+import type { FileContentType } from '../store/slices/uploadedFileSlice'
 import { logFileEvent, AnalyticsEvent } from '../utils/analytics'
 
 interface ReduxAppContextProps {

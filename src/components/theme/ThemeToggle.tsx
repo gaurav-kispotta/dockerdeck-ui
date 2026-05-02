@@ -2,8 +2,8 @@ import { Button, Dropdown } from 'antd'
 import { SunOutlined, MoonOutlined, DesktopOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
-import { setThemeMode } from '../../store/themeSlice'
-import type { ThemeMode } from '../../store/themeSlice'
+import { setThemeMode } from '../../store/slices/themeSlice'
+import type { ThemeMode } from '../../store/slices/themeSlice'
 
 export const ThemeToggle = () => {
   const dispatch = useAppDispatch()

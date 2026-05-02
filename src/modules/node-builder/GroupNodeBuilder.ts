@@ -1,7 +1,7 @@
 import { IUniqueColorBuilder } from "../../interface/node-builder/util/IUniqueColorBuilder";
 import { DockerDeckNode } from "../../model/DockerDeckNode";
 import { ElkJsLayoutOptions } from "../layout-engine/ElkJsLayoutOption";
-import { SettingsState } from "../../store/settingsSlice";
+import { SettingsState } from "../../store/slices/settingsSlice";
 import BaseNodeBuilder from "./BaseNodeBuilder";
 
 class GroupNodeBuilder extends BaseNodeBuilder {

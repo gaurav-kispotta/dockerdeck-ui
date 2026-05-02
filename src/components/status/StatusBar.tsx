@@ -2,7 +2,7 @@ import { Radio, Space, Tag, Tooltip, Typography, Switch } from 'antd'
 import { ApartmentOutlined, GlobalOutlined, LayoutOutlined, ShareAltOutlined } from '@ant-design/icons'
 import { useAppSelector, useAppDispatch } from "../../store/hooks"
 import { useViewer } from "../../hooks/useReduxHooks"
-import { setShowDependencies } from "../../store/settingsSlice"
+import { setShowDependencies } from "../../store/slices/settingsSlice"
 
 const { Text } = Typography
 

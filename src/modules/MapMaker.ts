@@ -10,10 +10,10 @@ import VolumeNodeBuilder from "./node-builder/VolumeNodeBuilder";
 import { DockerDeckNode } from "../model/DockerDeckNode";
 import { DagreLayoutEngine } from "./layout-engine/DagreLayoutEngine";
 import { DockerDeckEdge } from "../model/DockerDeckEdge";
-import { SettingsState } from "../store/settingsSlice";
+import { SettingsState } from "../store/slices/settingsSlice";
 import EdgeBuilder from "./node-builder/EdgeBuilder";
 import { AppDispatch } from "../store/store";
-import { setAstObject } from "../store/uploadedFileSlice";
+import { setAstObject } from "../store/slices/uploadedFileSlice";
 
 export type GroupNode = Node & { children: Node[] }
 export type AnyArrayOrUndefined = any[] | undefined
