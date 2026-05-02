@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DockerComposeAstBuilder, IDockerComposeAst } from '../../../src/modules/ast/DockerComposeAstBuilder';
-import { YamlDockerCompose } from '../../../src/context/UploadedFileContext';
+import { YamlDockerCompose } from '../../../src/store/slices/uploadedFileSlice';
 
 describe('DockerComposeAstBuilder', () => {
     let yamlObject: YamlDockerCompose;

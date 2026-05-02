@@ -1,5 +1,5 @@
 import { Node } from "@xyflow/react";
-import { YamlDockerCompose } from "../context/UploadedFileContext";
+import { YamlDockerCompose } from "../store/slices/uploadedFileSlice";
 import uniqolor from 'uniqolor';
 import ServiceNodeBuilder from "./node-builder/ServiceNodeBuilder";
 import UniqueColorBuilder from "./node-builder/util/UniqueColorBuilder";

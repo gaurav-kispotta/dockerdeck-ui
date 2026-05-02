@@ -1,4 +1,4 @@
-import { YamlDockerCompose } from '../../context/UploadedFileContext';
+import { YamlDockerCompose } from '../../store/slices/uploadedFileSlice';
 import { IDockerNetwork } from '../../interface/ast/IDockerNetwork';
 import { IDockerService } from '../../interface/ast/IDockerService';
 import { IDockerVolume } from '../../interface/ast/IDockerVolume';

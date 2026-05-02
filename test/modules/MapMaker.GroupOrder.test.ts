@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import MapMaker from '../../src/modules/MapMaker';
-import { YamlDockerCompose } from '../../src/context/UploadedFileContext';
+import { YamlDockerCompose } from '../../src/store/slices/uploadedFileSlice';
 import { SettingsState } from '../../src/store/settingsSlice';
 
 // Mock the dependencies

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MappingEngine3 } from '../../../src/modules/mapper-engine/MappingEngine3';
-import { YamlDockerCompose } from '../../../src/context/UploadedFileContext';
+import { YamlDockerCompose } from '../../../src/store/slices/uploadedFileSlice';
 import { ILayoutEngine } from '../../../src/interface/layout-engine/ILayoutEngine';
 import { IMappingEngine } from '../../../src/interface/mapping-engine/IMappingEngine';
 
