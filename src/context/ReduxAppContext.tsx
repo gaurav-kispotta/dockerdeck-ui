@@ -3,7 +3,8 @@ import { ConfigProvider, theme } from 'antd'
 import { useAppSelector, useAppDispatch } from '../hooks/useReduxHooks'
 import { updateSystemTheme, initializeTheme } from '../store/slices/themeSlice'
 import GlobalContextMenu from '../components/context-menu/GlobalContextMenu'
-import DockerDeckErrorModal from '../components/modals/ErrorModal'
+import AppModal from '../components/modals/AppModal'
+import { ModalProvider } from './ModalContext'
 
 interface AppProviderProps {
   children: ReactNode
@@ -27,19 +28,21 @@ export default function AppProvider({ children }: AppProviderProps) {
   }, [themeMode, dispatch])
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        token: {
-          colorPrimary: '#1890ff',
-          borderRadius: 6,
-        },
-      }}
-    >
-      <DockerDeckErrorModal />
-      <GlobalContextMenu />
-      {children}
-    </ConfigProvider>
+    <ModalProvider>
+      <ConfigProvider
+        theme={{
+          algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+          token: {
+            colorPrimary: '#1890ff',
+            borderRadius: 6,
+          },
+        }}
+      >
+        <AppModal />
+        <GlobalContextMenu />
+        {children}
+      </ConfigProvider>
+    </ModalProvider>
   )
 }
 
