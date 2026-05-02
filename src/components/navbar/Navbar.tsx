@@ -1,60 +1,25 @@
 import { Upload, Button, Space, Typography, Tag } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
-import { useFileUpload } from "../../context/ReduxAppContext"
+import { useFileUpload } from "../../hooks/useFileUpload"
 import { ThemeToggle } from '../theme/ThemeToggle'
 import { useState } from 'react'
 import packageJson from '../../../package.json'
-import { logFileEvent, AnalyticsEvent } from '../../utils/analytics'
 import MemoryStatus from '../status/MemoryStatus'
 
 const { Title } = Typography
 
 export function Navbar() {
-    const { setContent } = useFileUpload()
+    const { uploadFile } = useFileUpload()
     const [fileName, setFileName] = useState<string | null>(null)
-
-    const readFile = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload = (event) => {
-                if (event.target?.result) {
-                    resolve(event.target.result as string)
-                } else {
-                    reject(new Error("Error while reading file or file is empty"))
-                }
-            }
-            reader.onerror = () => {
-                reject(new Error("Error reading file"))
-            }
-            reader.readAsText(file)
-        })
-    }
 
     async function handleChange(info: any) {
         const { file } = info
-        
-        // For Ant Design Upload, we need to check file.status and handle accordingly
+
         if (file.status !== 'uploading') {
-            const actualFile = file.originFileObj || file
+            const actualFile: File = file.originFileObj || file
             if (actualFile) {
-                try {
-                    console.log('Reading docker-compose file...')
-                    
-                    // Log file loaded event
-                    logFileEvent(AnalyticsEvent.FILE_LOADED, {
-                        fileName: file.name,
-                        fileSize: actualFile.size,
-                        fileType: file.name.split('.').pop() || 'unknown'
-                    })
-                    
-                    const fileContent = await readFile(actualFile)
-                    console.log('File loaded successfully')
-                    setContent && setContent(fileContent, file.name)
-                    setFileName(file.name)
-                } catch (error) {
-                    console.error('Error reading file:', error)
-                    setFileName(null)
-                }
+                setFileName(file.name)
+                await uploadFile(actualFile, file.name)
             }
         }
     }

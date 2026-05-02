@@ -46,4 +46,4 @@ export const useViewer = () => {
 }
 
 // Re-export the file upload hook for easier imports
-export { useFileUpload } from '../context/ReduxAppContext'
+export { useFileUpload } from './useFileUpload'
