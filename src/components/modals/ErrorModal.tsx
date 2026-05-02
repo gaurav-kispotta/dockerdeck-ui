@@ -1,16 +1,38 @@
-import { Modal } from 'antd';
-import { useFileUpload } from "../../context/ReduxAppContext";
+import { Modal, Typography, Alert } from 'antd'
+import { useAppDispatch, useWindowFromStore } from '../../store/hooks'
+import { hideModal } from '../../store/slices/windowSlice'
+
+const { Text } = Typography
 
 export default function DockerDeckErrorModal() {
-    const [modal, contextHolder] = Modal.useModal();
-    const [] = useFileUpload()
+  const dispatch = useAppDispatch()
+  const { isModalVisible, modalType, modalTitle, modalBody } = useWindowFromStore()
 
-    const modalConfig = {
-        title: 'Title',
-        content: 'Some contents...',
-    };
+  const handleClose = () => {
+    dispatch(hideModal())
+  }
+
+  const alertType = modalType === 'error' ? 'error'
+    : modalType === 'warning' ? 'warning'
+    : 'info'
 
   return (
-    <div>ErrorModal</div>
+    <Modal
+      open={isModalVisible}
+      title={modalTitle}
+      onCancel={handleClose}
+      onOk={handleClose}
+      okText="Dismiss"
+      cancelButtonProps={{ style: { display: 'none' } }}
+      centered
+    >
+      <Alert
+        type={alertType}
+        showIcon
+        description={<Text>{modalBody}</Text>}
+        style={{ marginTop: 8 }}
+      />
+    </Modal>
   )
 }
+

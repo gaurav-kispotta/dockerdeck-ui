@@ -10,3 +10,4 @@ export const useSettingsFromStore = () => useAppSelector((state) => state.settin
 export const useThemeFromStore = () => useAppSelector((state) => state.theme)
 export const useSelectionFromStore = () => useAppSelector((state) => state.selection)
 export const useDockerDeckFromStore = () => useAppSelector((state) => state.dockerdeck)
+export const useWindowFromStore = () => useAppSelector((state) => state.window)

@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import { useAppDispatch } from '../store/hooks'
 import { setFileContent, setYamlObject, setProcessingError } from '../store/slices/uploadedFileSlice'
 import { clearSelection } from '../store/slices/selectionSlice'
+import { showModal } from '../store/slices/windowSlice'
 import GlobalContextMenu from '../components/context-menu/GlobalContextMenu'
 import YamlObjectTransformer from '../modules/YamlObjectTransformer'
 import type { FileContentType } from '../store/slices/uploadedFileSlice'
@@ -67,7 +68,13 @@ export const useFileUpload = () => {
         errorMessage: error instanceof Error ? error.message : 'Unknown error'
       })
       
-      dispatch(setProcessingError(error instanceof Error ? error.message : 'Unknown error'))
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      dispatch(setProcessingError(errorMessage))
+      dispatch(showModal({
+        modalType: 'error',
+        title: 'File Parsing Failed',
+        body: errorMessage,
+      }))
     }
   }
 

@@ -4,6 +4,7 @@ import selectionReducer from './slices/selectionSlice'
 import themeReducer from './slices/themeSlice'
 import uploadedFileReducer from './slices/uploadedFileSlice'
 import dockerdeckReducer from './slices/dockerdeckSlice'
+import windowReducer from './slices/windowSlice'
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     theme: themeReducer,
     uploadedFile: uploadedFileReducer,
     dockerdeck: dockerdeckReducer, // Dynamically import dockerdeckSlice to avoid circular dependency
+    window: windowReducer,
   },
 })
 
