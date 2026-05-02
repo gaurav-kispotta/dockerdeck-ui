@@ -32,7 +32,7 @@ export function Navbar() {
     }
 
     return (
-        <div className="px-6 flex items-center justify-between h-16 theme-transition ">
+        <div className="px-6 flex items-center justify-between h-16 theme-transition relative">
             <div className="flex-none">
                 <Title level={3} className="text-gray-900 dark:text-gray-100">
                     docker deck<sup className="text-xs text-blue-500 ml-1">
@@ -41,7 +41,7 @@ export function Navbar() {
                     </sup>
                 </Title>
             </div>
-            <div className="flex-grow flex justify-center items-center">
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
                 <Upload className="electron-no-drag" {...uploadProps}>
                     <Button icon={<UploadOutlined />} className="w-full max-w-xs">
                         {fileName ? fileName : "Upload Docker Compose"}
