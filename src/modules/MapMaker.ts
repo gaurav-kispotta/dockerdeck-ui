@@ -239,6 +239,38 @@ export default class MapMaker {
                 parentId: undefined, // Remove any parentId for flat layout
                 parentNode: undefined // Remove any parentNode for flat layout
             })) as DockerDeckNode[]
+
+            // Add group container nodes so consumers can identify the three root groups
+            const groupContainerNodes: DockerDeckNode[] = [
+                {
+                    id: 'networks',
+                    type: 'group',
+                    position: { x: 0, y: networkY },
+                    data: { label: 'Networks' },
+                    parentNode: undefined,
+                    parentId: undefined,
+                    layoutOptions: { 'elk.priority': '1' },
+                } as DockerDeckNode,
+                {
+                    id: 'services',
+                    type: 'group',
+                    position: { x: 0, y: serviceY },
+                    data: { label: 'Services' },
+                    parentNode: undefined,
+                    parentId: undefined,
+                    layoutOptions: { 'elk.priority': '2' },
+                } as DockerDeckNode,
+                {
+                    id: 'volumes',
+                    type: 'group',
+                    position: { x: 0, y: volumeY },
+                    data: { label: 'Volumes' },
+                    parentNode: undefined,
+                    parentId: undefined,
+                    layoutOptions: { 'elk.priority': '3' },
+                } as DockerDeckNode,
+            ];
+            this.nodes = [...groupContainerNodes, ...this.nodes];
             
             // Ensure edges have the basic required properties for React Flow
             this.edges = generatedEdges.map(edge => ({

@@ -8,8 +8,8 @@ export interface SettingsState {
 }
 
 const initialState: SettingsState = {
-  platformPadding: 50,
-  nodeLevelPadding: 30,
+  platformPadding: 100,
+  nodeLevelPadding: 80,
   nodeSize: 100,
   showDependencies: false, // Default to not showing dependencies
 };

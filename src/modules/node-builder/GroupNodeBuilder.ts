@@ -29,6 +29,7 @@ class GroupNodeBuilder extends BaseNodeBuilder {
         baseNode.children = this.children;
         baseNode.type = "group";
         baseNode.style = {
+            ...baseNode.style,
             backgroundColor: "transparent",
             border: "0px"
         };
