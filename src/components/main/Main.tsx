@@ -3,7 +3,7 @@ import { Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'ant
 import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
-import { useAppSelector } from "../../store/hooks";
+import { useAppSelector } from "../../hooks/useReduxHooks";
 import SideBar from "../sidebar/SideBar";
 import DockerComposeViewer from "../viewer/DockerComposeViewer";
 import { useState, useEffect } from "react";

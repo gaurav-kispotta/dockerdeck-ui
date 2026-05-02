@@ -1,5 +1,5 @@
 import { Modal, Typography, Alert } from 'antd'
-import { useAppDispatch, useWindowFromStore } from '../../store/hooks'
+import { useAppDispatch, useWindowFromStore } from '../../hooks/useReduxHooks'
 import { hideModal } from '../../store/slices/windowSlice'
 
 const { Text } = Typography

@@ -1,5 +1,5 @@
 import { Slider, Typography, Space, Switch, Tooltip } from 'antd'
-import { useAppDispatch, useAppSelector } from '../../../store/hooks'
+import { useAppDispatch, useAppSelector } from '../../../hooks/useReduxHooks'
 import { setPlatformPadding, setNodeLevelPadding, setNodeSize, setShowDependencies } from '../../../store/slices/settingsSlice'
 import { QuestionCircleOutlined } from '@ant-design/icons';
 

@@ -12,7 +12,7 @@ import {
     FileOutlined
 } from '@ant-design/icons';
 import type { TreeDataNode } from 'antd';
-import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks';
 import { selectAstNode } from '../../store/slices/selectionSlice';
 
 const { Title } = Typography;

@@ -1,6 +1,6 @@
 import { ReactNode, useEffect } from 'react'
 import { ConfigProvider, theme } from 'antd'
-import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { useAppSelector, useAppDispatch } from '../hooks/useReduxHooks'
 import { updateSystemTheme, initializeTheme } from '../store/slices/themeSlice'
 import GlobalContextMenu from '../components/context-menu/GlobalContextMenu'
 import DockerDeckErrorModal from '../components/modals/ErrorModal'

@@ -1,7 +1,7 @@
 import { Button, Dropdown } from 'antd'
 import { SunOutlined, MoonOutlined, DesktopOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
-import { useAppSelector, useAppDispatch } from '../../store/hooks'
+import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
 import { setThemeMode } from '../../store/slices/themeSlice'
 import type { ThemeMode } from '../../store/slices/themeSlice'
 

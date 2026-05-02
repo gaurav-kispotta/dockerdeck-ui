@@ -1,4 +1,4 @@
-import { useAppDispatch } from '../store/hooks'
+import { useAppDispatch } from './useReduxHooks'
 import { logFileEvent, AnalyticsEvent } from '../utils/analytics'
 import { FileUploader } from '../modules/file-uploader/FileUploader'
 

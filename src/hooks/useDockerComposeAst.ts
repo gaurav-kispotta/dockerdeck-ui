@@ -1,4 +1,4 @@
-import { useAppSelector } from '../store/hooks';
+import { useAppSelector } from './useReduxHooks';
 import { IDockerComposeAst } from '../modules/ast/DockerComposeAstBuilder';
 
 /**
