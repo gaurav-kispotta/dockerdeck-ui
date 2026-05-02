@@ -1,6 +1,7 @@
 import type { AppDispatch } from '../../store/store'
-import { setFileContent, setYamlObject, setProcessingError } from '../../store/slices/uploadedFileSlice'
+import { setFileContent, setYamlObject, setProcessingError, clearFile } from '../../store/slices/uploadedFileSlice'
 import { clearSelection } from '../../store/slices/selectionSlice'
+import { clearDeck } from '../../store/slices/dockerdeckSlice'
 import { showModal } from '../../store/slices/windowSlice'
 import YamlObjectTransformer from '../YamlObjectTransformer'
 import { logFileEvent, AnalyticsEvent } from '../../utils/analytics'
@@ -44,8 +45,11 @@ export class FileUploader {
                 fileType: resolvedName.split('.').pop() || 'unknown',
             })
 
+            // Clear previous file data, selection and deck before processing new file
+            dispatch(clearFile())
             dispatch(clearSelection())
-            dispatch(setFileContent(fc))
+            dispatch(clearDeck())
+            dispatch(setFileContent({ content: fc, fileName: resolvedName }))
 
             const yt = new YamlObjectTransformer()
             const yamlObject = yt.yamlToObjects(fc)

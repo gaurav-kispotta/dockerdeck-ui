@@ -21,9 +21,13 @@ const dockerDeckSlice = createSlice({
     },
     setEdges: (state, action: PayloadAction<DockerDeckEdge[]>) => {
       state.edges = action.payload
+    },
+    clearDeck: (state) => {
+      state.nodes = []
+      state.edges = []
     }
   }
 })
 
-export const { setNodes, setEdges } = dockerDeckSlice.actions
+export const { setNodes, setEdges, clearDeck } = dockerDeckSlice.actions
 export default dockerDeckSlice.reducer

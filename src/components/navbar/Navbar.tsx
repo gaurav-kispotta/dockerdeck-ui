@@ -1,8 +1,8 @@
 import { Upload, Button, Space, Typography, Tag } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import { useFileUpload } from "../../hooks/useFileUpload"
+import { useUploadedFileFromStore } from '../../hooks/useReduxHooks'
 import { ThemeToggle } from '../theme/ThemeToggle'
-import { useState } from 'react'
 import packageJson from '../../../package.json'
 import MemoryStatus from '../status/MemoryStatus'
 
@@ -10,7 +10,7 @@ const { Title } = Typography
 
 export function Navbar() {
     const { uploadFile } = useFileUpload()
-    const [fileName, setFileName] = useState<string | null>(null)
+    const { fileName } = useUploadedFileFromStore()
 
     async function handleChange(info: any) {
         const { file } = info
@@ -18,7 +18,6 @@ export function Navbar() {
         if (file.status !== 'uploading') {
             const actualFile: File = file.originFileObj || file
             if (actualFile) {
-                setFileName(file.name)
                 await uploadFile(actualFile, file.name)
             }
         }
