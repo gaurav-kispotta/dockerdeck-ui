@@ -29,7 +29,7 @@ const initialState: UploadedFileState = {
 }
 
 const uploadedFileSlice = createSlice({
-  name: 'uploadedFile',
+  name: 'uploaded-file',
   initialState,
   reducers: {
     setFileContent: (state, action: PayloadAction<FileContentType>) => {
