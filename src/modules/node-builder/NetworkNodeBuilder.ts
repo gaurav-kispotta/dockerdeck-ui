@@ -14,7 +14,7 @@ class NetworkNodeBuilder extends BaseNodeBuilder {
     build(id: string, parentId: string): DockerDeckNode {
         const baseNode: DockerDeckNode = super.build(id, parentId);
 
-        baseNode.data.label = "Network: " + this.networkAst.name + id;
+        baseNode.data.label = `Network: ${this.networkAst.name}${id}`;
         baseNode.extent = 'parent';
         baseNode.type = "redis";
         baseNode.style = {};

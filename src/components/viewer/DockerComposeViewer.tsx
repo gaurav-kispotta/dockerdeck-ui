@@ -1,6 +1,6 @@
 import Editor from '@monaco-editor/react';
 import yaml from 'yaml';
-import { useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '../../hooks/useReduxHooks';
 import { Tabs } from 'antd';
 import AstDebugViewer from '../debug/AstDebugViewer';
 

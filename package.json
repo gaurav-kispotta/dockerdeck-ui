@@ -1,7 +1,7 @@
 {
     "name": "dockerdeck-ui",
     "private": false,
-    "version": "0.0.10",
+    "version": "0.0.20",
     "type": "module",
     "description": "A powerful web-based tool for visualizing Docker Compose files as interactive diagrams. Transform your container architecture into beautiful, understandable visual representations.",
     "keywords": [

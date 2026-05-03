@@ -1,4 +1,4 @@
-import { YamlDockerCompose } from "../../context/UploadedFileContext";
+import { YamlDockerCompose } from "../../store/slices/uploadedFileSlice";
 import { ILayoutEngine } from "../../interface/layout-engine/ILayoutEngine";
 import { IMappingEngine } from "../../interface/mapping-engine/IMappingEngine";
 import { DockerDeckNode } from "../../model/DockerDeckNode";

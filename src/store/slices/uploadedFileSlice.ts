@@ -1,7 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { IDockerComposeAst } from '../modules/ast/DockerComposeAstBuilder'
+import { IDockerComposeAst } from '../../modules/ast/DockerComposeAstBuilder'
 
 export type FileContentType = string | ArrayBuffer
+export type DockerComposeFile = {
+  fileName: string
+  content: FileContentType
+}
 
 export type YamlDockerCompose = {
   networks?: { [key: string]: {} }
@@ -11,6 +15,7 @@ export type YamlDockerCompose = {
 }
 
 interface UploadedFileState {
+  fileName?: string
   fileContent?: FileContentType
   yamlObject?: YamlDockerCompose | null
   astObject?: IDockerComposeAst | null
@@ -20,6 +25,7 @@ interface UploadedFileState {
 }
 
 const initialState: UploadedFileState = {
+  fileName: undefined,
   fileContent: undefined,
   yamlObject: null,
   astObject: null,
@@ -29,11 +35,12 @@ const initialState: UploadedFileState = {
 }
 
 const uploadedFileSlice = createSlice({
-  name: 'uploadedFile',
+  name: 'uploaded-file',
   initialState,
   reducers: {
-    setFileContent: (state, action: PayloadAction<FileContentType>) => {
-      state.fileContent = action.payload
+    setFileContent: (state, action: PayloadAction<DockerComposeFile>) => {
+      state.fileContent = action.payload.content
+      state.fileName = action.payload.fileName
       state.isProcessing = true
       state.error = undefined
     },
@@ -48,8 +55,10 @@ const uploadedFileSlice = createSlice({
     setProcessingError: (state, action: PayloadAction<string>) => {
       state.error = action.payload
       state.isProcessing = false
+      state.fileName = undefined
     },
     clearFile: (state) => {
+      state.fileName = undefined
       state.fileContent = undefined
       state.yamlObject = null
       state.astObject = null
@@ -73,7 +82,7 @@ const uploadedFileSlice = createSlice({
 })
 
 export const { 
-  setFileContent, 
+  setFileContent,
   setYamlObject, 
   setAstObject,
   setProcessingError, 

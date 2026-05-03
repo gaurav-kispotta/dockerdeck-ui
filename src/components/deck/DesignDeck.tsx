@@ -21,9 +21,11 @@ import MapMaker from '../../modules/MapMaker'
 // import SimpleFloatingEdge from './SimpleFloatingEdge'
 import SimpleEdge from './SimpleEdge'
 import DownloadControls from './DownloadControls'
-import { useAppSelector, useAppDispatch } from '../../store/hooks'
-import { selectNode, clearSelection } from '../../store/selectionSlice'
+import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
+import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
+import { setEdges, setNodes } from '../../store/slices/dockerdeckSlice'
+import { setAstObject } from '../../store/slices/uploadedFileSlice'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -75,28 +77,29 @@ function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
 }
 
 function DesignDeck({ clear = false }: DesignDeckProperties) {
-    const [nodes, setNodes] = useState<Node[]>([])
-    const [edges, setEdges] = useState<Edge[]>([])
-    const [originalNodePositions, setOriginalNodePositions] = useState<Record<string, { x: number; y: number }>>({})
-    const { themeMode } = useAppSelector((state) => state.theme)
+    const { themeMode, isDark } = useAppSelector((state) => state.theme)
 
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
     const astObject = useAppSelector((state) => state.uploadedFile.astObject)
     const settings = useAppSelector((state) => state.settings)
     const selection = useAppSelector((state) => state.selection)
+
+    const nodes = useAppSelector((state) => state.dockerdeck.nodes)
+    const edges = useAppSelector((state) => state.dockerdeck.edges)
+
     const dispatch = useAppDispatch()
 
     const onNodesChange = useCallback(
-        (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds)),
-        [setNodes],
+        (changes: any) => dispatch(setNodes(applyNodeChanges(changes, nodes))),
+        [dispatch, nodes],
     );
     const onEdgesChange = useCallback(
-        (changes: any) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-        [setEdges],
+        (changes: any) => dispatch(setEdges(applyEdgeChanges(changes, edges))),
+        [dispatch, edges],
     );
     const onConnect = useCallback(
-        (connection: any) => setEdges((eds) => addEdge(connection, eds)),
-        [setEdges],
+        (connection: any) => dispatch(setEdges(addEdge(connection, edges))),
+        [dispatch, edges],
     );
 
     // Function to calculate dependency tree layout using Dagre
@@ -145,41 +148,6 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             return node;
         });
     }, []);
-
-    // Effect to handle dependency layout when showDependencies toggle changes
-    useEffect(() => {
-        if (nodes.length === 0) return;
-
-        // Store original positions when first enabling dependency view
-        if (settings.showDependencies && Object.keys(originalNodePositions).length === 0) {
-            const positionMap: Record<string, { x: number; y: number }> = {};
-            nodes.forEach(node => {
-                positionMap[node.id] = { x: node.position.x, y: node.position.y };
-            });
-            setOriginalNodePositions(positionMap);
-        }
-
-        // Apply dependency tree layout when enabled
-        if (settings.showDependencies) {
-            const dependencyEdges = edges.filter(edge => 
-                edge.data?.connectionType === 'depends_on'
-            );
-            
-            if (dependencyEdges.length > 0) {
-                const layoutedNodes = getDependencyLayout(nodes, dependencyEdges);
-                setNodes(layoutedNodes);
-            }
-        } else {
-            // Restore original positions when disabling dependency view
-            if (Object.keys(originalNodePositions).length > 0) {
-                const restoredNodes = nodes.map(node => ({
-                    ...node,
-                    position: originalNodePositions[node.id] || node.position
-                }));
-                setNodes(restoredNodes);
-            }
-        }
-    }, [settings.showDependencies, getDependencyLayout]); // Removed nodes and edges from dependencies to avoid infinite loop
 
     const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
         console.log('Graph: Clicked node:', node.id);
@@ -261,7 +229,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                         boxShadow: isInvolved 
                             ? '0 0 15px rgba(239, 68, 68, 0.5)' // Red glow for dependency nodes
                             : 'none',
-                        border: isInvolved ? '2px solid #ef4444' : node.style?.border
+                        border: isInvolved ? '2px solid #ef4444' : node.style?.border,
+                        transform: 'none' // Prevent scaling to maintain alignment
                     },
                     className: isInvolved ? 'dependency-involved' : 'dependency-grayed'
                 }
@@ -276,6 +245,26 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             const isConnected = selection.connectedNodeIds.includes(node.id)
             const isGrayed = !isSelected && !isConnected
 
+            const nodeStyleLogic = () => {
+                const selectedNodeStyle = 'selected rounded-full';
+                if (isSelected) {
+                    if (isDark) {
+                        return 'selected-dark ' + selectedNodeStyle;
+                    } else {
+                        return 'selected-light ' + selectedNodeStyle;
+                    }
+                }
+                if (isConnected) {
+                    const connectedStyle = 'connected rounded-full shadow-lg';
+                    if (isDark) {
+                        return 'connected-dark ' + connectedStyle;
+                    } else {
+                        return 'connected-light ' + connectedStyle;
+                    }
+                }
+                return '';
+            }
+
             return {
                 ...node,
                 style: {
@@ -283,13 +272,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                     opacity: isGrayed ? 0.3 : 1,
                     filter: isGrayed ? 'grayscale(100%)' : 'none',
                     transition: 'opacity 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease',
-                    boxShadow: isSelected 
-                        ? '0 0 20px rgba(59, 130, 246, 0.6)' 
-                        : isConnected 
-                        ? '0 0 10px rgba(59, 130, 246, 0.4)' 
-                        : 'none',
                 },
-                className: isSelected ? 'selected' : isConnected ? 'connected' : ''
+                className: nodeStyleLogic()
             }
         })
     }, [nodes, selection, settings.showDependencies, edges])
@@ -347,20 +331,39 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         console.log(yamlObject)
         const maker = new MapMaker();
         if (yamlObject) {
-            maker.buildMap3(yamlObject, settings, dispatch)
-                .then(() => {
+            maker.buildMap3(yamlObject, settings)
+                .then((ast) => {
                     console.log('MapMaker completed successfully');
-                    setNodes(maker.nodes)
-                    setEdges(maker.edges)
+                    if (ast) dispatch(setAstObject(ast));
+
+                    let finalNodes = maker.nodes;
+
+                    if (settings.showDependencies) {
+                        const dependencyEdges = maker.edges.filter(e =>
+                            e.data?.connectionType === 'depends_on'
+                        );
+                        const serviceNodes = maker.nodes.filter(n =>
+                            n.data?.nodeType === 'service'
+                        );
+                        if (dependencyEdges.length > 0 && serviceNodes.length > 0) {
+                            const laidOut = getDependencyLayout(serviceNodes, dependencyEdges);
+                            finalNodes = maker.nodes.map(node =>
+                                laidOut.find(n => n.id === node.id) ?? node
+                            );
+                        }
+                    }
+
+                    dispatch(setNodes(finalNodes));
+                    dispatch(setEdges(maker.edges));
                 })
                 .catch((error) => {
                     console.error('Error in MapMaker.buildMap3:', error);
                     // Set empty arrays to prevent rendering errors
-                    setNodes([]);
-                    setEdges([]);
+                    dispatch(setNodes([]));
+                    dispatch(setEdges([]));
                 });
         }
-    }, [yamlObject, settings, dispatch])
+    }, [yamlObject, settings, dispatch, getDependencyLayout])
 
     return (
         <ReactFlow

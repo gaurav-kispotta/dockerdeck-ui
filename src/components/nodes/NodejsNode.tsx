@@ -1,21 +1,64 @@
-import { Position } from '@xyflow/react'
+import { NodeProps, Position } from '@xyflow/react'
 import BaseNode from './BaseNode'
 
 import '@xyflow/react/dist/style.css';
 
-function NodejsNode() {
-  const handles = [
-    { type: 'source' as const, position: Position.Bottom, id: 'a' },
-    { type: 'source' as const, position: Position.Left, id: 'b' },
-  ];
+const circleSize = 64;
+const iconSize = 36;
 
-  return (
-    <BaseNode handles={handles} hoverAreaSize={200}>
-      <div>
-        <img src='https://www.vectorlogo.zone/logos/nodejs/nodejs-icon.svg' />
-      </div>
-    </BaseNode>
-  )
+const circleStyle: React.CSSProperties = {
+    width: circleSize,
+    height: circleSize,
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.18)',
+    backdropFilter: 'blur(6px)',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.14), 0 1px 6px rgba(0,0,0,0.08)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: 'none',
+};
+
+const labelStyle: React.CSSProperties = {
+    fontSize: 11,
+    fontWeight: 500,
+    textAlign: 'center',
+    lineHeight: 1.3,
+    color: 'inherit',
+    overflowWrap: 'break-word',
+    wordBreak: 'break-word',
+};
+
+function NodejsNode(props: NodeProps) {
+    const label = (props.data?.label as string) || props.id || '';
+
+    const handles = [
+        { type: 'source' as const, position: Position.Top,    id: 'a' },
+        { type: 'source' as const, position: Position.Right,  id: 'b' },
+        { type: 'source' as const, position: Position.Bottom, id: 'c' },
+        { type: 'source' as const, position: Position.Left,   id: 'd' },
+        { type: 'target' as const, position: Position.Top,    id: 'e' },
+        { type: 'target' as const, position: Position.Right,  id: 'f' },
+        { type: 'target' as const, position: Position.Bottom, id: 'g' },
+        { type: 'target' as const, position: Position.Left,   id: 'h' },
+    ];
+
+    return (
+        <BaseNode
+            handles={handles}
+            hoverAreaSize={140}
+            className="relative"
+            label={<span style={labelStyle}>{label}</span>}
+        >
+            {/* Circle — exactly fills the node bounding box */}
+            <div style={circleStyle}>
+                <img
+                    src="https://www.vectorlogo.zone/logos/nodejs/nodejs-icon.svg"
+                    style={{ width: iconSize, height: iconSize, objectFit: 'contain', display: 'block' }}
+                />
+            </div>
+        </BaseNode>
+    );
 }
 
 export default NodejsNode

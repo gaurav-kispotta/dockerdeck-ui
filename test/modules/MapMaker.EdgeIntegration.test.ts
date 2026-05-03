@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import MapMaker from '../../src/modules/MapMaker';
-import { YamlDockerCompose } from '../../src/context/UploadedFileContext';
+import { YamlDockerCompose } from '../../src/store/slices/uploadedFileSlice';
 
 describe('MapMaker Edge Integration', () => {
     const sampleYaml: YamlDockerCompose = {

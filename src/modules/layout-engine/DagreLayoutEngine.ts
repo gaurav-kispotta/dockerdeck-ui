@@ -1,7 +1,7 @@
 import { ILayoutEngine } from "../../interface/layout-engine/ILayoutEngine";
 import { DockerDeckNode } from "../../model/DockerDeckNode";
 import { DockerDeckEdge } from "../../model/DockerDeckEdge";
-import { SettingsState } from "../../store/settingsSlice";
+import { SettingsState } from "../../store/slices/settingsSlice";
 import { graphlib, layout as dagreLayout } from "@dagrejs/dagre";
 
 /**

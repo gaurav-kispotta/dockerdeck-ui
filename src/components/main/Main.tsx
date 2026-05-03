@@ -1,9 +1,9 @@
 import { useContextMenu } from "react-contexify";
-import { Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'antd'
+import { Alert, Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'antd'
 import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
-import { useAppSelector } from "../../store/hooks";
+import { useAppSelector } from "../../hooks/useReduxHooks";
 import SideBar from "../sidebar/SideBar";
 import DockerComposeViewer from "../viewer/DockerComposeViewer";
 import { useState, useEffect } from "react";
@@ -18,7 +18,20 @@ const MENU_ID = "menu-id";
 
 export default function Main() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    
+    const [isSidebarContentVisible, setIsSidebarContentVisible] = useState(false);
+
+    // Delay rendering sidebar content until after the open animation completes.
+    // On close, hide immediately so content doesn't jitter while the sider shrinks.
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout>;
+        if (isSidebarOpen) {
+            timer = setTimeout(() => setIsSidebarContentVisible(true), 250);
+        } else {
+            setIsSidebarContentVisible(false);
+        }
+        return () => clearTimeout(timer);
+    }, [isSidebarOpen]);
+
     const { show } = useContextMenu({
         id: MENU_ID
     });
@@ -76,7 +89,7 @@ export default function Main() {
                 collapsedWidth={0}
                 className=" bg-white dark:bg-gray-800"
             >
-                {isSidebarOpen && <SideBar></SideBar>}
+                {isSidebarContentVisible && <SideBar />}
             </Sider>
             
             {/* Toggle Button - Only show when file is loaded */}
@@ -104,11 +117,18 @@ export default function Main() {
                             >
                             { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
                             { !yamlObject && (
-                                <div className="flex items-center justify-center h-full">
-                                    
+                                <div className="flex flex-col items-center justify-center h-full gap-4">
                                     <Empty description={
                                         <Text strong className="text-gray-500 dark:text-gray-400 text-lg">Please load a docker-compose.yaml or .yml file</Text>
                                     } />
+                                    <div className="max-w-md py-10">
+                                        <Alert
+                                            type="warning"
+                                            showIcon
+                                            message="Your file content is never uploaded to any server — all parsing and rendering happens locally in your browser. Anonymous usage analytics (file name, size, type, and browser info) are collected via Firebase Analytics to help improve the app."
+                                            className="max-w-md text-center"
+                                        />
+                                    </div>
                                 </div>
                             )}
                         </div>

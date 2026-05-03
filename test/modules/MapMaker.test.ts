@@ -108,10 +108,13 @@ describe('MapMaker', () => {
             expect(mapMaker.edges).toBeDefined();
         });
 
-        it('should call dispatch when provided', async () => {
-            await mapMaker.buildMap3(sampleYaml, mockSettings, mockDispatch);
-            
-            expect(mockDispatch).toHaveBeenCalled();
+        it('should return the AST and not call dispatch internally', async () => {
+            const ast = await mapMaker.buildMap3(sampleYaml, mockSettings, mockDispatch);
+
+            // dispatch is now the caller's responsibility — buildMap3 returns the AST instead
+            expect(mockDispatch).not.toHaveBeenCalled();
+            expect(ast).toBeDefined();
+            expect(ast?.services).toBeDefined();
         });
 
         it('should handle yaml with missing networks', async () => {

@@ -1,14 +1,14 @@
-import { Radio, Space, Tag, Tooltip, Typography, Switch } from 'antd'
-import { ApartmentOutlined, GlobalOutlined, LayoutOutlined, ShareAltOutlined } from '@ant-design/icons'
-import { useAppSelector, useAppDispatch } from "../../store/hooks"
+import { Radio, Tag, Tooltip, Typography, Switch } from 'antd'
+import { ApartmentOutlined, BugOutlined, GlobalOutlined, LayoutOutlined, ShareAltOutlined } from '@ant-design/icons'
+import { useAppSelector, useAppDispatch } from "../../hooks/useReduxHooks"
 import { useViewer } from "../../hooks/useReduxHooks"
-import { setShowDependencies } from "../../store/settingsSlice"
+import { setDebugMode, setShowDependencies } from "../../store/slices/settingsSlice"
 
 const { Text } = Typography
 
 export default function StatusBar() {
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
-    const { showDependencies } = useAppSelector((state) => state.settings)
+    const { showDependencies, debugMode } = useAppSelector((state) => state.settings)
     const { isViewerVisible, toggleViewer } = useViewer()
     const dispatch = useAppDispatch()
 
@@ -40,8 +40,12 @@ export default function StatusBar() {
         dispatch(setShowDependencies(checked))
     }
 
+    const handleDebugToggle = (checked: boolean) => {
+        dispatch(setDebugMode(checked))
+    }
+
     return (
-        <Space className="flex w-full items-center justify-between" size="small">
+        <div className="flex w-full items-center">
             <div className="flex-1 flex items-center">
                 <Tag icon={<GlobalOutlined />} color="blue">
                     Networks: {networkCounter()}
@@ -52,9 +56,29 @@ export default function StatusBar() {
                 <Tag icon={<GlobalOutlined />} color="blue">
                     Volumes: {volumeCounter()}
                 </Tag>
-                <div className="flex items-center space-x-2 ml-4">
+            </div>
+            <div className="flex-1 flex justify-center">
+                <Text>made with ❤️ in Bengaluru 🇮🇳</Text>
+            </div>
+            <div className="flex-1 flex justify-end items-center space-x-4">
+                {/* Debug toggle — reveals hover-area and bounding-box overlays on all nodes */}
+                <div className="flex items-center space-x-2">
+                    <BugOutlined style={{ color: debugMode ? '#f59e0b' : undefined }} />
+                    <Switch
+                        checked={debugMode}
+                        onChange={handleDebugToggle}
+                        size="small"
+                    />
+                    <Tooltip placement="top" title="Show node hit-areas and bounding boxes for debugging handle alignment">
+                        <Text className="text-sm" style={{ color: debugMode ? '#f59e0b' : undefined }}>
+                            Debug
+                        </Text>
+                    </Tooltip>
+                </div>
+
+                <div className="flex items-center space-x-2">
                     <ShareAltOutlined />
-                    <Switch 
+                    <Switch
                         checked={showDependencies}
                         onChange={handleDependencyToggle}
                         size="small"
@@ -63,11 +87,6 @@ export default function StatusBar() {
                         <Text className="text-sm">Show Dependencies</Text>
                     </Tooltip>
                 </div>
-            </div>
-            <div className="flex-1 flex justify-center">
-                <Text>made with ❤️ in Bengaluru 🇮🇳</Text>
-            </div>
-            <div className="flex-1 flex justify-end space-x-4">
                 <Radio.Group block value={isViewerVisible ? "yaml-view" : "map-view"} onChange={toggleViewer} optionType="button"
                     buttonStyle="solid" size='small'>
                     <Radio value="yaml-view">
@@ -82,6 +101,6 @@ export default function StatusBar() {
                     </Radio>
                 </Radio.Group>
             </div>
-        </Space>
+        </div>
     )
 }

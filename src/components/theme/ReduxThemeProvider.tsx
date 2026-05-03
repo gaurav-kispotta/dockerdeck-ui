@@ -1,7 +1,7 @@
 import { useEffect, ReactNode } from 'react'
 import { ConfigProvider, theme } from 'antd'
-import { useAppSelector, useAppDispatch } from '../../store/hooks'
-import { updateSystemTheme, initializeTheme } from '../../store/themeSlice'
+import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
+import { updateSystemTheme, initializeTheme } from '../../store/slices/themeSlice'
 
 interface ReduxThemeProviderProps {
   children: ReactNode
