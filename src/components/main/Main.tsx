@@ -1,5 +1,5 @@
 import { useContextMenu } from "react-contexify";
-import { Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'antd'
+import { Alert, Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'antd'
 import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 import DesignDeck from "../deck/DesignDeck";
 //import SideBar from "../sidebar/SideBar";
@@ -117,11 +117,16 @@ export default function Main() {
                             >
                             { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
                             { !yamlObject && (
-                                <div className="flex items-center justify-center h-full">
-                                    
+                                <div className="flex flex-col items-center justify-center h-full gap-4">
                                     <Empty description={
                                         <Text strong className="text-gray-500 dark:text-gray-400 text-lg">Please load a docker-compose.yaml or .yml file</Text>
                                     } />
+                                    <Alert
+                                        type="warning"
+                                        showIcon
+                                        message="Your files are never uploaded to any server. Everything is processed locally in your browser and never leaves your device."
+                                        className="max-w-md text-center"
+                                    />
                                 </div>
                             )}
                         </div>
