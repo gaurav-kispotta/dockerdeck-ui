@@ -50,10 +50,14 @@ function BaseNode({
       />
 
       {/* Node icon — sized to match the bounding box */}
-      <div className="absolute z-10" style={debugMode ? { 
-          background: 'rgba(255, 256, 25, 0.1)',
-          borderRadius: '50%',
-        } : undefined }>
+      <div className="absolute z-10" 
+          style={debugMode ? { 
+            background: 'rgba(255, 256, 25, 0.1)',
+            borderRadius: '50%',
+          } : undefined }
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          >
         {children}
 
         {handles.map((handle) => (
@@ -71,12 +75,10 @@ function BaseNode({
             }}
             onMouseEnter={(e) => {
               e.stopPropagation();
-              setIsHovered(true);
               setHoveredHandleId(handle.id);
             }}
             onMouseLeave={(e) => {
               e.stopPropagation();
-              setIsHovered(false);
               setHoveredHandleId(null);
             }}
           />
