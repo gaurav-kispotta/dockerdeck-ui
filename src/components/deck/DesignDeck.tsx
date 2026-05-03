@@ -77,7 +77,7 @@ function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
 }
 
 function DesignDeck({ clear = false }: DesignDeckProperties) {
-    const { themeMode } = useAppSelector((state) => state.theme)
+    const { themeMode, isDark } = useAppSelector((state) => state.theme)
 
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
     const astObject = useAppSelector((state) => state.uploadedFile.astObject)
@@ -245,6 +245,26 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             const isConnected = selection.connectedNodeIds.includes(node.id)
             const isGrayed = !isSelected && !isConnected
 
+            const nodeStyleLogic = () => {
+                const selectedNodeStyle = 'selected rounded-full';
+                if (isSelected) {
+                    if (isDark) {
+                        return 'selected-dark ' + selectedNodeStyle;
+                    } else {
+                        return 'selected-light ' + selectedNodeStyle;
+                    }
+                }
+                if (isConnected) {
+                    const connectedStyle = 'connected rounded-full shadow-lg';
+                    if (isDark) {
+                        return 'connected-dark ' + connectedStyle;
+                    } else {
+                        return 'connected-light ' + connectedStyle;
+                    }
+                }
+                return '';
+            }
+
             return {
                 ...node,
                 style: {
@@ -252,13 +272,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                     opacity: isGrayed ? 0.3 : 1,
                     filter: isGrayed ? 'grayscale(100%)' : 'none',
                     transition: 'opacity 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease',
-                    boxShadow: isSelected 
-                        ? '0 0 20px rgba(59, 130, 246, 0.6)' 
-                        : isConnected 
-                        ? '0 0 10px rgba(59, 130, 246, 0.4)' 
-                        : 'none',
                 },
-                className: isSelected ? 'selected' : isConnected ? 'connected' : ''
+                className: nodeStyleLogic()
             }
         })
     }, [nodes, selection, settings.showDependencies, edges])

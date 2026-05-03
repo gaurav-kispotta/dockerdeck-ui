@@ -47,17 +47,59 @@ path.react-flow__edge-path:hover {
 }
 
 /* Add a subtle pulsing animation to selected nodes */
-@keyframes pulse {
+@keyframes pulse-selected-light {
     0%, 100% {
         box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
     }
     50% {
-        box-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
+        box-shadow: 0 0 60px rgba(59, 130, 246, 1);
     }
 }
 
-.react-flow__node.selected {
-    animation: pulse 2s infinite;
+@keyframes pulse-selected-dark {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(117, 235, 27, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 60px rgba(117, 235, 27, 1);
+    }
+}
+
+.react-flow__node.selected-light {
+    animation: pulse-selected-light 5s infinite;
+    /* border handled via boxShadow in styledNodes — no wrapper border needed */
+}
+
+.react-flow__node.selected-dark {
+    animation: pulse-selected-dark 5s infinite;
+    /* border handled via boxShadow in styledNodes — no wrapper border needed */
+}
+
+@keyframes pulse-connected-light {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(230, 178, 68, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 60px rgba(230, 178, 68, 1);
+    }
+}
+
+@keyframes pulse-connected-dark {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(231, 96, 241, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 60px rgba(231, 96, 241, 1);
+    }
+}
+
+.react-flow__node.connected-light {
+    animation: pulse-connected-light 5s infinite;
+    /* border handled via boxShadow in styledNodes — no wrapper border needed */
+}
+
+.react-flow__node.connected-dark {
+    animation: pulse-connected-dark 5s infinite;
     /* border handled via boxShadow in styledNodes — no wrapper border needed */
 }
 

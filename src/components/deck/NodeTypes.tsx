@@ -53,6 +53,7 @@ export default {
     redis: RedisNode,
     nodejs: NodejsNode,
     group: ServiceGroupNode,
+    'unknown-type': RedisNode, // Fallback for unknown types
     // Dynamically generated node types from config
     ...generatedNodeTypes
 }

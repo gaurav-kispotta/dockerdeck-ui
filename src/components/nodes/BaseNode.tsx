@@ -39,7 +39,6 @@ function BaseNode({
           width: `${hoverAreaSize}px`,
           height: `${hoverAreaSize}px`,
           borderRadius: '50%',
-          //transform: 'translate(0px, 0px)',
           background: debugMode ? 'rgba(245,158,11,0.06)' : 'transparent',
           border: debugMode ? '2px dashed rgba(245,158,11,0.6)' : 'none',
           pointerEvents: 'all',

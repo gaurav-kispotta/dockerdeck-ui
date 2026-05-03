@@ -9,8 +9,8 @@ interface DockerDeckNodeProperties {
     dockerIconUrl?: string;
 }
 
-const circleSize = 64;
-const iconSize = 36;
+const circleSize = 100;
+const iconSize = 60;
 
 const circleStyle: React.CSSProperties = {
     width: circleSize,
