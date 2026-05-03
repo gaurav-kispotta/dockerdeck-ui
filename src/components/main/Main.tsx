@@ -18,7 +18,20 @@ const MENU_ID = "menu-id";
 
 export default function Main() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    
+    const [isSidebarContentVisible, setIsSidebarContentVisible] = useState(false);
+
+    // Delay rendering sidebar content until after the open animation completes.
+    // On close, hide immediately so content doesn't jitter while the sider shrinks.
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout>;
+        if (isSidebarOpen) {
+            timer = setTimeout(() => setIsSidebarContentVisible(true), 250);
+        } else {
+            setIsSidebarContentVisible(false);
+        }
+        return () => clearTimeout(timer);
+    }, [isSidebarOpen]);
+
     const { show } = useContextMenu({
         id: MENU_ID
     });
@@ -76,7 +89,7 @@ export default function Main() {
                 collapsedWidth={0}
                 className=" bg-white dark:bg-gray-800"
             >
-                {isSidebarOpen && <SideBar></SideBar>}
+                {isSidebarContentVisible && <SideBar />}
             </Sider>
             
             {/* Toggle Button - Only show when file is loaded */}
