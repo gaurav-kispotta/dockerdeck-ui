@@ -1,5 +1,10 @@
 [
     {
+        "dockerImageName": "unknown-type",
+        "dockerTag": "8.0",
+        "dockerIconUrl": "https://www.vectorlogo.zone/logos/mysql/mysql-icon.svg"
+    },
+    {
         "dockerImageName": "mysql",
         "dockerTag": "8.0",
         "dockerIconUrl": "https://www.vectorlogo.zone/logos/mysql/mysql-icon.svg"

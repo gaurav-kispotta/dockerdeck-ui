@@ -47,13 +47,13 @@ function generateDockerDeckNodeComponents(config: NodeConfig[]): Record<string, 
 // Generate all node types from config
 const generatedNodeTypes = generateDockerDeckNodeComponents(nodesConfig);
 
-// Export all node types including legacy ones and generated ones
-export default {
-    // Legacy node types for backward compatibility
-    redis: RedisNode,
-    nodejs: NodejsNode,
-    group: ServiceGroupNode,
-    'unknown-type': RedisNode, // Fallback for unknown types
-    // Dynamically generated node types from config
-    ...generatedNodeTypes
-}
+const allNodeTypes: Record<string, NodeComponent> = {
+    ...generatedNodeTypes,
+};
+
+// Falls back to unknown-type when image name is not registered
+export default new Proxy(allNodeTypes, {
+    get(target, prop: string) {
+        return target[prop] ?? target['unknown-type'];
+    },
+});

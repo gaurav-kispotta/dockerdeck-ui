@@ -15,6 +15,7 @@ class VolumeNodeBuilder extends BaseNodeBuilder {
         baseNode.data.label = id;
         baseNode.extent = 'parent';
         baseNode.type = "redis"; // Set proper node type
+        baseNode.style = {};
 
         return baseNode;
     }
