@@ -25,6 +25,7 @@ import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
 import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
 import { setEdges, setNodes } from '../../store/slices/dockerdeckSlice'
+import { setAstObject } from '../../store/slices/uploadedFileSlice'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -360,9 +361,10 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         console.log(yamlObject)
         const maker = new MapMaker();
         if (yamlObject) {
-            maker.buildMap3(yamlObject, settings, dispatch)
-                .then(() => {
+            maker.buildMap3(yamlObject, settings)
+                .then((ast) => {
                     console.log('MapMaker completed successfully');
+                    if (ast) dispatch(setAstObject(ast));
                     dispatch(setNodes(maker.nodes))
                     dispatch(setEdges(maker.edges))
                 })
