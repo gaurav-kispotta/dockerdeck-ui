@@ -26,6 +26,7 @@ function BaseNode({
   hoverAreaSize = 200,
 }: BaseNodeProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [hoveredHandleId, setHoveredHandleId] = useState<string | null>(null);
   const debugMode = useAppSelector((state) => state.settings.debugMode);
 
   return (
@@ -64,7 +65,19 @@ function BaseNode({
             isConnectable={true}
             style={{
               opacity: isHovered ? 1 : 0,
-              transition: 'opacity 0.2s ease-in-out',
+              transition: 'opacity 0.2s ease-in-out, width 0.15s ease, height 0.15s ease',
+              width: hoveredHandleId === handle.id ? 12 : 6,
+              height: hoveredHandleId === handle.id ? 12 : 6,
+            }}
+            onMouseEnter={(e) => {
+              e.stopPropagation();
+              setIsHovered(true);
+              setHoveredHandleId(handle.id);
+            }}
+            onMouseLeave={(e) => {
+              e.stopPropagation();
+              setIsHovered(false);
+              setHoveredHandleId(null);
             }}
           />
         ))}
