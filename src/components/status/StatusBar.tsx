@@ -1,4 +1,4 @@
-import { Radio, Space, Tag, Tooltip, Typography, Switch } from 'antd'
+import { Radio, Tag, Tooltip, Typography, Switch } from 'antd'
 import { ApartmentOutlined, GlobalOutlined, LayoutOutlined, ShareAltOutlined } from '@ant-design/icons'
 import { useAppSelector, useAppDispatch } from "../../hooks/useReduxHooks"
 import { useViewer } from "../../hooks/useReduxHooks"
@@ -41,7 +41,7 @@ export default function StatusBar() {
     }
 
     return (
-        <Space className="flex w-full items-center justify-between" size="small">
+        <div className="flex w-full items-center">
             <div className="flex-1 flex items-center">
                 <Tag icon={<GlobalOutlined />} color="blue">
                     Networks: {networkCounter()}
@@ -52,9 +52,14 @@ export default function StatusBar() {
                 <Tag icon={<GlobalOutlined />} color="blue">
                     Volumes: {volumeCounter()}
                 </Tag>
-                <div className="flex items-center space-x-2 ml-4">
+            </div>
+            <div className="flex-1 flex justify-center">
+                <Text>made with ❤️ in Bengaluru 🇮🇳</Text>
+            </div>
+            <div className="flex-1 flex justify-end items-center space-x-4">
+                <div className="flex items-center space-x-2">
                     <ShareAltOutlined />
-                    <Switch 
+                    <Switch
                         checked={showDependencies}
                         onChange={handleDependencyToggle}
                         size="small"
@@ -63,11 +68,6 @@ export default function StatusBar() {
                         <Text className="text-sm">Show Dependencies</Text>
                     </Tooltip>
                 </div>
-            </div>
-            <div className="flex-1 flex justify-center">
-                <Text>made with ❤️ in Bengaluru 🇮🇳</Text>
-            </div>
-            <div className="flex-1 flex justify-end space-x-4">
                 <Radio.Group block value={isViewerVisible ? "yaml-view" : "map-view"} onChange={toggleViewer} optionType="button"
                     buttonStyle="solid" size='small'>
                     <Radio value="yaml-view">
@@ -82,6 +82,6 @@ export default function StatusBar() {
                     </Radio>
                 </Radio.Group>
             </div>
-        </Space>
+        </div>
     )
 }
