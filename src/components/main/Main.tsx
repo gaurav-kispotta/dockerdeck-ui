@@ -121,12 +121,14 @@ export default function Main() {
                                     <Empty description={
                                         <Text strong className="text-gray-500 dark:text-gray-400 text-lg">Please load a docker-compose.yaml or .yml file</Text>
                                     } />
-                                    <Alert
-                                        type="warning"
-                                        showIcon
-                                        message="Your files are never uploaded to any server. Everything is processed locally in your browser and never leaves your device."
-                                        className="max-w-md text-center"
-                                    />
+                                    <div className="max-w-md py-10">
+                                        <Alert
+                                            type="warning"
+                                            showIcon
+                                            message="Your file content is never uploaded to any server — all parsing and rendering happens locally in your browser. Anonymous usage analytics (file name, size, type, and browser info) are collected via Firebase Analytics to help improve the app."
+                                            className="max-w-md text-center"
+                                        />
+                                    </div>
                                 </div>
                             )}
                         </div>

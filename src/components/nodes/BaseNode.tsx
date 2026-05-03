@@ -71,8 +71,8 @@ function BaseNode({
             style={{
               opacity: isHovered ? 1 : 0,
               transition: 'opacity 0.2s ease-in-out, width 0.15s ease, height 0.15s ease',
-              width: hoveredHandleId === handle.id ? 12 : 6,
-              height: hoveredHandleId === handle.id ? 12 : 6,
+              width: hoveredHandleId === handle.id ? 18 : 6,
+              height: hoveredHandleId === handle.id ? 18 : 6,
             }}
             onMouseEnter={(e) => {
               e.stopPropagation();

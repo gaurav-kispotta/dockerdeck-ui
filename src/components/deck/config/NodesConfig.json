@@ -5,6 +5,11 @@
         "dockerIconUrl": "https://www.svgrepo.com/show/445669/container-optimize.svg"
     },
     {
+        "dockerImageName": "volume",
+        "dockerTag": "latest",
+        "dockerIconUrl": "https://www.svgrepo.com/show/524492/database.svg"
+    },
+    {
         "dockerImageName": "mysql",
         "dockerTag": "8.0",
         "dockerIconUrl": "https://www.vectorlogo.zone/logos/mysql/mysql-icon.svg"

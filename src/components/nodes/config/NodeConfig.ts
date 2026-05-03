@@ -5,6 +5,11 @@
         "svgIconUrl": "https://www.vectorlogo.zone/logos/mysql/mysql-icon.svg"
     },
     {
+        "dockerImageName": "volume",
+        "tag": "latest",
+        "svgIconUrl": "https://www.svgrepo.com/show/524492/database.svg"
+    },
+    {
         "dockerImageName": "postgres",
         "tag": "16",
         "svgIconUrl": "https://www.vectorlogo.zone/logos/postgresql/postgresql-icon.svg"
