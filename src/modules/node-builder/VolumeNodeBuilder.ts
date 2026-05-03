@@ -15,6 +15,7 @@ class VolumeNodeBuilder extends BaseNodeBuilder {
         baseNode.data.label = `Volume: ${id}`;
         baseNode.extent = 'parent';
         baseNode.type = "redis";
+        baseNode.style = {};
 
         return baseNode;
     }

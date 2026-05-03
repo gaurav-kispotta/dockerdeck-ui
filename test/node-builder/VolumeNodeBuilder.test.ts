@@ -25,7 +25,7 @@ describe('VolumeNodeBuilder', () => {
     expect(node.parentId).toBe('parent-root');
     expect(node.width).toBe(140);
     expect(node.height).toBe(115);
-    expect(node.style?.background).toBe('#mock-volume-data');
+    expect(node.style).toEqual({});
     expect(node.data?.label).toBe('Volume: volume-data');
     expect(node.extent).toBe('parent');
   });

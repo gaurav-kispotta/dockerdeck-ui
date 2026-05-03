@@ -50,7 +50,7 @@ function DockerDeckNode({ dockerServiceId, dockerIconUrl }: DockerDeckNodeProper
     return (
         <BaseNode
             handles={handles}
-            hoverAreaSize={140}
+            hoverAreaSize={150}
             className="relative"
             label={<span style={labelStyle}>{dockerServiceId}</span>}
         >

@@ -38,6 +38,8 @@ function BaseNode({
         style={{
           width: `${hoverAreaSize}px`,
           height: `${hoverAreaSize}px`,
+          left: `-${hoverAreaSize / 2 - 50}px`,
+          top: `-${hoverAreaSize / 2 - 50}px`,
           borderRadius: '50%',
           background: debugMode ? 'rgba(245,158,11,0.06)' : 'transparent',
           border: debugMode ? '2px dashed rgba(245,158,11,0.6)' : 'none',
