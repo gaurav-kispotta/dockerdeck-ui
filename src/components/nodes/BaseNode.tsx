@@ -24,46 +24,13 @@ function BaseNode({
   label,
   handles = [],
   hoverAreaSize = 200,
-  className = 'relative',
 }: BaseNodeProps) {
   const [isHovered, setIsHovered] = useState(false);
   const debugMode = useAppSelector((state) => state.settings.debugMode);
 
   return (
     // This div is what React Flow measures for the node bounding box.
-    <div className={className}>
-
-      {/* ── Debug overlay: bounding box ── */}
-      {debugMode && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            border: '2px dashed rgba(59,130,246,0.7)',   // blue dashed = React Flow node boundary
-            borderRadius: '50%',
-            pointerEvents: 'none',
-            zIndex: 20,
-          }}
-        />
-      )}
-
-      {/* ── Debug overlay: handle hit-area ring ── */}
-      {debugMode && (
-        <div
-          style={{
-            position: 'absolute',
-            width: `${hoverAreaSize}px`,
-            height: `${hoverAreaSize}px`,
-            borderRadius: '50%',
-            transform: 'translate(-20px, -20px)',
-            border: '2px dashed rgba(245,158,11,0.6)',    // amber dashed = hover / handle zone
-            background: 'rgba(245,158,11,0.06)',
-            pointerEvents: 'none',
-            zIndex: 19,
-          }}
-        />
-      )}
-
+    <div className="w-full h-full flex items-center justify-center relative">
       {/* Expanded invisible hover area so handles are easier to grab */}
       <div
         className="absolute inset-0"
@@ -71,7 +38,9 @@ function BaseNode({
           width: `${hoverAreaSize}px`,
           height: `${hoverAreaSize}px`,
           borderRadius: '50%',
-          transform: 'translate(-20px, -20px)',
+          //transform: 'translate(0px, 0px)',
+          background: debugMode ? 'rgba(245,158,11,0.06)' : 'transparent',
+          border: debugMode ? '2px dashed rgba(245,158,11,0.6)' : 'none',
           pointerEvents: 'all',
           cursor: 'pointer',
         }}
@@ -80,7 +49,10 @@ function BaseNode({
       />
 
       {/* Node icon — sized to match the bounding box */}
-      <div className="relative z-10">
+      <div className="absolute z-10" style={debugMode ? { 
+          background: 'rgba(255, 256, 25, 0.1)',
+          borderRadius: '50%',
+        } : undefined }>
         {children}
 
         {handles.map((handle) => (

@@ -47,7 +47,6 @@ function RedisNode(props: NodeProps) {
         <BaseNode
             handles={handles}
             hoverAreaSize={140}
-            className="relative"
             label={<span style={labelStyle}>{label}</span>}
         >
             {/* Circle — exactly fills the node bounding box */}
