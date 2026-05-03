@@ -12,10 +12,9 @@ class VolumeNodeBuilder extends BaseNodeBuilder {
     build(id: string, parentId: string): DockerDeckNode {
         const baseNode: DockerDeckNode = super.build(id, parentId);
 
-        baseNode.data.label = id;
+        baseNode.data.label = `Volume: ${id}`;
         baseNode.extent = 'parent';
-        baseNode.type = "redis"; // Set proper node type
-        baseNode.style = {};
+        baseNode.type = "redis";
 
         return baseNode;
     }
