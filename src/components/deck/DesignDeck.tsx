@@ -77,7 +77,6 @@ function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
 }
 
 function DesignDeck({ clear = false }: DesignDeckProperties) {
-    const [originalNodePositions, setOriginalNodePositions] = useState<Record<string, { x: number; y: number }>>({})
     const { themeMode } = useAppSelector((state) => state.theme)
 
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
@@ -149,50 +148,6 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             return node;
         });
     }, []);
-
-    // Effect to handle dependency layout when showDependencies toggle changes
-    useEffect(() => {
-        if (nodes.length === 0) return;
-
-        // Store original positions when first enabling dependency view
-        if (settings.showDependencies && Object.keys(originalNodePositions).length === 0) {
-            const positionMap: Record<string, { x: number; y: number }> = {};
-            nodes.forEach(node => {
-                positionMap[node.id] = { x: node.position.x, y: node.position.y };
-            });
-            setOriginalNodePositions(positionMap);
-        }
-
-        // Apply dependency tree layout when enabled
-        if (settings.showDependencies) {
-            const dependencyEdges = edges.filter(edge => 
-                edge.data?.connectionType === 'depends_on'
-            );
-
-            const onlyDependencyNodes = nodes.filter(node => 
-                node.data?.nodeType === 'service'
-            );
-            
-            if (dependencyEdges.length > 0) {
-                const layoutedNodes = getDependencyLayout(onlyDependencyNodes, dependencyEdges);
-                // Only update the service nodes to new positions
-                const updatedNodes = nodes.map(node => {
-                    const layoutedNode = layoutedNodes.find(n => n.id === node.id);
-                    return layoutedNode ? layoutedNode : node;
-                });
-                setNodes(updatedNodes);
-            }
-        } else {
-            // Restore original positions when disabling dependency view
-            if (Object.keys(originalNodePositions).length > 0) {
-                const restoredNodes = nodes.map(node => ({
-                    ...node,
-                    position: originalNodePositions[node.id] || node.position
-                }));
-                setNodes(restoredNodes);
-            }
-        }
-    }, [settings.showDependencies, getDependencyLayout, nodes, edges]); // Ensure dependencies are included
 
     const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
         console.log('Graph: Clicked node:', node.id);
@@ -365,8 +320,26 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                 .then((ast) => {
                     console.log('MapMaker completed successfully');
                     if (ast) dispatch(setAstObject(ast));
-                    dispatch(setNodes(maker.nodes))
-                    dispatch(setEdges(maker.edges))
+
+                    let finalNodes = maker.nodes;
+
+                    if (settings.showDependencies) {
+                        const dependencyEdges = maker.edges.filter(e =>
+                            e.data?.connectionType === 'depends_on'
+                        );
+                        const serviceNodes = maker.nodes.filter(n =>
+                            n.data?.nodeType === 'service'
+                        );
+                        if (dependencyEdges.length > 0 && serviceNodes.length > 0) {
+                            const laidOut = getDependencyLayout(serviceNodes, dependencyEdges);
+                            finalNodes = maker.nodes.map(node =>
+                                laidOut.find(n => n.id === node.id) ?? node
+                            );
+                        }
+                    }
+
+                    dispatch(setNodes(finalNodes));
+                    dispatch(setEdges(maker.edges));
                 })
                 .catch((error) => {
                     console.error('Error in MapMaker.buildMap3:', error);
@@ -375,7 +348,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                     dispatch(setEdges([]));
                 });
         }
-    }, [yamlObject, settings, dispatch])
+    }, [yamlObject, settings, dispatch, getDependencyLayout])
 
     return (
         <ReactFlow

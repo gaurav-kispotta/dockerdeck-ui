@@ -1,14 +1,14 @@
 import { Radio, Tag, Tooltip, Typography, Switch } from 'antd'
-import { ApartmentOutlined, GlobalOutlined, LayoutOutlined, ShareAltOutlined } from '@ant-design/icons'
+import { ApartmentOutlined, BugOutlined, GlobalOutlined, LayoutOutlined, ShareAltOutlined } from '@ant-design/icons'
 import { useAppSelector, useAppDispatch } from "../../hooks/useReduxHooks"
 import { useViewer } from "../../hooks/useReduxHooks"
-import { setShowDependencies } from "../../store/slices/settingsSlice"
+import { setDebugMode, setShowDependencies } from "../../store/slices/settingsSlice"
 
 const { Text } = Typography
 
 export default function StatusBar() {
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
-    const { showDependencies } = useAppSelector((state) => state.settings)
+    const { showDependencies, debugMode } = useAppSelector((state) => state.settings)
     const { isViewerVisible, toggleViewer } = useViewer()
     const dispatch = useAppDispatch()
 
@@ -40,6 +40,10 @@ export default function StatusBar() {
         dispatch(setShowDependencies(checked))
     }
 
+    const handleDebugToggle = (checked: boolean) => {
+        dispatch(setDebugMode(checked))
+    }
+
     return (
         <div className="flex w-full items-center">
             <div className="flex-1 flex items-center">
@@ -57,6 +61,21 @@ export default function StatusBar() {
                 <Text>made with ❤️ in Bengaluru 🇮🇳</Text>
             </div>
             <div className="flex-1 flex justify-end items-center space-x-4">
+                {/* Debug toggle — reveals hover-area and bounding-box overlays on all nodes */}
+                <div className="flex items-center space-x-2">
+                    <BugOutlined style={{ color: debugMode ? '#f59e0b' : undefined }} />
+                    <Switch
+                        checked={debugMode}
+                        onChange={handleDebugToggle}
+                        size="small"
+                    />
+                    <Tooltip placement="top" title="Show node hit-areas and bounding boxes for debugging handle alignment">
+                        <Text className="text-sm" style={{ color: debugMode ? '#f59e0b' : undefined }}>
+                            Debug
+                        </Text>
+                    </Tooltip>
+                </div>
+
                 <div className="flex items-center space-x-2">
                     <ShareAltOutlined />
                     <Switch

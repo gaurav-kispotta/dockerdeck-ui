@@ -5,13 +5,15 @@ export interface SettingsState {
   nodeLevelPadding: number;
   nodeSize: number;
   showDependencies: boolean;
+  debugMode: boolean;
 }
 
 const initialState: SettingsState = {
   platformPadding: 100,
   nodeLevelPadding: 80,
   nodeSize: 100,
-  showDependencies: false, // Default to not showing dependencies
+  showDependencies: false,
+  debugMode: false,
 };
 
 export const settingsSlice = createSlice({
@@ -30,14 +32,18 @@ export const settingsSlice = createSlice({
     setShowDependencies: (state, action: PayloadAction<boolean>) => {
       state.showDependencies = action.payload;
     },
+    setDebugMode: (state, action: PayloadAction<boolean>) => {
+      state.debugMode = action.payload;
+    },
   },
 });
 
-export const { 
-  setPlatformPadding, 
-  setNodeLevelPadding, 
-  setNodeSize, 
+export const {
+  setPlatformPadding,
+  setNodeLevelPadding,
+  setNodeSize,
   setShowDependencies,
+  setDebugMode,
 } = settingsSlice.actions;
 
 export default settingsSlice.reducer;
