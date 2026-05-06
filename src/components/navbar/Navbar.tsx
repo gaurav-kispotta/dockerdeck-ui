@@ -1,14 +1,36 @@
 import { useRef } from 'react';
 import { useFileUpload } from '../../hooks/useFileUpload';
-import { useAppSelector } from '../../hooks/useReduxHooks';
+import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks';
+import { setThemeMode, ThemeMode } from '../../store/slices/themeSlice';
 import packageJson from '../../../package.json';
 import { T, themed } from '../../styles/tokens';
+
+const THEME_CYCLE: ThemeMode[] = ['light', 'dark', 'system'];
+
+const THEME_ICONS: Record<ThemeMode, string> = {
+  light: '☀',
+  dark: '☾',
+  system: '⊙',
+};
+
+const THEME_LABELS: Record<ThemeMode, string> = {
+  light: 'Light',
+  dark: 'Dark',
+  system: 'System',
+};
 
 export function Navbar() {
   const { uploadFile } = useFileUpload();
   const { fileName, yamlObject } = useAppSelector((s) => s.uploadedFile);
   const isDark = useAppSelector((s) => s.theme.isDark);
+  const themeMode = useAppSelector((s) => s.theme.themeMode);
+  const dispatch = useAppDispatch();
   const th = themed(isDark);
+
+  function cycleTheme() {
+    const next = THEME_CYCLE[(THEME_CYCLE.indexOf(themeMode) + 1) % THEME_CYCLE.length];
+    dispatch(setThemeMode(next));
+  }
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,6 +123,31 @@ export function Navbar() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} className="electron-no-drag">
         <IconBtn title="Validate">✓</IconBtn>
         <IconBtn title="Search">⌕</IconBtn>
+        <div style={{ width: 1, height: 22, background: th.line, margin: '0 4px' }} />
+        <button
+          onClick={cycleTheme}
+          title={`Theme: ${THEME_LABELS[themeMode]} (click to cycle)`}
+          style={{
+            height: 30, padding: '0 10px', borderRadius: 8,
+            background: th.bg2, border: `1px solid ${th.line}`,
+            color: th.textDim, cursor: 'pointer', fontSize: 14,
+            display: 'flex', alignItems: 'center', gap: 5,
+            transition: 'color 0.15s, background 0.15s, border-color 0.15s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = th.text;
+            e.currentTarget.style.borderColor = T.cyan + '88';
+            e.currentTarget.style.background = th.bg3;
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = th.textDim;
+            e.currentTarget.style.borderColor = th.line;
+            e.currentTarget.style.background = th.bg2;
+          }}
+        >
+          <span>{THEME_ICONS[themeMode]}</span>
+          <span style={{ fontSize: 11, fontWeight: 500 }}>{THEME_LABELS[themeMode]}</span>
+        </button>
         <div style={{ width: 1, height: 22, background: th.line, margin: '0 4px' }} />
         <button
           onClick={() => fileInputRef.current?.click()}

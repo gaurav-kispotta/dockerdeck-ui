@@ -1,54 +1,73 @@
 import { IMapBuildStage } from '../../../interface/map-builder/IMapBuildStage';
 import { MapBuildContext } from '../../../interface/map-builder/MapBuildContext';
 
+// Actual rendered dimensions from DockerDeckNode (hardcoded 200px wide, ~80px tall)
+const CARD_W = 200;
+const CARD_H = 80;
+const H_STEP = 260;   // card width + 60px gap — gives breathing room between cards
+const V_STEP = 200;   // vertical gap between layers (card height + 120px breathing room)
+
 export class PositioningStage implements IMapBuildStage {
     async execute(context: MapBuildContext): Promise<MapBuildContext> {
-        const nodeSize = context.settings?.nodeSize ?? 100;
-        const spacing = context.settings ? context.settings.nodeLevelPadding * 3 : 300;
 
-        const networkY = 0;
-        const serviceY = networkY + spacing;
-        const volumeY = serviceY + spacing;
+        const networkLayerY = 0;
+        const serviceLayerY = networkLayerY + CARD_H + V_STEP;
+        const volumeLayerY  = serviceLayerY  + CARD_H + V_STEP;
 
-        // Store raw layer Y values before centering — AssemblyStage uses these for group container nodes
-        context.networkLayerY = networkY;
-        context.serviceLayerY = serviceY;
-        context.volumeLayerY = volumeY;
+        context.networkLayerY = networkLayerY;
+        context.serviceLayerY = serviceLayerY;
+        context.volumeLayerY  = volumeLayerY;
 
-        const networkNodeIds = new Set(context.networkNodes.map((n) => n.id));
-        const serviceNodeIds = new Set(context.serviceNodes.map((n) => n.id));
-        const volumeNodeIds = new Set(context.volumeNodes.map((n) => n.id));
+        const networkNodeIds = new Set(context.networkNodes.map(n => n.id));
+        const serviceNodeIds = new Set(context.serviceNodes.map(n => n.id));
+        const volumeNodeIds  = new Set(context.volumeNodes.map(n => n.id));
 
-        const placedNetworks = context.laidOutNodes.filter((n) => networkNodeIds.has(n.id));
-        const placedServices = context.laidOutNodes.filter((n) => serviceNodeIds.has(n.id));
-        const placedVolumes = context.laidOutNodes.filter((n) => volumeNodeIds.has(n.id));
+        const placedNetworks = context.laidOutNodes.filter(n => networkNodeIds.has(n.id));
+        const placedServices = context.laidOutNodes.filter(n => serviceNodeIds.has(n.id));
+        const placedVolumes  = context.laidOutNodes.filter(n => volumeNodeIds.has(n.id));
 
-        const positionLayer = (nodes: typeof placedNetworks, layerY: number) => {
-            nodes.forEach((n, index) => {
-                const centerX = (index * (nodeSize + 50)) - ((nodes.length - 1) * (nodeSize + 50)) / 2;
-                n.position = { x: centerX, y: layerY };
+        /**
+         * Position a row of nodes centred around x = 0.
+         * For large service counts arrange in up to 2 rows so the graph
+         * doesn't become an unreadably wide single strip.
+         */
+        const positionRow = (nodes: typeof placedNetworks, baseY: number) => {
+            const cols = nodes.length > 5 ? Math.ceil(nodes.length / 2) : nodes.length;
+            const rows = Math.ceil(nodes.length / cols);
+            const rowH  = CARD_H + 60; // row-to-row gap when multi-row
+
+            nodes.forEach((n, i) => {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                // Centre each row individually
+                const rowCount = row < rows - 1 ? cols : nodes.length - row * cols;
+                const rowOffsetX = (rowCount - 1) * H_STEP / 2;
+                n.position = {
+                    x: col * H_STEP - rowOffsetX,
+                    y: baseY + row * rowH,
+                };
             });
         };
 
-        positionLayer(placedNetworks, networkY);
-        positionLayer(placedServices, serviceY);
-        positionLayer(placedVolumes, volumeY);
+        positionRow(placedNetworks, networkLayerY);
+        positionRow(placedServices, serviceLayerY);
+        positionRow(placedVolumes,  volumeLayerY);
 
-        // Center the entire layout on the canvas origin
+        // Centre the whole graph around the canvas origin
         const allPlaced = [...placedNetworks, ...placedServices, ...placedVolumes];
         if (allPlaced.length > 0) {
-            const minX = Math.min(...allPlaced.map((n) => n.position?.x ?? 0));
-            const maxX = Math.max(...allPlaced.map((n) => (n.position?.x ?? 0) + nodeSize));
-            const minY = Math.min(...allPlaced.map((n) => n.position?.y ?? 0));
-            const maxY = Math.max(...allPlaced.map((n) => (n.position?.y ?? 0) + nodeSize));
+            const minX = Math.min(...allPlaced.map(n => n.position?.x ?? 0));
+            const maxX = Math.max(...allPlaced.map(n => (n.position?.x ?? 0) + CARD_W));
+            const minY = Math.min(...allPlaced.map(n => n.position?.y ?? 0));
+            const maxY = Math.max(...allPlaced.map(n => (n.position?.y ?? 0) + CARD_H));
 
-            const centerOffsetX = -(maxX - minX) / 2;
-            const centerOffsetY = -(maxY - minY) / 2;
+            const cx = -(maxX - minX) / 2 - minX;
+            const cy = -(maxY - minY) / 2 - minY;
 
-            allPlaced.forEach((n) => {
+            allPlaced.forEach(n => {
                 if (n.position) {
-                    n.position.x += centerOffsetX;
-                    n.position.y += centerOffsetY;
+                    n.position.x += cx;
+                    n.position.y += cy;
                 }
             });
         }
