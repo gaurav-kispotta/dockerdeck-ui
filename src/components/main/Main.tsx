@@ -1,5 +1,6 @@
 import { useContextMenu } from 'react-contexify';
 import DesignDeck from '../deck/DesignDeck';
+import ViewModeTabs from '../deck/ViewModeTabs';
 import { useAppSelector } from '../../hooks/useReduxHooks';
 import DockerComposeViewer from '../viewer/DockerComposeViewer';
 import OutlinePanel from '../outline/OutlinePanel';
@@ -36,16 +37,21 @@ export default function Main() {
         onContextMenu={displayMenu}
       >
         {yamlObject ? (
-          <Splitter layout="vertical" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <Splitter.Panel style={{ position: 'relative' }}>
-              <DesignDeck clear={false} />
-            </Splitter.Panel>
-            {isViewerVisible && (
-              <Splitter.Panel size="40%">
-                <DockerComposeViewer />
+          <>
+            {/* View mode tabs — Architecture / Networks / Ports / Storage / Boot Order */}
+            <ViewModeTabs />
+
+            <Splitter layout="vertical" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <Splitter.Panel style={{ position: 'relative' }}>
+                <DesignDeck clear={false} />
               </Splitter.Panel>
-            )}
-          </Splitter>
+              {isViewerVisible && (
+                <Splitter.Panel size="40%">
+                  <DockerComposeViewer />
+                </Splitter.Panel>
+              )}
+            </Splitter>
+          </>
         ) : (
           <EmptyCanvas isDark={isDark} th={th} />
         )}

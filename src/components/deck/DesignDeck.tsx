@@ -203,103 +203,161 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         default: OrthogonalEdge,
     };
 
+    // ── Boot-order layout (dagre, only in boot-order view) ───────────────────
+    const bootOrderNodes = useMemo(() => {
+        if (settings.viewMode !== 'boot-order') return null;
+        const serviceNodes = nodes.filter(n => n.data?.nodeType === 'service');
+        const depEdges = edges.filter(e => e.data?.connectionType === 'depends_on');
+        if (depEdges.length === 0 || serviceNodes.length === 0) return null;
+        return getDependencyLayout(serviceNodes, depEdges);
+    }, [nodes, edges, settings.viewMode, getDependencyLayout]);
+
+    // ── View-mode node filtering ──────────────────────────────────────────────
+    const viewFilteredNodes = useMemo(() => {
+        // In boot-order view: replace service node positions with dagre layout
+        // and hide network + volume nodes
+        const base = bootOrderNodes
+            ? nodes.map(n => bootOrderNodes.find(l => l.id === n.id) ?? n)
+            : nodes;
+
+        return base.filter(n => {
+            const t = n.data?.nodeType as string | undefined;
+            switch (settings.viewMode) {
+                case 'ports':      return t !== 'volume';         // hide volume nodes
+                case 'volumes':    return t !== 'network';        // hide network nodes
+                case 'boot-order': return t === 'service';        // services only
+                default:           return true;
+            }
+        });
+    }, [nodes, bootOrderNodes, settings.viewMode]);
+
     // Apply styling based on selection and dependency mode
     const styledNodes = useMemo(() => {
-        // In dependency mode, highlight nodes involved in dependency relationships
+        // showDependencies overlay
         if (settings.showDependencies) {
-            // Find nodes involved in dependency edges
-            const dependencyEdges = edges.filter(edge => 
-                edge.data?.connectionType === 'depends_on'
-            );
-            
-            const involvedNodeIds = new Set<string>();
-            dependencyEdges.forEach(edge => {
-                involvedNodeIds.add(edge.source);
-                involvedNodeIds.add(edge.target);
-            });
-
-            return nodes.map(node => {
-                const isInvolved = involvedNodeIds.has(node.id);
-                
-                return {
-                    ...node,
-                    style: {
-                        ...node.style,
-                        opacity: isInvolved ? 1 : 0.3,
-                        filter: isInvolved ? 'none' : 'grayscale(100%)',
-                        transition: 'opacity 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease',
-                        boxShadow: isInvolved 
-                            ? '0 0 15px rgba(239, 68, 68, 0.5)' // Red glow for dependency nodes
-                            : 'none',
-                        border: isInvolved ? '2px solid #ef4444' : node.style?.border,
-                        transform: 'none' // Prevent scaling to maintain alignment
-                    },
-                    className: isInvolved ? 'dependency-involved' : 'dependency-grayed'
-                }
-            });
+            const depIds = new Set<string>();
+            edges.filter(e => e.data?.connectionType === 'depends_on')
+                 .forEach(e => { depIds.add(e.source); depIds.add(e.target); });
+            return viewFilteredNodes.map(n => ({
+                ...n,
+                style: { ...n.style, opacity: depIds.has(n.id) ? 1 : 0.25,
+                         filter: depIds.has(n.id) ? 'none' : 'grayscale(100%)', transition: 'opacity 0.3s' },
+                className: depIds.has(n.id) ? 'dependency-involved' : 'dependency-grayed',
+            }));
         }
 
-        // Regular selection-based styling
-        if (!selection.selectedNodeId) return nodes
+        // View-mode node dimming (in ports view: fade services without exposed ports)
+        if (settings.viewMode === 'ports') {
+            const svcsWithPorts = new Set(
+                astObject?.services?.filter(s => s.ports.length > 0).map(s => s.name) ?? []
+            );
+            return viewFilteredNodes.map(n => ({
+                ...n,
+                style: {
+                    ...n.style,
+                    opacity: n.data?.nodeType !== 'service' || svcsWithPorts.has(n.id) ? 1 : 0.35,
+                    filter:  n.data?.nodeType !== 'service' || svcsWithPorts.has(n.id) ? 'none' : 'grayscale(80%)',
+                    transition: 'opacity 0.3s, filter 0.3s',
+                },
+            }));
+        }
 
-        return nodes.map(node => {
+        // Selection-based styling
+        if (!selection.selectedNodeId) return viewFilteredNodes
+
+        return viewFilteredNodes.map(node => {
             const isSelected = node.id === selection.selectedNodeId
             const isConnected = selection.connectedNodeIds.includes(node.id)
             const isGrayed = !isSelected && !isConnected
-
             return {
                 ...node,
                 style: {
                     ...node.style,
                     opacity: isGrayed ? 0.3 : 1,
                     filter: isGrayed ? 'grayscale(100%)' : 'none',
-                    transition: 'opacity 0.3s ease, filter 0.3s ease',
+                    transition: 'opacity 0.3s, filter 0.3s',
                 },
             }
         })
-    }, [nodes, selection, settings.showDependencies, edges])
+    }, [viewFilteredNodes, selection, settings.showDependencies, settings.viewMode, edges, astObject])
 
-    const styledEdges = useMemo(() => {
-        // In dependency mode, highlight dependency edges
+    // ── View-mode edge filtering + labelling ──────────────────────────────────
+    const viewModeEdges = useMemo(() => {
+        const vm = settings.viewMode;
+
+        // showDependencies overlay always wins
         if (settings.showDependencies) {
-            return edges.map(edge => {
-                const isDependencyEdge = edge.data?.connectionType === 'depends_on';
-                
-                return {
-                    ...edge,
-                    style: {
-                        ...edge.style,
-                        opacity: isDependencyEdge ? 1 : 0.2, // Hide non-dependency edges
-                        strokeWidth: isDependencyEdge ? 4 : 1,
-                        transition: 'opacity 0.3s ease, stroke-width 0.3s ease',
-                    },
-                    animated: isDependencyEdge ? true : false,
-                    className: isDependencyEdge ? 'dependency-edge' : 'grayed-edge'
-                }
+            return edges.map(e => {
+                const isDep = e.data?.connectionType === 'depends_on';
+                return { ...e, style: { ...e.style, opacity: isDep ? 1 : 0.15, strokeWidth: isDep ? 3 : 1 }, animated: isDep };
             });
         }
 
-        // Regular selection-based styling
-        if (!selection.selectedNodeId) return edges
+        // Keep only edges whose endpoints exist in the filtered node set
+        const visibleIds = new Set(viewFilteredNodes.map(n => n.id));
+        let filtered = edges.filter(e => visibleIds.has(e.source) && visibleIds.has(e.target));
 
-        return edges.map(edge => {
-            const isConnected = selection.connectedEdgeIds.includes(edge.id)
-            const isGrayed = !isConnected
+        switch (vm) {
+            case 'networks':
+                // Network edges prominent, others faded
+                filtered = filtered.map(e => {
+                    const isNet = e.data?.connectionType === 'network';
+                    return { ...e, style: { ...e.style, opacity: isNet ? 1 : 0.08, strokeWidth: isNet ? 2.5 : 1 } };
+                });
+                break;
 
-            return {
-                ...edge,
-                style: {
-                    ...edge.style,
-                    opacity: isGrayed ? 0.3 : 1,
-                    strokeWidth: isConnected ? 6 : 2,
-                    transition: 'opacity 0.3s ease, stroke-width 0.3s ease',
-                    filter: isConnected ? 'drop-shadow(0px 0px 4px rgba(59, 130, 246, 0.5))' : 'none',
-                },
-                animated: isConnected ? true : edge.animated,
-                className: isConnected ? 'highlighted' : ''
+            case 'ports':
+                // Fade all edges — the node badges carry the info
+                filtered = filtered.map(e => ({ ...e, style: { ...e.style, opacity: 0.1 } }));
+                break;
+
+            case 'volumes': {
+                // Volume edges prominent with mount-path labels; others faded
+                filtered = filtered.map(e => {
+                    const isVol = e.data?.connectionType === 'volume';
+                    if (!isVol) return { ...e, style: { ...e.style, opacity: 0.08, strokeWidth: 1 } };
+                    // Look up mount path from AST
+                    const svcAst = astObject?.services?.find(s => s.name === e.source);
+                    const volInfo = svcAst?.volumes?.find(v => v.external === e.target || e.target.startsWith(v.external));
+                    return {
+                        ...e,
+                        label: volInfo?.internal ?? '',
+                        style: { ...e.style, opacity: 1, strokeWidth: 2.5 },
+                    };
+                });
+                break;
             }
-        })
-    }, [edges, selection, settings.showDependencies])
+
+            case 'boot-order':
+                // Only depends_on edges
+                filtered = filtered
+                    .filter(e => e.data?.connectionType === 'depends_on')
+                    .map(e => ({ ...e, style: { ...e.style, opacity: 1, strokeWidth: 2.5 }, animated: true }));
+                break;
+
+            default: // architecture — all edges at normal weight
+                break;
+        }
+
+        // Selection overlay on top of view-mode filtering
+        if (!selection.selectedNodeId) return filtered;
+        return filtered.map(e => {
+            const isConn = selection.connectedEdgeIds.includes(e.id);
+            return {
+                ...e,
+                style: {
+                    ...e.style,
+                    opacity: isConn ? 1 : (e.style?.opacity as number ?? 1) * 0.4,
+                    strokeWidth: isConn ? 4 : (e.style?.strokeWidth as number ?? 1.5),
+                    filter: isConn ? 'drop-shadow(0 0 4px rgba(91,200,255,0.6))' : 'none',
+                },
+                animated: isConn ? true : e.animated,
+            };
+        });
+    }, [edges, viewFilteredNodes, selection, settings.showDependencies, settings.viewMode, astObject])
+
+    // Legacy alias kept so the ReactFlow render can use styledEdges name
+    const styledEdges = viewModeEdges;
 
     useEffect(() => {
         if (clear) {

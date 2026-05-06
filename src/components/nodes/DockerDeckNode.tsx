@@ -29,10 +29,11 @@ function DockerDeckNode({ dockerServiceId, dockerImageName, dockerIconUrl, nodeT
   const isSelected  = selection.selectedNodeId === dockerServiceId;
   const isConnected = selection.connectedNodeIds.includes(dockerServiceId);
 
-  // Derive image tag from AST if available
+  const viewMode = useAppSelector((s) => s.settings.viewMode);
   const astObject = useAppSelector((s) => s.uploadedFile.astObject);
   const svcAst = astObject?.services?.find(s => s.name === dockerServiceId);
   const imageTag = svcAst ? `${svcAst.image.name}:${svcAst.image.tag}` : dockerImageName;
+  const ports = svcAst?.ports ?? [];
 
   const handles = [
     { type: 'source' as const, position: Position.Top,    id: 'a' },
@@ -121,6 +122,36 @@ function DockerDeckNode({ dockerServiceId, dockerImageName, dockerIconUrl, nodeT
           background: T.green, boxShadow: `0 0 0 2px ${T.green}22`,
         }} />
       </div>
+
+      {/* Port badges — shown in Ports view */}
+      {viewMode === 'ports' && ports.length > 0 && (
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 7, position: 'relative' }}>
+          {ports.slice(0, 4).map((p, i) => (
+            <span key={i} style={{
+              fontSize: 9.5, padding: '1px 6px', borderRadius: 4,
+              background: `${T.green}18`, color: T.green,
+              border: `1px solid ${T.green}44`,
+              fontFamily: 'ui-monospace,Menlo,monospace', lineHeight: 1.6,
+            }}>
+              {p.external}:{p.internal}
+            </span>
+          ))}
+          {ports.length > 4 && (
+            <span style={{ fontSize: 9.5, color: isDark ? T.textFaint : '#8A93A6', lineHeight: 1.8 }}>
+              +{ports.length - 4}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* No-port indicator in Ports view */}
+      {viewMode === 'ports' && ports.length === 0 && (
+        <div style={{
+          marginTop: 6, fontSize: 9.5, color: isDark ? T.textFaint : '#A8B0BF',
+          fontFamily: 'Inter, system-ui, sans-serif',
+          fontStyle: 'italic', position: 'relative',
+        }}>no exposed ports</div>
+      )}
 
       {/* Handles */}
       {handles.map(h => (
