@@ -1,10 +1,11 @@
 import { ReactNode, useEffect } from 'react'
-import { ConfigProvider, theme } from 'antd'
+import { ConfigProvider } from 'antd'
 import { useAppSelector, useAppDispatch } from '../hooks/useReduxHooks'
 import { updateSystemTheme, initializeTheme } from '../store/slices/themeSlice'
 import GlobalContextMenu from '../components/context-menu/GlobalContextMenu'
 import AppModal from '../components/modals/AppModal'
 import { ModalProvider } from './ModalContext'
+import { antThemeConfig } from '../styles/tokens'
 
 interface AppProviderProps {
   children: ReactNode
@@ -29,15 +30,7 @@ export default function AppProvider({ children }: AppProviderProps) {
 
   return (
     <ModalProvider>
-      <ConfigProvider
-        theme={{
-          algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-          token: {
-            colorPrimary: '#1890ff',
-            borderRadius: 6,
-          },
-        }}
-      >
+      <ConfigProvider theme={antThemeConfig(isDark)}>
         <AppModal />
         <GlobalContextMenu />
         {children}
