@@ -6,7 +6,7 @@ import BaseNodeBuilder from "./BaseNodeBuilder";
 class NetworkNodeBuilder extends BaseNodeBuilder {
     private networkAst: IDockerNetwork;
 
-    constructor(networkAst: IDockerNetwork, uniqueColorBuilder: IUniqueColorBuilder, width = 100, height = 100) {
+    constructor(networkAst: IDockerNetwork, uniqueColorBuilder: IUniqueColorBuilder, width = 180, height = 72) {
         super(uniqueColorBuilder, width, height);
         this.networkAst = networkAst;
     }
@@ -14,9 +14,10 @@ class NetworkNodeBuilder extends BaseNodeBuilder {
     build(id: string, parentId: string): DockerDeckNode {
         const baseNode: DockerDeckNode = super.build(id, parentId);
 
-        baseNode.data.label = `Network: ${this.networkAst.name}${id}`;
+        baseNode.data.label = this.networkAst.name || id;
+        baseNode.data.nodeType = 'network';
         baseNode.extent = 'parent';
-        baseNode.type = "redis";
+        baseNode.type = "unknown-type";
         baseNode.style = {};
 
         return baseNode;

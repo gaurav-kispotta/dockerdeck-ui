@@ -1,149 +1,94 @@
-import { useContextMenu } from "react-contexify";
-import { Alert, Button, ConfigProvider, Empty, Layout, Splitter, Typography } from 'antd'
-import { LeftOutlined, RightOutlined } from '@ant-design/icons'
-import DesignDeck from "../deck/DesignDeck";
-//import SideBar from "../sidebar/SideBar";
-import { useAppSelector } from "../../hooks/useReduxHooks";
-import SideBar from "../sidebar/SideBar";
-import DockerComposeViewer from "../viewer/DockerComposeViewer";
-import { useState, useEffect } from "react";
-import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
-//import MapMaker from "../../modules/MapMaker";
-//import { Edge, Node } from "@xyflow/react";
+import { useContextMenu } from 'react-contexify';
+import DesignDeck from '../deck/DesignDeck';
+import { useAppSelector } from '../../hooks/useReduxHooks';
+import DockerComposeViewer from '../viewer/DockerComposeViewer';
+import OutlinePanel from '../outline/OutlinePanel';
+import InspectorPanel from '../inspector/InspectorPanel';
+import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics';
+import { T, themed } from '../../styles/tokens';
+import { Splitter } from 'antd';
 
-const { Content, Sider } = Layout
-const { Text } = Typography
-
-const MENU_ID = "menu-id";
+const MENU_ID = 'menu-id';
 
 export default function Main() {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isSidebarContentVisible, setIsSidebarContentVisible] = useState(false);
+  const { show } = useContextMenu({ id: MENU_ID });
+  const { yamlObject, isViewerVisible } = useAppSelector((s) => s.uploadedFile);
+  const isDark = useAppSelector((s) => s.theme.isDark);
+  const th = themed(isDark);
 
-    // Delay rendering sidebar content until after the open animation completes.
-    // On close, hide immediately so content doesn't jitter while the sider shrinks.
-    useEffect(() => {
-        let timer: ReturnType<typeof setTimeout>;
-        if (isSidebarOpen) {
-            timer = setTimeout(() => setIsSidebarContentVisible(true), 250);
-        } else {
-            setIsSidebarContentVisible(false);
-        }
-        return () => clearTimeout(timer);
-    }, [isSidebarOpen]);
-
-    const { show } = useContextMenu({
-        id: MENU_ID
+  function displayMenu(e: any) {
+    show({ event: e });
+    logInteractionEvent(AnalyticsEvent.CONTEXT_MENU_OPENED, {
+      component: 'main',
+      action: 'context_menu_open',
+      target: e.target?.tagName ?? 'unknown',
     });
-    const { yamlObject, isViewerVisible } = useAppSelector((state) => state.uploadedFile)
+  }
 
-    // Automatically show/hide sidebar based on file loading state
-    useEffect(() => {
-        //setIsSidebarOpen(!!yamlObject);
-    }, [yamlObject]);
+  return (
+    <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
+      {/* Left outline panel — only when file loaded */}
+      {yamlObject && <OutlinePanel />}
 
-    function displayMenu(e: any) {
-        // put whatever custom logic you need
-        // you can even decide to not display the Menu
-        show({
-            event: e,
-        });
-        
-        // Log context menu opened
-        logInteractionEvent(AnalyticsEvent.CONTEXT_MENU_OPENED, {
-            component: 'main',
-            action: 'context_menu_open',
-            target: e.target?.tagName || 'unknown'
-        });
-    }
-
-    const toggleSidebar = () => {
-        // Only allow manual toggle when a file is loaded
-        if (yamlObject) {
-            const newState = !isSidebarOpen;
-            setIsSidebarOpen(newState);
-            
-            // Log sidebar toggle
-            logInteractionEvent(AnalyticsEvent.SIDEBAR_TOGGLED, {
-                component: 'sidebar',
-                action: 'toggle',
-                newState: newState ? 'open' : 'closed'
-            });
-        }
-    };
-
-    return (
-        <ConfigProvider theme={{
-            components: {
-                Splitter: {
-                    splitBarSize: isViewerVisible || !yamlObject ? 5 : 0,
-                    splitBarDraggableSize: 500
-                }
-            }
-    }}>
-        <Layout className='h-full relative'>
-            {/* Sidebar */}
-            <Sider 
-                width="15%" 
-                collapsed={!isSidebarOpen}
-                collapsedWidth={0}
-                className=" bg-white dark:bg-gray-800"
-            >
-                {isSidebarContentVisible && <SideBar />}
-            </Sider>
-            
-            {/* Toggle Button - Only show when file is loaded */}
-            {yamlObject && (
-                <Button
-                    onClick={toggleSidebar}
-                    className="absolute top-4 z-10 shadow-lg"
-                    style={{ 
-                        left: isSidebarOpen ? 'calc(15% - 1rem)' : '0.5rem',
-                        transition: 'left 0.3s ease'
-                    }}
-                    icon={isSidebarOpen ? <LeftOutlined /> : <RightOutlined />}
-                    shape="circle"
-                    size="middle"
-                />
+      {/* Center — canvas + optional yaml viewer */}
+      <div
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}
+        onContextMenu={displayMenu}
+      >
+        {yamlObject ? (
+          <Splitter layout="vertical" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Splitter.Panel style={{ position: 'relative' }}>
+              <DesignDeck clear={false} />
+            </Splitter.Panel>
+            {isViewerVisible && (
+              <Splitter.Panel size="40%">
+                <DockerComposeViewer />
+              </Splitter.Panel>
             )}
-            
-            <Content className="flex flex-col">
-                {/* Main Content - Split into top and bottom */}
-                <Splitter layout="vertical">
-                    <Splitter.Panel>
-                        <div 
-                            className="h-full w-full"
-                            onContextMenu={displayMenu}
-                            >
-                            { yamlObject && <DesignDeck clear={false} ></DesignDeck> }
-                            { !yamlObject && (
-                                <div className="flex flex-col items-center justify-center h-full gap-4">
-                                    <Empty description={
-                                        <Text strong className="text-gray-500 dark:text-gray-400 text-lg">Please load a docker-compose.yaml or .yml file</Text>
-                                    } />
-                                    <div className="max-w-md py-10">
-                                        <Alert
-                                            type="warning"
-                                            showIcon
-                                            message="Your file content is never uploaded to any server — all parsing and rendering happens locally in your browser. Anonymous usage analytics (file name, size, type, and browser info) are collected via Firebase Analytics to help improve the app."
-                                            className="max-w-md text-center"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </Splitter.Panel>
-                    { yamlObject && <Splitter.Panel size={isViewerVisible ? '50%' : '0%'} className="">
-                        <div className="h-full w-full">
-                            {/* Bottom half - Docker Compose Viewer */}
-                            {yamlObject && isViewerVisible && (
-                                <DockerComposeViewer />
-                            )}
-                        </div>
-                    </Splitter.Panel> }
-                </Splitter>
-            </Content>
-        </Layout>
-        </ConfigProvider>
-    )
+          </Splitter>
+        ) : (
+          <EmptyCanvas isDark={isDark} th={th} />
+        )}
+      </div>
+
+      {/* Right inspector panel — slides in on selection */}
+      <InspectorPanel />
+    </div>
+  );
+}
+
+function EmptyCanvas({ isDark, th }: { isDark: boolean; th: ReturnType<typeof themed> }) {
+  return (
+    <div style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      gap: 20, background: th.bg0,
+      backgroundImage: `radial-gradient(circle at 1px 1px, ${isDark ? T.line : T.lline} 1px, transparent 0)`,
+      backgroundSize: '22px 22px',
+    }}>
+      <div style={{
+        width: 64, height: 64, borderRadius: 18,
+        background: `linear-gradient(135deg, ${T.cyan}22, ${T.violet}22)`,
+        border: `1px solid ${T.cyan}44`,
+        display: 'grid', placeItems: 'center', fontSize: 32,
+      }}>🐳</div>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: th.text, letterSpacing: -0.3 }}>
+          Drop a docker-compose file
+        </div>
+        <div style={{ fontSize: 13, color: th.textDim, marginTop: 6 }}>
+          Click <span style={{ color: T.cyan, fontFamily: 'ui-monospace,Menlo,monospace' }}>↑ Upload</span> in the header to get started
+        </div>
+      </div>
+      <div style={{
+        padding: '10px 16px', borderRadius: 10,
+        background: isDark ? `${T.amber}0D` : '#FFFBF0',
+        border: `1px solid ${T.amber}44`,
+        fontSize: 11.5, color: th.textDim, maxWidth: 420, textAlign: 'center', lineHeight: 1.6,
+      }}>
+        ⚠ Your file is never uploaded — all parsing happens locally in your browser.
+        Anonymous usage analytics are collected via Firebase Analytics.
+      </div>
+    </div>
+  );
 }

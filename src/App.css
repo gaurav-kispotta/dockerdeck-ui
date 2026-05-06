@@ -25,12 +25,10 @@ path.react-flow__edge-path:hover {
 /* Ensure highlighted elements are above others */
 .react-flow__node.selected {
     z-index: 100;
-    transform: scale(1.1);
 }
 
 .react-flow__node.connected {
     z-index: 99;
-    transform: scale(1.05);
 }
 
 /* Dependency mode styling - no transform to keep alignment */
@@ -47,61 +45,34 @@ path.react-flow__edge-path:hover {
 }
 
 /* Add a subtle pulsing animation to selected nodes */
-@keyframes pulse-selected-light {
-    0%, 100% {
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
-    }
-    50% {
-        box-shadow: 0 0 60px rgba(59, 130, 246, 1);
-    }
+/* ── Card-level selection / connection glow ─────────────────────────────────
+   Applied directly to the card <div> inside DockerDeckNode so the glow
+   follows the card's exact width × height × border-radius, NOT the square
+   ReactFlow node wrapper whose dimensions come from node.width/height.   ── */
+
+@keyframes dd-sel-light {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(59,130,246,0.55), 0 4px 16px rgba(59,130,246,0.22); }
+  50%       { box-shadow: 0 0 0 3px rgba(59,130,246,0.88), 0 8px 26px rgba(59,130,246,0.34); }
+}
+@keyframes dd-sel-dark {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(91,200,255,0.55), 0 4px 16px rgba(91,200,255,0.22); }
+  50%       { box-shadow: 0 0 0 3px rgba(91,200,255,0.90), 0 8px 26px rgba(91,200,255,0.32); }
+}
+@keyframes dd-con-light {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(245,180,84,0.45), 0 4px 12px rgba(245,180,84,0.18); }
+  50%       { box-shadow: 0 0 0 2px rgba(245,180,84,0.75), 0 6px 18px rgba(245,180,84,0.28); }
+}
+@keyframes dd-con-dark {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(157,140,255,0.45), 0 4px 12px rgba(157,140,255,0.18); }
+  50%       { box-shadow: 0 0 0 2px rgba(157,140,255,0.75), 0 6px 18px rgba(157,140,255,0.28); }
 }
 
-@keyframes pulse-selected-dark {
-    0%, 100% {
-        box-shadow: 0 0 20px rgba(117, 235, 27, 0.6);
-    }
-    50% {
-        box-shadow: 0 0 60px rgba(117, 235, 27, 1);
-    }
-}
+.dd-sel-light { animation: dd-sel-light 4s ease-in-out infinite; }
+.dd-sel-dark  { animation: dd-sel-dark  4s ease-in-out infinite; }
+.dd-con-light { animation: dd-con-light 4s ease-in-out infinite; }
+.dd-con-dark  { animation: dd-con-dark  4s ease-in-out infinite; }
 
-.react-flow__node.selected-light {
-    animation: pulse-selected-light 5s infinite;
-    /* border handled via boxShadow in styledNodes — no wrapper border needed */
-}
-
-.react-flow__node.selected-dark {
-    animation: pulse-selected-dark 5s infinite;
-    /* border handled via boxShadow in styledNodes — no wrapper border needed */
-}
-
-@keyframes pulse-connected-light {
-    0%, 100% {
-        box-shadow: 0 0 20px rgba(230, 178, 68, 0.6);
-    }
-    50% {
-        box-shadow: 0 0 60px rgba(230, 178, 68, 1);
-    }
-}
-
-@keyframes pulse-connected-dark {
-    0%, 100% {
-        box-shadow: 0 0 20px rgba(231, 96, 241, 0.6);
-    }
-    50% {
-        box-shadow: 0 0 60px rgba(231, 96, 241, 1);
-    }
-}
-
-.react-flow__node.connected-light {
-    animation: pulse-connected-light 5s infinite;
-    /* border handled via boxShadow in styledNodes — no wrapper border needed */
-}
-
-.react-flow__node.connected-dark {
-    animation: pulse-connected-dark 5s infinite;
-    /* border handled via boxShadow in styledNodes — no wrapper border needed */
-}
+/* Legacy wrapper-level animation classes removed — glow now lives on the card div */
 
 /* Ant Design Tabs styling for full height scaling */
 .ant-tabs {

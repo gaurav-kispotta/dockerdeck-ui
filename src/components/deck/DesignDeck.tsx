@@ -3,13 +3,16 @@ import {
     applyEdgeChanges,
     applyNodeChanges,
     Background,
+    BackgroundVariant,
     Controls,
+    Panel,
     type Node,
     type Edge,
     type NodeMouseHandler,
     type EdgeMouseHandler,
     MiniMap,
-    useReactFlow
+    useReactFlow,
+    useViewport,
 } from '@xyflow/react'
 import { useCallback, useState, useEffect, useMemo } from 'react'
 import dagre from 'dagre'
@@ -19,7 +22,7 @@ import { IDesignElement } from '../../interface/IDesignElements'
 import nodeTypes from './NodeTypes'
 import MapMaker from '../../modules/MapMaker'
 // import SimpleFloatingEdge from './SimpleFloatingEdge'
-import SimpleEdge from './SimpleEdge'
+import OrthogonalEdge, { RouteComputer } from './OrthogonalEdge'
 import DownloadControls from './DownloadControls'
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
 import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
@@ -77,7 +80,7 @@ function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
 }
 
 function DesignDeck({ clear = false }: DesignDeckProperties) {
-    const { themeMode, isDark } = useAppSelector((state) => state.theme)
+    const { themeMode } = useAppSelector((state) => state.theme)
 
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
     const astObject = useAppSelector((state) => state.uploadedFile.astObject)
@@ -196,9 +199,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         });
     }, [])
 
-    // Use our safe simple edge that doesn't require specific handles
     const edgeTypes = {
-        default: SimpleEdge,
+        default: OrthogonalEdge,
     };
 
     // Apply styling based on selection and dependency mode
@@ -245,35 +247,14 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             const isConnected = selection.connectedNodeIds.includes(node.id)
             const isGrayed = !isSelected && !isConnected
 
-            const nodeStyleLogic = () => {
-                const selectedNodeStyle = 'selected rounded-full';
-                if (isSelected) {
-                    if (isDark) {
-                        return 'selected-dark ' + selectedNodeStyle;
-                    } else {
-                        return 'selected-light ' + selectedNodeStyle;
-                    }
-                }
-                if (isConnected) {
-                    const connectedStyle = 'connected rounded-full shadow-lg';
-                    if (isDark) {
-                        return 'connected-dark ' + connectedStyle;
-                    } else {
-                        return 'connected-light ' + connectedStyle;
-                    }
-                }
-                return '';
-            }
-
             return {
                 ...node,
                 style: {
                     ...node.style,
                     opacity: isGrayed ? 0.3 : 1,
                     filter: isGrayed ? 'grayscale(100%)' : 'none',
-                    transition: 'opacity 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease',
+                    transition: 'opacity 0.3s ease, filter 0.3s ease',
                 },
-                className: nodeStyleLogic()
             }
         })
     }, [nodes, selection, settings.showDependencies, edges])
@@ -380,16 +361,48 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             edgeTypes={edgeTypes}
             colorMode={themeMode}
             className='overview'
-            
         >
             <FlowWithCentering nodes={nodes} />
+            <RouteComputer />
             <DownloadControls />
-            <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable={true} zoomable={true} />
-            <Background />
-            <Controls position={'bottom-left'} orientation={'horizontal'} />
-
+            <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable zoomable />
+            <Background variant={BackgroundVariant.Dots} gap={22} size={1} />
+            <Controls position="bottom-left" orientation="horizontal" />
+            <Panel position="top-left">
+                <CanvasToolbar />
+            </Panel>
         </ReactFlow>
     )
+}
+
+function CanvasToolbar() {
+    const { zoom } = useViewport();
+    const { fitView } = useReactFlow();
+    const showDependencies = useAppSelector((s) => s.settings.showDependencies);
+
+    const btnStyle = (active = false): React.CSSProperties => ({
+        width: 28, height: 28, display: 'grid', placeItems: 'center',
+        background: active ? '#1E2531' : 'transparent',
+        border: `1px solid ${active ? '#222A38' : 'transparent'}`,
+        borderRadius: 7, color: active ? '#E6EAF2' : '#8A93A6',
+        cursor: 'pointer', fontSize: 13,
+    });
+
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, pointerEvents: 'all' }}>
+            <div style={{ display: 'flex', gap: 2, padding: 3, background: '#11151D', border: '1px solid #222A38', borderRadius: 10 }}>
+                <button style={btnStyle(true)}  title="Graph view">◇</button>
+                <button style={btnStyle(false)} title="Code view">&lt;/&gt;</button>
+            </div>
+            <div style={{ display: 'flex', gap: 2, padding: 3, background: '#11151D', border: '1px solid #222A38', borderRadius: 10 }}>
+                <button style={btnStyle(showDependencies)} title="Dependency mode">↳</button>
+                <button onClick={() => fitView({ duration: 600, padding: 0.1 })} style={btnStyle(false)} title="Fit view">⛶</button>
+            </div>
+            <div style={{ padding: '4px 10px', background: '#11151D', border: '1px solid #222A38', borderRadius: 10, fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace', color: '#8A93A6' }}>
+                {Math.round(zoom * 100)}%
+            </div>
+        </div>
+    );
 }
 
 export default DesignDeck

@@ -22,14 +22,14 @@ function generateDockerDeckNodeComponents(config: NodeConfig[]): Record<string, 
     config.forEach((nodeConfig: NodeConfig) => {
         // Create a component for each docker image in the config
         const NodeComponent: NodeComponent = (props: NodeProps) => {
-            // Extract the label from props data or use id as fallback
             const serviceId = (props.data?.label as string) || props.id || '';
-            
+            const nodeType = (props.data?.nodeType as 'service' | 'network' | 'volume') || 'service';
             return (
                 <DockerDeckNode
                     dockerServiceId={serviceId}
                     dockerImageName={nodeConfig.dockerImageName}
                     dockerIconUrl={nodeConfig.dockerIconUrl}
+                    nodeType={nodeType}
                 />
             );
         };
