@@ -3,6 +3,7 @@ import { Button, Tag, Tooltip, Typography, Divider, Space } from 'antd';
 import { UploadOutlined, CheckOutlined, SearchOutlined } from '@ant-design/icons';
 import { useFileUpload } from '../../hooks/useFileUpload';
 import { useAppSelector } from '../../hooks/useReduxHooks';
+import { useElectron } from '../../hooks/useElectron';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import packageJson from '../../../package.json';
 import { T } from '../../styles/tokens';
@@ -13,6 +14,7 @@ export function Navbar() {
   const { uploadFile } = useFileUpload();
   const { fileName, yamlObject } = useAppSelector((s) => s.uploadedFile);
   const isDark = useAppSelector((s) => s.theme.isDark);
+  const { leftInset, rightInset } = useElectron();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,7 +39,8 @@ export function Navbar() {
         height: 52,
         display: 'flex',
         alignItems: 'center',
-        padding: '0 16px',
+        paddingLeft:  16 + leftInset,
+        paddingRight: 16 + rightInset,
         borderBottom: '1px solid var(--ant-color-border)',
         gap: 14,
         flexShrink: 0,
