@@ -1,7 +1,9 @@
-import { useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks';
 import { setViewMode, ViewMode } from '../../store/slices/settingsSlice';
-import { T, themed } from '../../styles/tokens';
+import { T } from '../../styles/tokens';
+import { Segmented, Typography, Divider, Tooltip } from 'antd';
+
+const { Text } = Typography;
 
 // SVG icons per view — crisp at 16×16
 const ICONS: Record<ViewMode, React.ReactNode> = {
@@ -68,99 +70,58 @@ const VIEWS: {
 ];
 
 export default function ViewModeTabs() {
-  const isDark   = useAppSelector(s => s.theme.isDark);
   const viewMode = useAppSelector(s => s.settings.viewMode);
   const dispatch = useAppDispatch();
-  const th       = themed(isDark);
-  const [hovered, setHovered] = useState<ViewMode | null>(null);
 
   const active = VIEWS.find(v => v.id === viewMode)!;
+
+  const segmentedOptions = VIEWS.map(v => ({
+    value: v.id,
+    label: (
+      <Tooltip title={`${v.label} — ${v.desc}`} placement="bottom">
+        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px 4px' }}>
+          {ICONS[v.id]}
+        </span>
+      </Tooltip>
+    ),
+  }));
 
   return (
     <div style={{
       display: 'flex', alignItems: 'center',
-      background: th.bg1, borderBottom: `1px solid ${th.line}`,
-      padding: '0 12px', gap: 4, height: 40, flexShrink: 0,
+      borderBottom: '1px solid var(--ant-color-border)',
+      padding: '0 12px', gap: 8, height: 40, flexShrink: 0,
     }}>
-      {/* Icon button group */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 2,
-        padding: '3px 4px',
-        background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
-        borderRadius: 10,
-        border: `1px solid ${th.line}`,
-      }}>
-        {VIEWS.map(v => {
-          const isActive  = viewMode === v.id;
-          const isHovered = hovered === v.id;
-          return (
-            <button
-              key={v.id}
-              onClick={() => dispatch(setViewMode(v.id))}
-              onMouseEnter={() => setHovered(v.id)}
-              onMouseLeave={() => setHovered(null)}
-              title={`${v.label} — ${v.desc}`}
-              style={{
-                all: 'unset',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: 30, height: 28, borderRadius: 7,
-                cursor: 'pointer',
-                color: isActive ? v.accent : isHovered ? th.text : th.textDim,
-                background: isActive
-                  ? `${v.accent}18`
-                  : isHovered
-                  ? isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'
-                  : 'transparent',
-                transition: 'background 0.15s, color 0.15s',
-                outline: isActive ? `1.5px solid ${v.accent}44` : 'none',
-                outlineOffset: '-1px',
-              }}
-            >
-              {ICONS[v.id]}
-            </button>
-          );
-        })}
-      </div>
+      <Segmented
+        value={viewMode}
+        options={segmentedOptions}
+        onChange={(val) => dispatch(setViewMode(val as ViewMode))}
+        size="small"
+      />
 
-      {/* Separator */}
-      <div style={{ width: 1, height: 20, background: th.line, margin: '0 4px' }} />
+      <Divider type="vertical" style={{ height: 20, margin: '0 2px' }} />
 
-      {/* Active view label + description */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        fontFamily: 'Inter, system-ui, sans-serif',
-      }}>
-        <span style={{
-          fontSize: 11, fontWeight: 600, color: active.accent,
-          letterSpacing: 0.1,
-        }}>
-          {active.label}
-        </span>
-        <span style={{ fontSize: 11, color: th.textFaint }}>—</span>
-        <span style={{ fontSize: 11, color: th.textFaint }}>{active.desc}</span>
-      </div>
+      <Text style={{ fontSize: 11, fontWeight: 600, color: active.accent }}>{active.label}</Text>
+      <Text type="secondary" style={{ fontSize: 11 }}>—</Text>
+      <Text type="secondary" style={{ fontSize: 11 }}>{active.desc}</Text>
 
       <div style={{ flex: 1 }} />
 
-      {/* Keyboard shortcut hint */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 10,
-        color: th.textFaint,
-      }}>
+      {/* Keyboard shortcut hints */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 10 }}>
         {VIEWS.map(v => (
-          <span
-            key={v.id}
-            style={{
-              width: 18, height: 18, borderRadius: 4, display: 'grid', placeItems: 'center',
-              border: `1px solid ${viewMode === v.id ? v.accent + '66' : th.line}`,
-              background: viewMode === v.id ? `${v.accent}12` : 'transparent',
-              color: viewMode === v.id ? v.accent : th.textFaint,
-              cursor: 'pointer', userSelect: 'none',
-            }}
-            onClick={() => dispatch(setViewMode(v.id))}
-            title={v.label}
-          >{v.shortcut}</span>
+          <Tooltip key={v.id} title={v.label} placement="bottom">
+            <span
+              onClick={() => dispatch(setViewMode(v.id))}
+              style={{
+                width: 18, height: 18, borderRadius: 4, display: 'grid', placeItems: 'center',
+                border: `1px solid ${viewMode === v.id ? v.accent + '66' : 'var(--ant-color-border)'}`,
+                background: viewMode === v.id ? `${v.accent}12` : 'transparent',
+                color: viewMode === v.id ? v.accent : 'var(--ant-color-text-quaternary)',
+                cursor: 'pointer', userSelect: 'none',
+              }}
+            >{v.shortcut}</span>
+          </Tooltip>
         ))}
       </div>
     </div>

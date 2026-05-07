@@ -1,36 +1,18 @@
 import { useRef } from 'react';
+import { Button, Tag, Tooltip, Typography, Divider, Space } from 'antd';
+import { UploadOutlined, CheckOutlined, SearchOutlined } from '@ant-design/icons';
 import { useFileUpload } from '../../hooks/useFileUpload';
-import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks';
-import { setThemeMode, ThemeMode } from '../../store/slices/themeSlice';
+import { useAppSelector } from '../../hooks/useReduxHooks';
+import { ThemeToggle } from '../theme/ThemeToggle';
 import packageJson from '../../../package.json';
-import { T, themed } from '../../styles/tokens';
+import { T } from '../../styles/tokens';
 
-const THEME_CYCLE: ThemeMode[] = ['light', 'dark', 'system'];
-
-const THEME_ICONS: Record<ThemeMode, string> = {
-  light: '☀',
-  dark: '☾',
-  system: '⊙',
-};
-
-const THEME_LABELS: Record<ThemeMode, string> = {
-  light: 'Light',
-  dark: 'Dark',
-  system: 'System',
-};
+const { Text } = Typography;
 
 export function Navbar() {
   const { uploadFile } = useFileUpload();
   const { fileName, yamlObject } = useAppSelector((s) => s.uploadedFile);
   const isDark = useAppSelector((s) => s.theme.isDark);
-  const themeMode = useAppSelector((s) => s.theme.themeMode);
-  const dispatch = useAppDispatch();
-  const th = themed(isDark);
-
-  function cycleTheme() {
-    const next = THEME_CYCLE[(THEME_CYCLE.indexOf(themeMode) + 1) % THEME_CYCLE.length];
-    dispatch(setThemeMode(next));
-  }
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,7 +27,7 @@ export function Navbar() {
   }
 
   const chipMeta = yamlObject
-    ? `· ${serviceCount} service${serviceCount !== 1 ? 's' : ''} · ${networkCount} network${networkCount !== 1 ? 's' : ''} · ${volumeCount} volume${volumeCount !== 1 ? 's' : ''}`
+    ? `· ${serviceCount} svc · ${networkCount} net · ${volumeCount} vol`
     : null;
 
   return (
@@ -56,60 +38,42 @@ export function Navbar() {
         display: 'flex',
         alignItems: 'center',
         padding: '0 16px',
-        background: th.bg1,
-        borderBottom: `1px solid ${th.line}`,
+        borderBottom: '1px solid var(--ant-color-border)',
         gap: 14,
         flexShrink: 0,
       }}
     >
       {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <Space size={8} align="center">
         <div style={{
           width: 26, height: 26, borderRadius: 7,
           background: `linear-gradient(135deg, ${T.cyan}, ${T.violet})`,
           display: 'grid', placeItems: 'center',
           color: '#0B0E14', fontWeight: 800, fontSize: 13, flexShrink: 0,
         }}>D</div>
-        <div style={{ fontWeight: 700, color: th.text, letterSpacing: -0.2, fontSize: 14 }}>
+        <Text strong style={{ letterSpacing: -0.2, fontSize: 14 }}>
           docker<span style={{ color: isDark ? T.cyan : T.violet }}>·</span>deck
-        </div>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center',
-          padding: '2px 8px', borderRadius: 999, fontSize: 10, lineHeight: 1.4,
-          border: `1px solid ${T.violet}55`, background: `${T.violet}11`, color: T.violet,
-        }}>alpha</span>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center',
-          padding: '2px 8px', borderRadius: 999, fontSize: 10, lineHeight: 1.4,
-          fontFamily: 'ui-monospace,Menlo,monospace',
-          border: `1px solid ${T.green}55`, background: `${T.green}11`, color: T.green,
-        }}>v{packageJson.version}</span>
-      </div>
+        </Text>
+        <Tag color="purple" style={{ fontSize: 9, lineHeight: '16px', marginInlineEnd: 0 }}>alpha</Tag>
+        <Tag color="green" style={{ fontSize: 9, lineHeight: '16px', fontFamily: 'ui-monospace,Menlo,monospace', marginInlineEnd: 0 }}>
+          v{packageJson.version}
+        </Tag>
+      </Space>
 
       {/* Centered file chip — acts as the upload trigger */}
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }} className="electron-no-drag">
-        <button
+        <Button
           onClick={() => fileInputRef.current?.click()}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '6px 14px', borderRadius: 10,
-            background: th.bg2, border: `1px solid ${th.line}`,
-            fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12,
-            color: th.text, cursor: 'pointer',
-            transition: 'border-color 0.15s',
-            maxWidth: 520,
-          }}
-          onMouseEnter={e => (e.currentTarget.style.borderColor = T.cyan + '88')}
-          onMouseLeave={e => (e.currentTarget.style.borderColor = th.line)}
+          style={{ maxWidth: 520, fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12 }}
+          icon={<UploadOutlined style={{ color: T.cyan }} />}
         >
-          <span style={{ color: T.cyan }}>↑</span>
-          <span style={{ color: th.textDim, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 260 }}>
+          <Text ellipsis style={{ maxWidth: 260, fontSize: 12 }}>
             {fileName ?? 'Upload docker-compose.yml'}
-          </span>
+          </Text>
           {chipMeta && (
-            <span style={{ color: th.textFaint, whiteSpace: 'nowrap' }}>{chipMeta}</span>
+            <Text type="secondary" style={{ fontSize: 11, marginLeft: 6, whiteSpace: 'nowrap' }}>{chipMeta}</Text>
           )}
-        </button>
+        </Button>
         <input
           ref={fileInputRef}
           type="file"
@@ -120,65 +84,26 @@ export function Navbar() {
       </div>
 
       {/* Right controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} className="electron-no-drag">
-        <IconBtn title="Validate">✓</IconBtn>
-        <IconBtn title="Search">⌕</IconBtn>
-        <div style={{ width: 1, height: 22, background: th.line, margin: '0 4px' }} />
-        <button
-          onClick={cycleTheme}
-          title={`Theme: ${THEME_LABELS[themeMode]} (click to cycle)`}
-          style={{
-            height: 30, padding: '0 10px', borderRadius: 8,
-            background: th.bg2, border: `1px solid ${th.line}`,
-            color: th.textDim, cursor: 'pointer', fontSize: 14,
-            display: 'flex', alignItems: 'center', gap: 5,
-            transition: 'color 0.15s, background 0.15s, border-color 0.15s',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.color = th.text;
-            e.currentTarget.style.borderColor = T.cyan + '88';
-            e.currentTarget.style.background = th.bg3;
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.color = th.textDim;
-            e.currentTarget.style.borderColor = th.line;
-            e.currentTarget.style.background = th.bg2;
-          }}
-        >
-          <span>{THEME_ICONS[themeMode]}</span>
-          <span style={{ fontSize: 11, fontWeight: 500 }}>{THEME_LABELS[themeMode]}</span>
-        </button>
-        <div style={{ width: 1, height: 22, background: th.line, margin: '0 4px' }} />
-        <button
+      <Space size={4} className="electron-no-drag">
+        <Tooltip title="Validate">
+          <Button type="text" icon={<CheckOutlined />} size="small" />
+        </Tooltip>
+        <Tooltip title="Search">
+          <Button type="text" icon={<SearchOutlined />} size="small" />
+        </Tooltip>
+        <Divider type="vertical" style={{ height: 22, margin: '0 2px' }} />
+        <ThemeToggle />
+        <Divider type="vertical" style={{ height: 22, margin: '0 2px' }} />
+        <Button
+          type="primary"
+          icon={<UploadOutlined />}
+          size="small"
           onClick={() => fileInputRef.current?.click()}
-          style={{
-            height: 30, padding: '0 12px', borderRadius: 8,
-            background: T.cyan, color: '#0B0E14', border: 'none',
-            fontWeight: 600, fontSize: 12, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}
-        >↑ Upload</button>
-      </div>
+        >
+          Upload
+        </Button>
+      </Space>
     </div>
   );
 }
 
-function IconBtn({ children, title, active }: { children: React.ReactNode; title?: string; active?: boolean }) {
-  const isDark = useAppSelector((s) => s.theme.isDark);
-  const th = themed(isDark);
-  return (
-    <button
-      title={title}
-      style={{
-        width: 30, height: 30, display: 'grid', placeItems: 'center',
-        background: active ? th.bg3 : 'transparent',
-        border: `1px solid ${active ? th.line : 'transparent'}`,
-        borderRadius: 8, color: active ? th.text : th.textDim,
-        cursor: 'pointer', fontSize: 14,
-        transition: 'color 0.15s, background 0.15s',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.color = th.text; e.currentTarget.style.background = th.bg3; }}
-      onMouseLeave={e => { e.currentTarget.style.color = active ? th.text : th.textDim; e.currentTarget.style.background = active ? th.bg3 : 'transparent'; }}
-    >{children}</button>
-  );
-}

@@ -1,22 +1,24 @@
-import { useState } from "react";
+import { Collapse } from 'antd';
 
 interface CollapsableSettingsProps {
     title?: string;
 }
 
 function CollapsableSettings({ title }: CollapsableSettingsProps) {
-    const [isOpen, setIsOpen] = useState(true);
     return (
-        <div className="collapse collapse-arrow bg-base-100 border border-base-300">
-            <input type="radio" name="my-accordion-2" checked={isOpen} onChange={() => setIsOpen(!isOpen)} />
-            <div className="collapse-title font-semibold">
-                {title || 'How do I create an account?'}
-            </div>
-            <div className="collapse-content text-sm">
-                Click the "Sign Up" button in the top right corner and follow the registration process.
-            </div>
-        </div>
+        <Collapse
+            defaultActiveKey={['1']}
+            items={[{
+                key: '1',
+                label: title ?? 'How do I create an account?',
+                children: (
+                    <p style={{ fontSize: 13, margin: 0 }}>
+                        Click the &quot;Sign Up&quot; button in the top right corner and follow the registration process.
+                    </p>
+                ),
+            }]}
+        />
     );
-};
+}
 
 export default CollapsableSettings;

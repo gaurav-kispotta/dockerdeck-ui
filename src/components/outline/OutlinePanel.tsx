@@ -1,12 +1,16 @@
 import { useState, useMemo } from 'react';
+import { Input, Typography, Badge, Tag, Tooltip, List, Empty, ConfigProvider, theme as antTheme } from 'antd';
+import './OutlinePanel.css';
+import { SearchOutlined } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks';
 import { selectNode } from '../../store/slices/selectionSlice';
-import { T, themed } from '../../styles/tokens';
+import { T } from '../../styles/tokens';
 import { getIconUrl, VOLUME_ICON } from '../../utils/nodeIcons';
+
+const { Text } = Typography;
 
 export default function OutlinePanel() {
   const isDark = useAppSelector((s) => s.theme.isDark);
-  const th = themed(isDark);
   const { yamlObject, astObject } = useAppSelector((s) => s.uploadedFile);
   const { selectedNodeId } = useAppSelector((s) => s.selection);
   const edges = useAppSelector((s) => s.dockerdeck.edges);
@@ -35,113 +39,103 @@ export default function OutlinePanel() {
     dispatch(selectNode({ nodeId: name, connectedNodeIds, connectedEdgeIds, astObject }));
   }
 
+  const hasResults = filteredServices.length > 0 || filteredNetworks.length > 0 || filteredVolumes.length > 0;
+
   return (
-    <div style={{
-      width: 260, background: th.bg1,
-      borderRight: `1px solid ${th.line}`,
-      display: 'flex', flexDirection: 'column',
-      fontFamily: 'Inter, system-ui, sans-serif',
-      flexShrink: 0,
-    }}>
-      {/* Filter */}
-      <div style={{ padding: '10px 12px', borderBottom: `1px solid ${th.line}` }}>
-        <input
-          value={filter}
-          onChange={e => setFilter(e.target.value)}
-          placeholder="Filter resources…"
-          style={{
-            width: '100%', height: 30, padding: '0 10px', borderRadius: 8,
-            background: th.bg3, border: `1px solid ${th.line}`,
-            color: th.text, fontSize: 12, outline: 'none',
-            fontFamily: 'inherit',
-          }}
-        />
-      </div>
+    <ConfigProvider theme={{ algorithm: isDark ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm }}>
+      <div style={{ width: 260, display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100%', borderRight: '1px solid var(--ant-color-border)' }}>
+        {/* Filter */}
+        <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--ant-color-border)' }}>
+          <Input
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+            placeholder="Filter resources…"
+            prefix={<SearchOutlined style={{ color: 'var(--ant-color-text-quaternary)' }} />}
+            allowClear
+            size="small"
+          />
+        </div>
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {/* Services */}
-        <SectionLabel label="SERVICES" count={filteredServices.length} color={T.cyan} />
-        {filteredServices.map(s => {
-          const isSelected = selectedNodeId === s.name;
-          const rawSvc = (yamlObject?.services as any)?.[s.name] ?? {};
-          const health = rawSvc.healthcheck ? 'running' : 'running';
-          return (
-            <OutlineRow
-              key={s.name}
-              selected={isSelected}
-              accent={T.cyan}
-              onClick={() => handleSelectService(s.name)}
-            >
-              <img src={getIconUrl(s.image.name)} style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, color: th.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {s.name}
-                </div>
-                <div style={{ fontSize: 10.5, color: th.textFaint, fontFamily: 'ui-monospace,Menlo,monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {s.image.name}:{s.image.tag}
-                </div>
-              </div>
-              <HealthDot health={health} />
-            </OutlineRow>
-          );
-        })}
-
-        {/* Networks */}
-        {filteredNetworks.length > 0 && (
-          <>
-            <SectionLabel label="NETWORKS" count={filteredNetworks.length} color={T.violet} />
-            {filteredNetworks.map(n => (
-              <OutlineRow key={n.name} accent={T.violet} selected={selectedNodeId === n.name} onClick={() => handleSelectService(n.name ?? '')}>
-                <span style={{ width: 14, height: 14, borderRadius: 4, background: `${T.violet}22`, border: `1px solid ${T.violet}55`, flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, color: th.text }}>{n.name}</div>
-                </div>
-                <span style={{
-                  fontSize: 10, padding: '1px 6px', borderRadius: 999,
-                  border: `1px solid ${T.violet}55`, color: T.violet,
-                  fontFamily: 'ui-monospace,Menlo,monospace',
-                }}>{(n as any).driver ?? 'bridge'}</span>
-              </OutlineRow>
-            ))}
-          </>
-        )}
-
-        {/* Volumes */}
-        {filteredVolumes.length > 0 && (
-          <>
-            <SectionLabel label="VOLUMES" count={filteredVolumes.length} color={T.amber} />
-            {filteredVolumes.map(v => (
-              <OutlineRow key={v.name} accent={T.amber} selected={selectedNodeId === v.name} onClick={() => {}}>
-                <img src={VOLUME_ICON} style={{ width: 14, height: 14, objectFit: 'contain', flexShrink: 0, opacity: 0.7 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, color: th.text, fontFamily: 'ui-monospace,Menlo,monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {v.name}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {/* Services */}
+          <SectionLabel label="SERVICES" count={filteredServices.length} color={T.cyan} />
+          <List
+            size="small"
+            dataSource={filteredServices}
+            renderItem={s => {
+              const isSelected = selectedNodeId === s.name;
+              const rawSvc = (yamlObject?.services as any)?.[s.name] ?? {};
+              const health = rawSvc.healthcheck ? 'running' : 'running';
+              return (
+                <OutlineRow key={s.name} selected={isSelected} accent={T.cyan} onClick={() => handleSelectService(s.name)}>
+                  <img src={getIconUrl(s.image.name)} style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Tooltip title={s.name} placement="right">
+                      <Text ellipsis style={{ fontSize: 12.5, display: 'block' }}>{s.name}</Text>
+                    </Tooltip>
+                    <Text ellipsis type="secondary" style={{ fontSize: 10.5, fontFamily: 'ui-monospace,Menlo,monospace', display: 'block' }}>
+                      {s.image.name}:{s.image.tag}
+                    </Text>
                   </div>
-                </div>
-              </OutlineRow>
-            ))}
-          </>
-        )}
+                  <HealthBadge health={health} />
+                </OutlineRow>
+              );
+            }}
+          />
 
-        {filteredServices.length === 0 && filteredNetworks.length === 0 && filteredVolumes.length === 0 && (
-          <div style={{ padding: 20, color: th.textFaint, fontSize: 12, textAlign: 'center' }}>
-            No resources match "{filter}"
-          </div>
-        )}
+          {/* Networks */}
+          {filteredNetworks.length > 0 && (
+            <>
+              <SectionLabel label="NETWORKS" count={filteredNetworks.length} color={T.violet} />
+              <List
+                size="small"
+                dataSource={filteredNetworks}
+                renderItem={n => (
+                  <OutlineRow key={n.name} accent={T.violet} selected={selectedNodeId === n.name} onClick={() => handleSelectService(n.name ?? '')}>
+                    <span style={{ width: 14, height: 14, borderRadius: 4, background: `${T.violet}22`, border: `1px solid ${T.violet}55`, flexShrink: 0 }} />
+                    <Text ellipsis style={{ flex: 1, minWidth: 0, fontSize: 12.5 }}>{n.name}</Text>
+                    <Tag color="purple" style={{ fontSize: 10, margin: 0 }}>{(n as any).driver ?? 'bridge'}</Tag>
+                  </OutlineRow>
+                )}
+              />
+            </>
+          )}
+
+          {/* Volumes */}
+          {filteredVolumes.length > 0 && (
+            <>
+              <SectionLabel label="VOLUMES" count={filteredVolumes.length} color={T.amber} />
+              <List
+                size="small"
+                dataSource={filteredVolumes}
+                renderItem={v => (
+                  <OutlineRow key={v.name} accent={T.amber} selected={selectedNodeId === v.name} onClick={() => {}}>
+                    <img src={VOLUME_ICON} style={{ width: 14, height: 14, objectFit: 'contain', flexShrink: 0, opacity: 0.7 }} />
+                    <Text ellipsis style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontFamily: 'ui-monospace,Menlo,monospace' }}>{v.name}</Text>
+                  </OutlineRow>
+                )}
+              />
+            </>
+          )}
+
+          {filter && !hasResults && (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={<Text type="secondary" style={{ fontSize: 12 }}>No resources match "{filter}"</Text>}
+              style={{ padding: '20px 0' }}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </ConfigProvider>
   );
 }
 
 function SectionLabel({ label, count, color }: { label: string; count: number; color: string }) {
   return (
-    <div style={{
-      padding: '12px 14px 4px',
-      fontSize: 10.5, fontWeight: 700,
-      color, letterSpacing: 1.2,
-      display: 'flex', alignItems: 'center', gap: 6,
-    }}>
-      {label} · {count}
+    <div style={{ padding: '10px 14px 4px', display: 'flex', alignItems: 'center', gap: 6 }}>
+      <Text style={{ fontSize: 10.5, fontWeight: 700, color, letterSpacing: 1.2 }}>{label}</Text>
+      <Badge count={count} color={color} style={{ fontSize: 9 }} overflowCount={999} />
     </div>
   );
 }
@@ -152,26 +146,28 @@ function OutlineRow({ children, selected, accent, onClick }: {
   accent: string;
   onClick: () => void;
 }) {
-  const isDark = useAppSelector((s) => s.theme.isDark);
-  const th = themed(isDark);
   return (
-    <div
+    <List.Item
       onClick={onClick}
       style={{
-        padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 10,
-        background: selected ? `${accent}12` : 'transparent',
+        padding: '6px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        background: selected ? `${accent}18` : 'transparent',
         borderLeft: `2px solid ${selected ? accent : 'transparent'}`,
-        cursor: 'pointer', transition: 'background 0.15s',
+        cursor: 'pointer',
+        transition: 'background 0.15s',
+        borderBottom: 'none',
       }}
-      onMouseEnter={e => { if (!selected) e.currentTarget.style.background = th.bg2; }}
-      onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
+      className="outline-row"
     >
       {children}
-    </div>
+    </List.Item>
   );
 }
 
-function HealthDot({ health }: { health: string }) {
-  const color = health === 'running' ? T.green : health === 'warn' ? T.amber : T.rose;
-  return <span style={{ width: 7, height: 7, borderRadius: 999, background: color, flexShrink: 0, boxShadow: `0 0 0 2px ${color}22` }} />;
+function HealthBadge({ health }: { health: string }) {
+  const status = health === 'running' ? 'success' : health === 'warn' ? 'warning' : 'error';
+  return <Badge status={status} />;
 }

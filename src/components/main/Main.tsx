@@ -1,41 +1,25 @@
-import { useContextMenu } from 'react-contexify';
 import DesignDeck from '../deck/DesignDeck';
 import ViewModeTabs from '../deck/ViewModeTabs';
 import { useAppSelector } from '../../hooks/useReduxHooks';
 import DockerComposeViewer from '../viewer/DockerComposeViewer';
 import OutlinePanel from '../outline/OutlinePanel';
 import InspectorPanel from '../inspector/InspectorPanel';
-import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics';
+import GlobalContextMenu from '../context-menu/GlobalContextMenu';
 import { T, themed } from '../../styles/tokens';
 import { Splitter } from 'antd';
 
-const MENU_ID = 'menu-id';
-
 export default function Main() {
-  const { show } = useContextMenu({ id: MENU_ID });
   const { yamlObject, isViewerVisible } = useAppSelector((s) => s.uploadedFile);
   const isDark = useAppSelector((s) => s.theme.isDark);
   const th = themed(isDark);
-
-  function displayMenu(e: any) {
-    show({ event: e });
-    logInteractionEvent(AnalyticsEvent.CONTEXT_MENU_OPENED, {
-      component: 'main',
-      action: 'context_menu_open',
-      target: e.target?.tagName ?? 'unknown',
-    });
-  }
 
   return (
     <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
       {/* Left outline panel — only when file loaded */}
       {yamlObject && <OutlinePanel />}
 
-      {/* Center — canvas + optional yaml viewer */}
-      <div
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}
-        onContextMenu={displayMenu}
-      >
+      {/* Center — canvas + optional yaml viewer, wrapped with context menu */}
+      <GlobalContextMenu>
         {yamlObject ? (
           <>
             {/* View mode tabs — Architecture / Networks / Ports / Storage / Boot Order */}
@@ -55,7 +39,7 @@ export default function Main() {
         ) : (
           <EmptyCanvas isDark={isDark} th={th} />
         )}
-      </div>
+      </GlobalContextMenu>
 
       {/* Right inspector panel — slides in on selection */}
       <InspectorPanel />
@@ -98,3 +82,4 @@ function EmptyCanvas({ isDark, th }: { isDark: boolean; th: ReturnType<typeof th
     </div>
   );
 }
+

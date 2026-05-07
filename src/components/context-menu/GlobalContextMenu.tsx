@@ -1,36 +1,29 @@
-import {
-    Menu,
-    Item,
-    Separator,
-    Submenu,
-    ItemParams,
-} from "react-contexify";
-import "react-contexify/dist/ReactContexify.css";
+import { Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
+import type { ReactNode } from 'react';
 
-const MENU_ID = "menu-id";
+const menuItems: MenuProps['items'] = [
+    { key: 'add-network', label: 'Add Network' },
+    { key: 'add-service', label: 'Add Service' },
+    { type: 'divider' },
+    { key: 'run', label: 'Run', disabled: true },
+    { type: 'divider' },
+    {
+        key: 'build',
+        label: 'Build',
+        children: [
+            { key: 'docker-compose', label: 'Docker Compose' },
+            { key: 'docker-build', label: 'Docker Build' },
+        ],
+    },
+];
 
-export default function GlobalContextMenu() {
-    function handleItemClick({ event, props, triggerEvent, data }: ItemParams) {
-        console.log(event, props, triggerEvent, data);
-    }
-
+export default function GlobalContextMenu({ children }: { children: ReactNode }) {
     return (
-        <Menu id={MENU_ID}>
-            <Item onClick={handleItemClick}>
-                Add Network
-            </Item>
-            <Item onClick={handleItemClick}>
-                Add Service
-            </Item>
-            <Separator />
-            <Item disabled>Run</Item>
-            <Separator />
-            <Submenu label="Build">
-                <Item onClick={handleItemClick}>
-                    Docker Compose
-                </Item>
-                <Item onClick={handleItemClick}>Docker Build</Item>
-            </Submenu>
-        </Menu>
-    )
+        <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative', overflow: 'hidden' }}>
+                {children}
+            </div>
+        </Dropdown>
+    );
 }
