@@ -106,7 +106,12 @@ path.react-flow__edge-path:hover {
 /* Electron window drag regions */
 .electron-drag {
     -webkit-app-region: drag;
+    /* Required by some Electron versions to activate dragging */
+    user-select: none;
+    cursor: default;
 }
 .electron-no-drag {
     -webkit-app-region: no-drag;
+    user-select: auto;
+    cursor: auto;
 }

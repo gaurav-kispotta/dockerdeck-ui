@@ -23,7 +23,6 @@ import nodeTypes from './NodeTypes'
 import MapMaker from '../../modules/MapMaker'
 // import SimpleFloatingEdge from './SimpleFloatingEdge'
 import OrthogonalEdge, { RouteComputer } from './OrthogonalEdge'
-import DownloadControls from './DownloadControls'
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
 import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
@@ -422,7 +421,6 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         >
             <FlowWithCentering nodes={nodes} />
             <RouteComputer />
-            <DownloadControls />
             <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable zoomable />
             <Background variant={BackgroundVariant.Dots} gap={22} size={1} />
             <Controls position="bottom-left" orientation="horizontal" />

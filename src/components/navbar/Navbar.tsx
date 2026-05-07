@@ -1,9 +1,11 @@
 import { useRef } from 'react';
-import { Button, Tag, Tooltip, Typography, Divider, Space } from 'antd';
-import { UploadOutlined, CheckOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Tag, Tooltip, Typography, Divider, Space, Dropdown } from 'antd';
+import { UploadOutlined, CheckOutlined, SearchOutlined, DownloadOutlined, DownOutlined, LoadingOutlined } from '@ant-design/icons';
+import type { MenuProps } from 'antd';
 import { useFileUpload } from '../../hooks/useFileUpload';
 import { useAppSelector } from '../../hooks/useReduxHooks';
 import { useElectron } from '../../hooks/useElectron';
+import { useExport } from '../../hooks/useExport';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import packageJson from '../../../package.json';
 import { T } from '../../styles/tokens';
@@ -15,6 +17,7 @@ export function Navbar() {
   const { fileName, yamlObject } = useAppSelector((s) => s.uploadedFile);
   const isDark = useAppSelector((s) => s.theme.isDark);
   const { leftInset, rightInset } = useElectron();
+  const { exportImage, exportJson, isExporting, hasNodes } = useExport();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,14 +100,30 @@ export function Navbar() {
         <Divider type="vertical" style={{ height: 22, margin: '0 2px' }} />
         <ThemeToggle />
         <Divider type="vertical" style={{ height: 22, margin: '0 2px' }} />
-        <Button
-          type="primary"
-          icon={<UploadOutlined />}
-          size="small"
-          onClick={() => fileInputRef.current?.click()}
+        <Dropdown
+          disabled={!hasNodes}
+          menu={{
+            items: [
+              { key: 'jpg',  label: 'Export as JPG',  onClick: () => exportImage('jpg') },
+              { key: 'svg',  label: 'Export as SVG',  onClick: () => exportImage('svg') },
+              { type: 'divider' },
+              { key: 'json', label: 'Export JSON',    onClick: exportJson },
+            ] satisfies MenuProps['items'],
+          }}
+          placement="bottomRight"
+          trigger={['click']}
         >
-          Upload
-        </Button>
+          <Space.Compact size="small">
+            <Button
+              icon={isExporting ? <LoadingOutlined /> : <DownloadOutlined />}
+              disabled={!hasNodes || isExporting}
+              onClick={(e) => { e.stopPropagation(); exportImage('png'); }}
+            >
+              PNG
+            </Button>
+            <Button icon={<DownOutlined />} disabled={!hasNodes || isExporting} />
+          </Space.Compact>
+        </Dropdown>
       </Space>
     </div>
   );
