@@ -3,8 +3,8 @@ import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/useReduxHooks';
 import {
   setPlatformPadding, setNodeLevelPadding, setNodeSize,
-  setShowDependencies, setDebugMode, setViewMode, setMapLayout,
-  type ViewMode, type MapLayout,
+  setShowDependencies, setDebugMode, setViewMode, setMapLayout, setEdgeStyle,
+  type ViewMode, type MapLayout, type EdgeStyle,
 } from '../../store/slices/settingsSlice';
 
 const { Text, Title } = Typography;
@@ -21,6 +21,14 @@ const MAP_LAYOUT_OPTIONS: { label: string; value: MapLayout; description: string
   { value: 'layered', label: 'Layered',  description: 'Rows: networks → services → volumes' },
   { value: 'dagre',   label: 'Dagre',    description: 'Hierarchical graph layout' },
   { value: 'elk',     label: 'ELK Tree', description: 'Tree layout via ELK.js' },
+];
+
+const EDGE_STYLE_OPTIONS: { label: string; value: EdgeStyle; description: string }[] = [
+  { value: 'orthogonal', label: 'Orthogonal', description: 'Circuit-board step routing with bridge arcs' },
+  { value: 'bridge',     label: 'Bridge',     description: 'Straight lines with bridge arcs at crossings' },
+  { value: 'bezier',     label: 'Bezier',     description: 'Classic smooth curved lines' },
+  { value: 'smoothstep', label: 'Smooth Step', description: 'Right-angle turns with rounded corners' },
+  { value: 'straight',   label: 'Straight',   description: 'Direct straight lines' },
 ];
 
 function Row({ label, help, children }: { label: string; help?: string; children: React.ReactNode }) {
@@ -63,7 +71,7 @@ interface SettingsModalProps {
 
 export default function SettingsModal({ open, onClose }: SettingsModalProps) {
   const dispatch = useAppDispatch();
-  const { platformPadding, nodeLevelPadding, nodeSize, showDependencies, debugMode, viewMode, mapLayout } =
+  const { platformPadding, nodeLevelPadding, nodeSize, showDependencies, debugMode, viewMode, mapLayout, edgeStyle } =
     useAppSelector((s) => s.settings);
 
   return (
@@ -109,6 +117,16 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
             onChange={(v) => dispatch(setMapLayout(v))}
             style={{ width: 160 }}
             options={MAP_LAYOUT_OPTIONS.map((o) => ({ label: o.label, value: o.value, title: o.description }))}
+          />
+        </Row>
+
+        <Row label="Edge style" help="Choose how connections between nodes are drawn">
+          <Select
+            size="small"
+            value={edgeStyle}
+            onChange={(v) => dispatch(setEdgeStyle(v))}
+            style={{ width: 160 }}
+            options={EDGE_STYLE_OPTIONS.map((o) => ({ label: o.label, value: o.value, title: o.description }))}
           />
         </Row>
 

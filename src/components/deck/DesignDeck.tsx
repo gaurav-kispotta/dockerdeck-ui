@@ -21,8 +21,11 @@ import '@xyflow/react/dist/style.css'
 import { IDesignElement } from '../../interface/IDesignElements'
 import nodeTypes from './NodeTypes'
 import MapMaker from '../../modules/MapMaker'
-// import SimpleFloatingEdge from './SimpleFloatingEdge'
 import OrthogonalEdge, { RouteComputer } from './OrthogonalEdge'
+import BridgeEdge from './BridgeEdge'
+import SimpleEdge from './SimpleEdge'
+import SmoothStepEdge from './SmoothStepEdge'
+import StraightEdge from './StraightEdge'
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
 import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
@@ -198,9 +201,16 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         });
     }, [])
 
-    const edgeTypes = {
-        default: OrthogonalEdge,
-    };
+    const edgeTypes = useMemo(() => {
+        const edgeComponent = {
+            orthogonal: OrthogonalEdge,
+            bridge:     BridgeEdge,
+            bezier:     SimpleEdge,
+            smoothstep: SmoothStepEdge,
+            straight:   StraightEdge,
+        }[settings.edgeStyle ?? 'orthogonal'] ?? OrthogonalEdge;
+        return { default: edgeComponent };
+    }, [settings.edgeStyle]);
 
     // ── Boot-order layout (dagre, only in boot-order view) ───────────────────
     const bootOrderNodes = useMemo(() => {

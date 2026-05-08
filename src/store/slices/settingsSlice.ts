@@ -12,6 +12,13 @@ export type MapLayout =
   | 'dagre'    // Dagre hierarchical graph layout
   | 'elk';     // ELK.js tree layout
 
+export type EdgeStyle =
+  | 'orthogonal'  // Circuit-board step routing with bridge arcs (default)
+  | 'bridge'      // Straight lines with bridge arcs at crossings
+  | 'bezier'      // Classic smooth Bezier curves
+  | 'smoothstep'  // Smooth step path (rounded right-angle turns)
+  | 'straight';   // Direct straight lines
+
 export interface SettingsState {
   platformPadding: number;
   nodeLevelPadding: number;
@@ -20,6 +27,7 @@ export interface SettingsState {
   debugMode: boolean;
   viewMode: ViewMode;
   mapLayout: MapLayout;
+  edgeStyle: EdgeStyle;
 }
 
 const initialState: SettingsState = {
@@ -30,6 +38,7 @@ const initialState: SettingsState = {
   debugMode: false,
   viewMode: 'architecture',
   mapLayout: 'layered',
+  edgeStyle: 'orthogonal',
 };
 
 export const settingsSlice = createSlice({
@@ -43,12 +52,13 @@ export const settingsSlice = createSlice({
     setDebugMode: (state, action: PayloadAction<boolean>) => { state.debugMode = action.payload; },
     setViewMode: (state, action: PayloadAction<ViewMode>) => { state.viewMode = action.payload; },
     setMapLayout: (state, action: PayloadAction<MapLayout>) => { state.mapLayout = action.payload; },
+    setEdgeStyle: (state, action: PayloadAction<EdgeStyle>) => { state.edgeStyle = action.payload; },
   },
 });
 
 export const {
   setPlatformPadding, setNodeLevelPadding, setNodeSize,
-  setShowDependencies, setDebugMode, setViewMode, setMapLayout,
+  setShowDependencies, setDebugMode, setViewMode, setMapLayout, setEdgeStyle,
 } = settingsSlice.actions;
 
 export default settingsSlice.reducer;
