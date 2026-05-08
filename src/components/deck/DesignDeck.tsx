@@ -26,7 +26,7 @@ import BridgeEdge from './BridgeEdge'
 import SimpleEdge from './SimpleEdge'
 import SmoothStepEdge from './SmoothStepEdge'
 import StraightEdge from './StraightEdge'
-import { BootTimelineOverlay, computeTimelinePositions } from './BootTimelineOverlay'
+import { buildBootAnnotationNodes, computeTimelinePositions } from './BootTimelineOverlay'
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
 import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
@@ -225,10 +225,27 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             depEdges,
         );
 
-        return serviceNodes.map(node => {
+        // Reposition service nodes and lock them in place
+        const positionedServices = serviceNodes.map(node => {
             const pos = positions.get(node.id);
-            return pos ? { ...node, position: pos } : node;
+            return {
+                ...(pos ? { ...node, position: pos } : node),
+                draggable:   false,
+                selectable:  true,
+                connectable: false,
+                zIndex:      1,
+            };
         });
+
+        // Build annotation nodes (lane bands + rail)
+        const annotations = buildBootAnnotationNodes(
+            serviceNodes.map(n => n.id),
+            depEdges,
+            positions,
+        );
+
+        // Annotations first so they render behind service nodes
+        return [...annotations, ...positionedServices];
     }, [nodes, edges, settings.viewMode]);
 
     // ── View-mode node filtering ──────────────────────────────────────────────
@@ -241,6 +258,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
 
         return base.filter(n => {
             const t = n.data?.nodeType as string | undefined;
+            // Annotation nodes always pass through
+            if (n.id.startsWith('__boot-')) return true;
             switch (settings.viewMode) {
                 case 'ports':      return t !== 'volume';         // hide volume nodes
                 case 'volumes':    return t !== 'network';        // hide network nodes
@@ -252,17 +271,22 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
 
     // Apply styling based on selection and dependency mode
     const styledNodes = useMemo(() => {
+        const isAnnotation = (id: string) => id.startsWith('__boot-');
+
         // showDependencies overlay
         if (settings.showDependencies) {
             const depIds = new Set<string>();
             edges.filter(e => e.data?.connectionType === 'depends_on')
                  .forEach(e => { depIds.add(e.source); depIds.add(e.target); });
-            return viewFilteredNodes.map(n => ({
-                ...n,
-                style: { ...n.style, opacity: depIds.has(n.id) ? 1 : 0.25,
-                         filter: depIds.has(n.id) ? 'none' : 'grayscale(100%)', transition: 'opacity 0.3s' },
-                className: depIds.has(n.id) ? 'dependency-involved' : 'dependency-grayed',
-            }));
+            return viewFilteredNodes.map(n => {
+                if (isAnnotation(n.id)) return n;
+                return {
+                    ...n,
+                    style: { ...n.style, opacity: depIds.has(n.id) ? 1 : 0.25,
+                             filter: depIds.has(n.id) ? 'none' : 'grayscale(100%)', transition: 'opacity 0.3s' },
+                    className: depIds.has(n.id) ? 'dependency-involved' : 'dependency-grayed',
+                };
+            });
         }
 
         // View-mode node dimming (in ports view: fade services without exposed ports)
@@ -285,6 +309,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         if (!selection.selectedNodeId) return viewFilteredNodes
 
         return viewFilteredNodes.map(node => {
+            // Annotation nodes are never grayed
+            if (isAnnotation(node.id)) return node;
             const isSelected = node.id === selection.selectedNodeId
             const isConnected = selection.connectedNodeIds.includes(node.id)
             const isGrayed = !isSelected && !isConnected
@@ -441,7 +467,6 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         >
             <FlowWithCentering nodes={nodes} />
             <RouteComputer />
-            {settings.viewMode === 'boot-order' && <BootTimelineOverlay />}
             <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable zoomable />
             <Background variant={BackgroundVariant.Dots} gap={22} size={1} />
             <Controls position="bottom-left" orientation="horizontal" />
