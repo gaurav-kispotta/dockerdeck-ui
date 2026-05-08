@@ -1,17 +1,36 @@
 import { useState } from 'react';
-import { Badge, Switch, Space, Typography, Divider, Button, Tooltip } from 'antd';
+import { Badge, Switch, Space, Typography, Divider, Button, Tooltip, Select } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks';
 import { useViewer } from '../../hooks/useReduxHooks';
-import { setDebugMode, setShowDependencies } from '../../store/slices/settingsSlice';
+import { setDebugMode, setShowDependencies, setMapLayout, setEdgeStyle, MapLayout, EdgeStyle } from '../../store/slices/settingsSlice';
 import { T } from '../../styles/tokens';
 import SettingsModal from '../modals/SettingsModal';
 
 const { Text } = Typography;
 
+const MAP_LAYOUT_LABELS: Record<MapLayout, string> = {
+  layered: 'Layered',
+  dagre:   'Dagre',
+  elk:     'ELK',
+};
+
+const EDGE_STYLE_LABELS: Record<EdgeStyle, string> = {
+  orthogonal: 'Orthogonal',
+  bridge:     'Bridge',
+  bezier:     'Bezier',
+  smoothstep: 'Smooth Step',
+  straight:   'Straight',
+};
+
+const selectStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontFamily: 'ui-monospace,Menlo,monospace',
+};
+
 export default function StatusBar() {
   const { yamlObject } = useAppSelector((s) => s.uploadedFile);
-  const { showDependencies, debugMode } = useAppSelector((s) => s.settings);
+  const { showDependencies, debugMode, mapLayout, edgeStyle } = useAppSelector((s) => s.settings);
   const { isViewerVisible, toggleViewer } = useViewer();
   const dispatch = useAppDispatch();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -19,7 +38,6 @@ export default function StatusBar() {
   const serviceCount = yamlObject?.services ? Object.keys(yamlObject.services).length : 0;
   const networkCount = yamlObject?.networks ? Object.keys(yamlObject.networks).length : 0;
   const volumeCount  = yamlObject?.volumes  ? Object.keys(yamlObject.volumes).length  : 0;
-  const firstNetwork = yamlObject?.networks ? Object.keys(yamlObject.networks)[0] : null;
 
   return (
     <>
@@ -94,8 +112,35 @@ export default function StatusBar() {
 
         <Divider type="vertical" style={{ height: 14, margin: '0 2px' }} />
 
-        {firstNetwork && <Text style={{ fontSize: 11, fontFamily: 'inherit' }}>{firstNetwork}</Text>}
-        {firstNetwork && <Text style={{ fontSize: 11, fontFamily: 'inherit' }}>·</Text>}
+        {/* Quick-change: Map Layout & Edge Style */}
+        <Space size={6}>
+          <Tooltip title="Map layout">
+            <Select
+              size="small"
+              variant="borderless"
+              value={mapLayout}
+              onChange={(v) => dispatch(setMapLayout(v))}
+              style={selectStyle}
+              options={(Object.entries(MAP_LAYOUT_LABELS) as [MapLayout, string][]).map(([value, label]) => ({ value, label }))}
+              suffixIcon={null}
+            />
+          </Tooltip>
+          <Text type="secondary" style={{ fontSize: 11, fontFamily: 'inherit' }}>·</Text>
+          <Tooltip title="Edge style">
+            <Select
+              size="small"
+              variant="borderless"
+              value={edgeStyle}
+              onChange={(v) => dispatch(setEdgeStyle(v))}
+              style={selectStyle}
+              options={(Object.entries(EDGE_STYLE_LABELS) as [EdgeStyle, string][]).map(([value, label]) => ({ value, label }))}
+              suffixIcon={null}
+            />
+          </Tooltip>
+        </Space>
+
+        <Divider type="vertical" style={{ height: 14, margin: '0 2px' }} />
+
         <Text style={{ fontSize: 11, fontFamily: 'inherit' }}>made with ♥ in Bengaluru 🇮🇳</Text>
       </div>
     </>
