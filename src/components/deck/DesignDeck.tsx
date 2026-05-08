@@ -250,11 +250,16 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
 
     // ── View-mode node filtering ──────────────────────────────────────────────
     const viewFilteredNodes = useMemo(() => {
-        // In boot-order view: replace service node positions with dagre layout
-        // and hide network + volume nodes
-        const base = bootOrderNodes
-            ? nodes.map(n => bootOrderNodes.find(l => l.id === n.id) ?? n)
-            : nodes;
+        // In boot-order view: merge annotation nodes (not in original nodes)
+        // with repositioned service nodes.
+        let base: typeof nodes;
+        if (bootOrderNodes) {
+            const annotations = bootOrderNodes.filter(n => n.id.startsWith('__boot-'));
+            const repositioned = nodes.map(n => bootOrderNodes.find(l => l.id === n.id) ?? n);
+            base = [...annotations, ...repositioned];
+        } else {
+            base = nodes;
+        }
 
         return base.filter(n => {
             const t = n.data?.nodeType as string | undefined;
