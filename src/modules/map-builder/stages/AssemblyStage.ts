@@ -18,7 +18,10 @@ export class AssemblyStage implements IMapBuildStage {
             source: edge.source,
             target: edge.target,
             type: edge.type || 'default',
-            animated: edge.animated || false,
+            animated: edge.animated ?? false,
+            markerEnd: edge.markerEnd,
+            markerStart: edge.markerStart,
+            label: edge.label,
             style: edge.style || { stroke: '#999', strokeWidth: 2 },
         })) as DockerDeckEdge[];
 

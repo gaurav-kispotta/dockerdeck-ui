@@ -2,6 +2,7 @@ import { DockerDeckEdge } from "../../model/DockerDeckEdge";
 import { IDockerService } from "../../interface/ast/IDockerService";
 import { IDockerNetwork } from "../../interface/ast/IDockerNetwork";
 import { IDockerVolume } from "../../interface/ast/IDockerVolume";
+import { MarkerType } from "@xyflow/react";
 
 interface IDockerComposeAst {
     services: IDockerService[];
@@ -61,13 +62,13 @@ export class EdgeBuilder {
                         id: `${service.name}-to-${networkName}`,
                         source: service.name,
                         target: networkName,
-                        type: 'default', // Use default instead of smoothstep
-                        animated: false, // Disable animation for now
+                        type: 'default',
+                        animated: false,
                         style: {
-                            stroke: '#10b981', // Green color for network connections
+                            stroke: '#10b981',
                             strokeWidth: 2,
                         },
-                        label: 'network',
+                        label: networkName,
                         path: [`services.${service.name}`, `networks.${networkName}`],
                         sources: [service.name],
                         targets: [networkName],
@@ -103,13 +104,15 @@ export class EdgeBuilder {
                             id: `${service.name}-to-${volumeName}`,
                             source: service.name,
                             target: volumeName,
-                            type: 'default', // Use default instead of smoothstep
-                            animated: false, // Disable animation for now
+                            type: 'default',
+                            animated: false,
                             style: {
-                                stroke: '#f59e0b', // Amber color for volume connections
+                                stroke: '#f59e0b',
                                 strokeWidth: 2,
                             },
-                            label: 'volume',
+                            // Show the internal mount path as the label (e.g. /var/lib/mysql)
+                            label: volumeMapping.internal || volumeName,
+                            markerEnd: { type: MarkerType.Arrow, color: '#f59e0b' },
                             path: [`services.${service.name}`, `volumes.${volumeName}`],
                             sources: [service.name],
                             targets: [volumeName],
@@ -262,11 +265,11 @@ export class EdgeBuilder {
                     type: 'default',
                     animated: true,
                     style: {
-                        stroke: '#ef4444', // Red for dependency edges
-                        strokeWidth: 3, // Make it thicker to be more visible
-                        strokeDasharray: '10,5', // Add dashing for distinction
+                        stroke: '#ef4444',
+                        strokeWidth: 2,
                     },
-                    label: 'depends_on',
+                    label: 'depends on',
+                    markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' },
                     path: [`services.${service.name}.depends_on`, `services.${depName}`],
                     sources: [service.name],
                     targets: [depName],

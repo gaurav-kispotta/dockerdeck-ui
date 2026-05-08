@@ -22,7 +22,7 @@ function OrthogonalEdge({
   id,
   sourceX, sourceY, targetX, targetY,
   sourcePosition,
-  style, label, selected, data,
+  style, label, selected, data, animated, markerEnd,
 }: EdgeProps) {
   const isDark  = useAppSelector(s => s.theme.isDark);
   const bgColor = isDark ? T.bg0 : T.lbg0;
@@ -80,7 +80,8 @@ function OrthogonalEdge({
   const strokeColor = (style?.stroke      as string) ?? (isDark ? '#8A93A6' : '#6B7280');
   const strokeWidth = (style?.strokeWidth as number) ?? 1.5;
   const opacity     = (style?.opacity     as number) ?? 1;
-  const dash        = data?.connectionType === 'depends_on' ? '7 4' : undefined;
+  // Animated edges get marching-ant dashes; non-animated depends_on gets static dashes
+  const dash   = animated ? '8 4' : (data?.connectionType === 'depends_on' ? '7 4' : undefined);
 
   const mainPath = buildOrthogonalPath(route, bridges);
   const midX = (route[0].x + route[3].x) / 2;
@@ -132,7 +133,11 @@ function OrthogonalEdge({
           strokeDasharray={dash}
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{ transition: 'stroke-width 0.12s' }}
+          markerEnd={markerEnd}
+          style={{
+            transition: 'stroke-width 0.12s',
+            ...(animated && { animation: 'dashdraw 0.5s linear infinite' }),
+          }}
         />
       </g>
 

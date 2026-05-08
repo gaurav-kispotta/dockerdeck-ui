@@ -12,7 +12,7 @@ function SmoothStepEdge({
   id,
   sourceX, sourceY, targetX, targetY,
   sourcePosition, targetPosition,
-  style, label, selected, data,
+  style, label, selected, data, animated, markerEnd,
 }: EdgeProps) {
   const isDark = useAppSelector(s => s.theme.isDark);
   const [isHovered, setIsHovered] = useState(false);
@@ -26,7 +26,7 @@ function SmoothStepEdge({
   const strokeColor = (style?.stroke      as string) ?? (isDark ? '#8A93A6' : '#6B7280');
   const strokeWidth = (style?.strokeWidth as number) ?? 1.5;
   const opacity     = (style?.opacity     as number) ?? 1;
-  const dash        = data?.connectionType === 'depends_on' ? '7 4' : undefined;
+  const dash   = animated ? '8 4' : (data?.connectionType === 'depends_on' ? '7 4' : undefined);
 
   return (
     <>
@@ -52,7 +52,11 @@ function SmoothStepEdge({
           strokeDasharray={dash}
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{ transition: 'stroke-width 0.12s' }}
+          markerEnd={markerEnd}
+          style={{
+            transition: 'stroke-width 0.12s',
+            ...(animated && { animation: 'dashdraw 0.5s linear infinite' }),
+          }}
         />
       </g>
 

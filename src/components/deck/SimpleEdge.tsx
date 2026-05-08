@@ -1,62 +1,66 @@
-import { BaseEdge, EdgeLabelRenderer, getBezierPath, useInternalNode, EdgeProps } from '@xyflow/react';
-import { useMemo, useState } from 'react';
+import { BaseEdge, EdgeLabelRenderer, getBezierPath, EdgeProps } from '@xyflow/react';
+import { useState } from 'react';
+import { useAppSelector } from '../../hooks/useReduxHooks';
+import { T } from '../../styles/tokens';
 
-function SimpleEdge({ id, source, target, markerEnd, style, label, selected }: EdgeProps) {
-    const sourceNode = useInternalNode(source);
-    const targetNode = useInternalNode(target);
-
-    const [isLabelVisible, setIsLabelVisible] = useState(false);
-
-    // Return null if nodes aren't ready yet
-    if (!sourceNode || !targetNode) {
-        return null;
-    }
-
-    // Simple edge path calculation using node centers
-    const { sx, sy, tx, ty } = useMemo(() => {
-        return {
-            sx: (sourceNode.position?.x || 0) + (sourceNode.width || 100) / 2,
-            sy: (sourceNode.position?.y || 0) + (sourceNode.height || 100) / 2,
-            tx: (targetNode.position?.x || 0) + (targetNode.width || 100) / 2,
-            ty: (targetNode.position?.y || 0) + (targetNode.height || 100) / 2,
-        };
-    }, [sourceNode, targetNode]);
+function SimpleEdge({
+  id,
+  sourceX, sourceY, targetX, targetY,
+  sourcePosition, targetPosition,
+  markerEnd, style, label, selected, data, animated,
+}: EdgeProps) {
+    const isDark = useAppSelector(s => s.theme.isDark);
+    const [isHovered, setIsHovered] = useState(false);
 
     const [edgePath, labelX, labelY] = getBezierPath({
-        sourceX: sx,
-        sourceY: sy,
-        targetX: tx,
-        targetY: ty,
+        sourceX, sourceY, sourcePosition,
+        targetX, targetY, targetPosition,
     });
 
-    // Show label if connected to a selected node
-    const isConnectedToSelected = (sourceNode?.selected ?? false) || (targetNode?.selected ?? false);
+    const strokeColor = (style?.stroke      as string) ?? (isDark ? '#8A93A6' : '#6B7280');
+    const strokeWidth = (style?.strokeWidth as number) ?? 1.5;
+    const opacity     = (style?.opacity     as number) ?? 1;
+    const dash        = animated ? '8 4' : (data?.connectionType === 'depends_on' ? '7 4' : undefined);
 
     return (
         <>
             <g
-                onMouseEnter={() => setIsLabelVisible(true)}
-                onMouseLeave={() => setIsLabelVisible(false)}
+                style={{ opacity }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
             >
-                <BaseEdge 
+                <BaseEdge
                     id={id}
-                    path={edgePath} 
+                    path={edgePath}
                     markerEnd={markerEnd}
-                    style={style}
+                    style={{
+                        stroke: strokeColor,
+                        strokeWidth: isHovered ? strokeWidth + 1.5 : strokeWidth,
+                        strokeDasharray: dash,
+                        transition: 'stroke-width 0.12s',
+                        ...(animated && { animation: 'dashdraw 0.5s linear infinite' }),
+                    }}
                 />
             </g>
-            {label && (isLabelVisible || selected || isConnectedToSelected) && (
+            {label && (isHovered || selected) && (
                 <EdgeLabelRenderer>
                     <div
                         style={{
                             position: 'absolute',
                             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-                            fontSize: 12,
                             pointerEvents: 'none',
+                            fontSize: 10,
+                            fontFamily: 'ui-monospace,Menlo,monospace',
+                            padding: '2px 7px',
+                            borderRadius: 999,
+                            background: isDark ? T.bg2 : T.lbg1,
+                            border: `1px solid ${isDark ? T.line : T.lline}`,
+                            color: isDark ? T.textDim : '#5C6577',
+                            whiteSpace: 'nowrap',
                         }}
                         className="nodrag nopan"
                     >
-                        {label}
+                        {label as string}
                     </div>
                 </EdgeLabelRenderer>
             )}

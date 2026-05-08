@@ -14,7 +14,7 @@ import { T } from '../../styles/tokens';
  *
  * Circuit-board convention: higher edge ID (lexicographic) = "over".
  */
-function BridgeEdge({ id, source, target, style, label, selected, data }: EdgeProps) {
+function BridgeEdge({ id, source, target, style, label, selected, data, animated, markerEnd }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
   const isDark = useAppSelector(s => s.theme.isDark);
@@ -52,7 +52,7 @@ function BridgeEdge({ id, source, target, style, label, selected, data }: EdgePr
   const strokeWidth  = (style?.strokeWidth as number) ?? 2;
   const opacity      = (style?.opacity as number) ?? 1;
   const isDep        = data?.connectionType === 'depends_on';
-  const strokeDash   = isDep ? '6 4' : undefined;
+  const strokeDash   = animated ? '8 4' : (isDep ? '6 4' : undefined);
 
   // Midpoint for label
   const midX = (sx + tx) / 2;
@@ -98,7 +98,11 @@ function BridgeEdge({ id, source, target, style, label, selected, data }: EdgePr
           strokeWidth={isHovered ? strokeWidth + 2 : strokeWidth}
           strokeDasharray={strokeDash}
           strokeLinecap="round"
-          style={{ transition: 'stroke-width 0.15s' }}
+          markerEnd={markerEnd}
+          style={{
+            transition: 'stroke-width 0.15s',
+            ...(animated && { animation: 'dashdraw 0.5s linear infinite' }),
+          }}
         />
 
         {/* Bridge arc highlight ring — subtle glow on bridge arcs when hovered */}
