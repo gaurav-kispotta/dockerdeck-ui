@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 src/index.css
 .firebase/
+.playwright-mcp/
