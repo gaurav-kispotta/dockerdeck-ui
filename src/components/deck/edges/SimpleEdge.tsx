@@ -1,7 +1,7 @@
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, EdgeProps } from '@xyflow/react';
 import { useState } from 'react';
-import { useAppSelector } from '../../hooks/useReduxHooks';
-import { T } from '../../styles/tokens';
+import { useAppSelector } from '../../../hooks/useReduxHooks';
+import { T } from '../../../styles/tokens';
 
 function SimpleEdge({
   id,

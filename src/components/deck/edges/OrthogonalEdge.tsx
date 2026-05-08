@@ -1,12 +1,12 @@
 import { EdgeProps, EdgeLabelRenderer } from '@xyflow/react';
 import { useEffect, useReducer, useState, useMemo } from 'react';
-import { useAppSelector } from '../../hooks/useReduxHooks';
+import { useAppSelector } from '../../../hooks/useReduxHooks';
 import {
   regEdge, unregEdge, subscribeReg, edgeReg,
   computeEdgeRoute, buildOrthogonalPath, routeSegments, BridgePt,
-} from '../../utils/orthogonalRouter';
-import { segmentIntersect } from '../../utils/edgeBridge';
-import { T } from '../../styles/tokens';
+} from '../../../utils/orthogonalRouter';
+import { segmentIntersect } from '../../../utils/edgeBridge';
+import { T } from '../../../styles/tokens';
 
 /**
  * OrthogonalEdge — circuit-board style step routing with bridge arcs.

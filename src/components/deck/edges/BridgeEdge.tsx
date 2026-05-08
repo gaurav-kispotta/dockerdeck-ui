@@ -1,9 +1,9 @@
 import { EdgeProps, EdgeLabelRenderer, useInternalNode } from '@xyflow/react';
 import { useEffect, useReducer, useMemo, useState } from 'react';
-import { useAppSelector } from '../../hooks/useReduxHooks';
-import { registerEdge, unregisterEdge, subscribeToRegistry, getEdgeCrossings } from '../../utils/edgeRegistry';
-import { buildBridgePath, buildMaskSegments } from '../../utils/edgeBridge';
-import { T } from '../../styles/tokens';
+import { useAppSelector } from '../../../hooks/useReduxHooks';
+import { registerEdge, unregisterEdge, subscribeToRegistry, getEdgeCrossings } from '../../../utils/edgeRegistry';
+import { buildBridgePath, buildMaskSegments } from '../../../utils/edgeBridge';
+import { T } from '../../../styles/tokens';
 
 /**
  * BridgeEdge — a ReactFlow edge that detects intersections with all other edges

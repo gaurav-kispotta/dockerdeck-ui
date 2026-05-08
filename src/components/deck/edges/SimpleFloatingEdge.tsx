@@ -1,6 +1,6 @@
 import { getBezierPath, useInternalNode } from '@xyflow/react';
 
-import { getEdgeParams } from '../../utils/floatingEdge';
+import { getEdgeParams } from '../../../utils/floatingEdge';
 
 interface SimpleFloatingEdgeProps {
     id: string;

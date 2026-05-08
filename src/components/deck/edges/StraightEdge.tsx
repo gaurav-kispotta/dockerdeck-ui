@@ -1,7 +1,7 @@
 import { EdgeProps, EdgeLabelRenderer, getStraightPath } from '@xyflow/react';
 import { useState } from 'react';
-import { useAppSelector } from '../../hooks/useReduxHooks';
-import { T } from '../../styles/tokens';
+import { useAppSelector } from '../../../hooks/useReduxHooks';
+import { T } from '../../../styles/tokens';
 
 /**
  * StraightEdge — direct straight lines between handles.

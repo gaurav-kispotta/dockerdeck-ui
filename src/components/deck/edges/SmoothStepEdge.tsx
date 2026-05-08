@@ -1,7 +1,7 @@
 import { EdgeProps, EdgeLabelRenderer, getSmoothStepPath } from '@xyflow/react';
 import { useState } from 'react';
-import { useAppSelector } from '../../hooks/useReduxHooks';
-import { T } from '../../styles/tokens';
+import { useAppSelector } from '../../../hooks/useReduxHooks';
+import { T } from '../../../styles/tokens';
 
 /**
  * SmoothStepEdge — right-angle turns with rounded corners.
