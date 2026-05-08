@@ -26,6 +26,7 @@ import BridgeEdge from './BridgeEdge'
 import SimpleEdge from './SimpleEdge'
 import SmoothStepEdge from './SmoothStepEdge'
 import StraightEdge from './StraightEdge'
+import { BootTimelineOverlay, computeTimelinePositions } from './BootTimelineOverlay'
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
 import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
@@ -212,14 +213,23 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         return { default: edgeComponent };
     }, [settings.edgeStyle]);
 
-    // ── Boot-order layout (dagre, only in boot-order view) ───────────────────
+    // ── Boot-order timeline layout ────────────────────────────────────────────
     const bootOrderNodes = useMemo(() => {
         if (settings.viewMode !== 'boot-order') return null;
         const serviceNodes = nodes.filter(n => n.data?.nodeType === 'service');
         const depEdges = edges.filter(e => e.data?.connectionType === 'depends_on');
-        if (depEdges.length === 0 || serviceNodes.length === 0) return null;
-        return getDependencyLayout(serviceNodes, depEdges);
-    }, [nodes, edges, settings.viewMode, getDependencyLayout]);
+        if (serviceNodes.length === 0) return null;
+
+        const positions = computeTimelinePositions(
+            serviceNodes.map(n => n.id),
+            depEdges,
+        );
+
+        return serviceNodes.map(node => {
+            const pos = positions.get(node.id);
+            return pos ? { ...node, position: pos } : node;
+        });
+    }, [nodes, edges, settings.viewMode]);
 
     // ── View-mode node filtering ──────────────────────────────────────────────
     const viewFilteredNodes = useMemo(() => {
@@ -431,6 +441,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         >
             <FlowWithCentering nodes={nodes} />
             <RouteComputer />
+            {settings.viewMode === 'boot-order' && <BootTimelineOverlay />}
             <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable zoomable />
             <Background variant={BackgroundVariant.Dots} gap={22} size={1} />
             <Controls position="bottom-left" orientation="horizontal" />
