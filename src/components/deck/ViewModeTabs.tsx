@@ -62,11 +62,11 @@ const VIEWS: {
   accent: string;
   shortcut: string;
 }[] = [
+  { id: 'boot-order',   label: 'Boot Order',   desc: 'Startup sequence — which services must start first',       accent: T.rose,   shortcut: '5' },
   { id: 'architecture', label: 'Architecture', desc: 'Full data flow — all services, networks and volumes',       accent: T.cyan,   shortcut: '1' },
   { id: 'networks',     label: 'Networks',     desc: 'Network isolation & security boundaries',                   accent: T.violet, shortcut: '2' },
   { id: 'ports',        label: 'Ports',        desc: 'External access — which ports are exposed to the host',    accent: T.green,  shortcut: '3' },
   { id: 'volumes',      label: 'Storage',      desc: 'Data persistence — volumes and bind mounts',               accent: T.amber,  shortcut: '4' },
-  { id: 'boot-order',   label: 'Boot Order',   desc: 'Startup sequence — which services must start first',       accent: T.rose,   shortcut: '5' },
 ];
 
 export default function ViewModeTabs() {
@@ -79,7 +79,7 @@ export default function ViewModeTabs() {
     value: v.id,
     label: (
       <Tooltip title={`${v.label} — ${v.desc}`} placement="bottom">
-        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px 4px' }}>
+        <span className="flex items-center justify-center px-1 py-0.5">
           {ICONS[v.id]}
         </span>
       </Tooltip>
@@ -87,11 +87,7 @@ export default function ViewModeTabs() {
   }));
 
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center',
-      borderBottom: '1px solid var(--ant-color-border)',
-      padding: '0 12px', gap: 8, height: 40, flexShrink: 0,
-    }}>
+    <div className="flex items-center px-3 gap-2 h-10 shrink-0">
       <Segmented
         value={viewMode}
         options={segmentedOptions}
@@ -101,24 +97,23 @@ export default function ViewModeTabs() {
 
       <Divider type="vertical" style={{ height: 20, margin: '0 2px' }} />
 
-      <Text style={{ fontSize: 11, fontWeight: 600, color: active.accent }}>{active.label}</Text>
-      <Text type="secondary" style={{ fontSize: 11 }}>—</Text>
-      <Text type="secondary" style={{ fontSize: 11 }}>{active.desc}</Text>
+      <Text className="text-[11px] font-semibold" style={{ color: active.accent }}>{active.label}</Text>
+      <Text type="secondary" className="text-[11px]">—</Text>
+      <Text type="secondary" className="text-[11px]">{active.desc}</Text>
 
-      <div style={{ flex: 1 }} />
+      <div className="flex-1" />
 
       {/* Keyboard shortcut hints */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 10 }}>
+      <div className="flex items-center gap-1 font-mono text-[10px]">
         {VIEWS.map(v => (
           <Tooltip key={v.id} title={v.label} placement="bottom">
             <span
               onClick={() => dispatch(setViewMode(v.id))}
+              className="w-[18px] h-[18px] rounded-[4px] grid place-items-center cursor-pointer select-none"
               style={{
-                width: 18, height: 18, borderRadius: 4, display: 'grid', placeItems: 'center',
                 border: `1px solid ${viewMode === v.id ? v.accent + '66' : 'var(--ant-color-border)'}`,
                 background: viewMode === v.id ? `${v.accent}12` : 'transparent',
                 color: viewMode === v.id ? v.accent : 'var(--ant-color-text-quaternary)',
-                cursor: 'pointer', userSelect: 'none',
               }}
             >{v.shortcut}</span>
           </Tooltip>

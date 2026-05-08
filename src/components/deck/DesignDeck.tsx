@@ -5,14 +5,12 @@ import {
     Background,
     BackgroundVariant,
     Controls,
-    Panel,
     type Node,
     type Edge,
     type NodeMouseHandler,
     type EdgeMouseHandler,
     MiniMap,
     useReactFlow,
-    useViewport,
 } from '@xyflow/react'
 import { useCallback, useState, useEffect, useMemo } from 'react'
 import dagre from 'dagre'
@@ -488,41 +486,9 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable zoomable />
             <Background variant={BackgroundVariant.Dots} gap={22} size={1} />
             <Controls position="bottom-left" orientation="horizontal" />
-            <Panel position="top-left">
-                <CanvasToolbar />
-            </Panel>
         </ReactFlow>
     )
 }
 
-function CanvasToolbar() {
-    const { zoom } = useViewport();
-    const { fitView } = useReactFlow();
-    const showDependencies = useAppSelector((s) => s.settings.showDependencies);
-
-    const btnStyle = (active = false): React.CSSProperties => ({
-        width: 28, height: 28, display: 'grid', placeItems: 'center',
-        background: active ? '#1E2531' : 'transparent',
-        border: `1px solid ${active ? '#222A38' : 'transparent'}`,
-        borderRadius: 7, color: active ? '#E6EAF2' : '#8A93A6',
-        cursor: 'pointer', fontSize: 13,
-    });
-
-    return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, pointerEvents: 'all' }}>
-            <div style={{ display: 'flex', gap: 2, padding: 3, background: '#11151D', border: '1px solid #222A38', borderRadius: 10 }}>
-                <button style={btnStyle(true)}  title="Graph view">◇</button>
-                <button style={btnStyle(false)} title="Code view">&lt;/&gt;</button>
-            </div>
-            <div style={{ display: 'flex', gap: 2, padding: 3, background: '#11151D', border: '1px solid #222A38', borderRadius: 10 }}>
-                <button style={btnStyle(showDependencies)} title="Dependency mode">↳</button>
-                <button onClick={() => fitView({ duration: 600, padding: 0.1 })} style={btnStyle(false)} title="Fit view">⛶</button>
-            </div>
-            <div style={{ padding: '4px 10px', background: '#11151D', border: '1px solid #222A38', borderRadius: 10, fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace', color: '#8A93A6' }}>
-                {Math.round(zoom * 100)}%
-            </div>
-        </div>
-    );
-}
 
 export default DesignDeck

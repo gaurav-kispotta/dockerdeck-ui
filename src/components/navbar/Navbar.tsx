@@ -37,26 +37,15 @@ export function Navbar() {
 
   return (
     <div
-      className="electron-drag"
-      style={{
-        height: 52,
-        display: 'flex',
-        alignItems: 'center',
-        paddingLeft:  16 + leftInset,
-        paddingRight: 16 + rightInset,
-        borderBottom: '1px solid var(--ant-color-border)',
-        gap: 14,
-        flexShrink: 0,
-      }}
+      className="electron-drag h-[52px] flex items-center gap-[14px] shrink-0"
+      style={{ paddingLeft: 16 + leftInset, paddingRight: 16 + rightInset }}
     >
       {/* Logo */}
       <Space size={8} align="center">
-        <div style={{
-          width: 26, height: 26, borderRadius: 7,
-          background: `linear-gradient(135deg, ${T.cyan}, ${T.violet})`,
-          display: 'grid', placeItems: 'center',
-          color: '#0B0E14', fontWeight: 800, fontSize: 13, flexShrink: 0,
-        }}>D</div>
+        <div
+          className="w-[26px] h-[26px] rounded-[7px] grid place-items-center text-[13px] font-extrabold shrink-0 text-[#0B0E14]"
+          style={{ background: `linear-gradient(135deg, ${T.cyan}, ${T.violet})` }}
+        >D</div>
         <Text strong style={{ letterSpacing: -0.2, fontSize: 14 }}>
           docker<span style={{ color: isDark ? T.cyan : T.violet }}>·</span>deck
         </Text>
@@ -67,24 +56,24 @@ export function Navbar() {
       </Space>
 
       {/* Centered file chip — acts as the upload trigger */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }} className="electron-no-drag">
+      <div className="flex-1 flex justify-center electron-no-drag">
         <Button
           onClick={() => fileInputRef.current?.click()}
-          style={{ maxWidth: 520, fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12 }}
+          className="max-w-[520px] font-mono text-[12px]"
           icon={<UploadOutlined style={{ color: T.cyan }} />}
         >
           <Text ellipsis style={{ maxWidth: 260, fontSize: 12 }}>
             {fileName ?? 'Upload docker-compose.yml'}
           </Text>
           {chipMeta && (
-            <Text type="secondary" style={{ fontSize: 11, marginLeft: 6, whiteSpace: 'nowrap' }}>{chipMeta}</Text>
+            <Text type="secondary" className="text-[11px] ml-1.5 whitespace-nowrap">{chipMeta}</Text>
           )}
         </Button>
         <input
           ref={fileInputRef}
           type="file"
           accept=".yaml,.yml"
-          style={{ display: 'none' }}
+          className="hidden"
           onChange={e => handleFiles(e.target.files)}
         />
       </div>
@@ -128,4 +117,3 @@ export function Navbar() {
     </div>
   );
 }
-

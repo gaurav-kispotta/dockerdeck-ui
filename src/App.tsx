@@ -9,16 +9,16 @@ function AppShell() {
   const { token } = theme.useToken();
 
   return (
-    <div style={{
-      width: '100vw', height: '100vh',
-      display: 'flex', flexDirection: 'column',
-      background: token.colorBgLayout,
-      color: token.colorText,
-      overflow: 'hidden',
-      fontFamily: token.fontFamily,
-    }}>
+    <div
+      className="w-screen h-screen flex flex-col overflow-hidden"
+      style={{
+        background: token.colorBgLayout,
+        color: token.colorText,
+        fontFamily: token.fontFamily,
+      }}
+    >
       <Navbar />
-      <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         <Main />
       </div>
       <StatusBar />

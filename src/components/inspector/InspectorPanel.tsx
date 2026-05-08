@@ -59,42 +59,35 @@ export default function InspectorPanel() {
   ] : [];
 
   return (
-    <div style={{
-      width: visible ? 320 : 0,
-      minWidth: visible ? 320 : 0,
-      borderLeft: '1px solid var(--ant-color-border)',
-      display: 'flex', flexDirection: 'column',
-      overflow: 'hidden',
-      transition: 'width 0.25s ease, min-width 0.25s ease',
-      flexShrink: 0,
-    }}>
+    <div
+      className={`${visible ? 'w-[320px] min-w-[320px]' : 'w-0 min-w-0'} flex flex-col overflow-hidden transition-[width,min-width] duration-[250ms] ease-in-out shrink-0`}
+    >
       {visible && (
         <>
           {/* Header */}
-          <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid var(--ant-color-border)' }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-              background: `${T.cyan}1F`, border: `1px solid ${T.cyan}44`,
-              display: 'grid', placeItems: 'center', overflow: 'hidden',
-            }}>
-              {service && <img src={getIconUrl(service.image.name)} style={{ width: 22, height: 22, objectFit: 'contain' }} />}
-              {isVolume && <img src={VOLUME_ICON} style={{ width: 20, height: 20, objectFit: 'contain', opacity: 0.8 }} />}
-              {isNetwork && <Text style={{ color: T.violet, fontSize: 16 }}>⌗</Text>}
+          <div className="px-4 py-3.5 flex items-center gap-2.5">
+            <div
+              className="w-9 h-9 rounded-[10px] shrink-0 grid place-items-center overflow-hidden"
+              style={{ background: `${T.cyan}1F`, border: `1px solid ${T.cyan}44` }}
+            >
+              {service && <img src={getIconUrl(service.image.name)} className="w-[22px] h-[22px] object-contain" />}
+              {isVolume && <img src={VOLUME_ICON} className="w-5 h-5 object-contain opacity-80" />}
+              {isNetwork && <Text className="text-base" style={{ color: T.violet }}>⌗</Text>}
             </div>
 
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <Text strong ellipsis style={{ fontSize: 14, display: 'block' }}>{selectedNodeId}</Text>
+            <div className="flex-1 min-w-0">
+              <Text strong ellipsis className="text-sm block">{selectedNodeId}</Text>
               {service && (
-                <Text type="secondary" style={{ fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace' }}>
+                <Text type="secondary" className="text-[11px] font-mono">
                   {service.image.name}:{service.image.tag}
                 </Text>
               )}
-              {isNetwork && <Text type="secondary" style={{ fontSize: 11 }}>Network</Text>}
-              {isVolume  && <Text type="secondary" style={{ fontSize: 11 }}>Volume</Text>}
+              {isNetwork && <Text type="secondary" className="text-[11px]">Network</Text>}
+              {isVolume  && <Text type="secondary" className="text-[11px]">Volume</Text>}
             </div>
 
             <Space size={4}>
-              {service && <Badge status="success" text={<Text style={{ fontSize: 10 }}>running</Text>} />}
+              {service && <Badge status="success" text={<Text className="text-[10px]">running</Text>} />}
               <Button
                 type="text"
                 size="small"
@@ -110,12 +103,12 @@ export default function InspectorPanel() {
             <Tabs
               defaultActiveKey="overview"
               size="small"
-              style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+              className="flex-1 overflow-hidden flex flex-col"
               tabBarStyle={{ margin: 0, padding: '0 12px' }}
               items={tabItems}
             />
           ) : (
-            <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-[18px]">
               {isNetwork && <NetworkView name={selectedNodeId!} astObject={astObject} />}
               {isVolume && !service && <VolumeView name={selectedNodeId!} />}
             </div>
@@ -128,13 +121,13 @@ export default function InspectorPanel() {
 
 function OverviewTab({ service, rawService, connectedNodeIds }: { service: any; rawService: any; connectedNodeIds: string[] }) {
   return (
-    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', height: '100%' }}>
+    <div className="p-4 flex flex-col gap-4 overflow-y-auto h-full">
       {/* Ports */}
       {service.ports?.length > 0 && (
         <Section label="PORTS">
           <Space wrap size={4}>
             {service.ports.map((p: any, i: number) => (
-              <Tag key={i} style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 11 }}>{p.internal}:{p.external}</Tag>
+              <Tag key={i} className="font-mono text-[11px]">{p.internal}:{p.external}</Tag>
             ))}
           </Space>
         </Section>
@@ -144,10 +137,10 @@ function OverviewTab({ service, rawService, connectedNodeIds }: { service: any; 
       {service.dependsOn?.length > 0 && (
         <Section label="DEPENDS ON">
           {service.dependsOn.map((dep: string) => (
-            <div key={dep} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 7, background: 'var(--ant-color-fill-quaternary)', marginBottom: 6 }}>
+            <div key={dep} className="flex items-center gap-2 px-2 py-1.5 rounded-[7px] bg-[var(--ant-color-fill-quaternary)] mb-1.5">
               <Text style={{ color: T.rose }}>↳</Text>
-              <Text style={{ fontSize: 12, fontFamily: 'ui-monospace,Menlo,monospace' }}>{dep}</Text>
-              <div style={{ flex: 1 }} />
+              <Text className="text-xs font-mono">{dep}</Text>
+              <div className="flex-1" />
               <Tag color="red" style={{ fontSize: 10, margin: 0 }}>service_started</Tag>
             </div>
           ))}
@@ -158,9 +151,9 @@ function OverviewTab({ service, rawService, connectedNodeIds }: { service: any; 
       {service.networks?.length > 0 && (
         <Section label="NETWORKS">
           {service.networks.map((net: string) => (
-            <div key={net} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 7, background: 'var(--ant-color-fill-quaternary)', marginBottom: 6 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 3, background: T.violet, flexShrink: 0 }} />
-              <Text style={{ fontSize: 12 }}>{net}</Text>
+            <div key={net} className="flex items-center gap-2 px-2 py-1.5 rounded-[7px] bg-[var(--ant-color-fill-quaternary)] mb-1.5">
+              <span className="w-2 h-2 rounded-[3px] shrink-0" style={{ background: T.violet }} />
+              <Text className="text-xs">{net}</Text>
             </div>
           ))}
         </Section>
@@ -171,7 +164,7 @@ function OverviewTab({ service, rawService, connectedNodeIds }: { service: any; 
         <Section label="CONNECTED">
           <Space wrap size={4}>
             {connectedNodeIds.map(id => (
-              <Tag key={id} color="cyan" style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 11 }}>{id}</Tag>
+              <Tag key={id} color="cyan" className="font-mono text-[11px]">{id}</Tag>
             ))}
           </Space>
         </Section>
@@ -179,7 +172,7 @@ function OverviewTab({ service, rawService, connectedNodeIds }: { service: any; 
 
       {/* Image */}
       <Section label="IMAGE">
-        <Tag style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 11 }}>{service.image.name}:{service.image.tag}</Tag>
+        <Tag className="font-mono text-[11px]">{service.image.name}:{service.image.tag}</Tag>
       </Section>
     </div>
   );
@@ -187,18 +180,18 @@ function OverviewTab({ service, rawService, connectedNodeIds }: { service: any; 
 
 function EnvTab({ rawService }: { rawService: any }) {
   const env = rawService.environment;
-  if (!env) return <Empty description="No environment variables defined" image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ padding: 24 }} />;
+  if (!env) return <Empty description="No environment variables defined" image={Empty.PRESENTED_IMAGE_SIMPLE} className="p-6" />;
   const entries: string[] = Array.isArray(env) ? env : Object.entries(env).map(([k, v]) => `${k}=${v}`);
   return (
-    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto', height: '100%' }}>
+    <div className="p-4 flex flex-col gap-1 overflow-y-auto h-full">
       {entries.map((entry, i) => {
         const eqIdx = entry.indexOf('=');
         const key   = eqIdx === -1 ? entry : entry.slice(0, eqIdx);
         const val   = eqIdx === -1 ? '' : entry.slice(eqIdx + 1);
         return (
-          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '5px 8px', borderRadius: 6, background: 'var(--ant-color-fill-quaternary)' }}>
-            <Text style={{ fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace', color: T.cyan, flexShrink: 0 }}>{key}</Text>
-            {val && <Text type="secondary" style={{ fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace', wordBreak: 'break-all' }}>{val}</Text>}
+          <div key={i} className="flex items-start gap-2 px-2 py-[5px] rounded-md bg-[var(--ant-color-fill-quaternary)]">
+            <Text className="text-[11px] font-mono shrink-0" style={{ color: T.cyan }}>{key}</Text>
+            {val && <Text type="secondary" className="text-[11px] font-mono break-all">{val}</Text>}
           </div>
         );
       })}
@@ -207,13 +200,13 @@ function EnvTab({ rawService }: { rawService: any }) {
 }
 
 function VolumesTab({ service }: { service: any }) {
-  if (!service.volumes?.length) return <Empty description="No volume mounts" image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ padding: 24 }} />;
+  if (!service.volumes?.length) return <Empty description="No volume mounts" image={Empty.PRESENTED_IMAGE_SIMPLE} className="p-6" />;
   return (
-    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', height: '100%' }}>
+    <div className="p-4 flex flex-col gap-1.5 overflow-y-auto h-full">
       {service.volumes.map((v: any, i: number) => (
-        <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: 'var(--ant-color-fill-quaternary)', border: `1px solid ${T.amber}33` }}>
-          <Text style={{ fontSize: 11.5, fontFamily: 'ui-monospace,Menlo,monospace', color: T.amber, display: 'block' }}>{v.external}</Text>
-          <Text type="secondary" style={{ fontSize: 10.5, fontFamily: 'ui-monospace,Menlo,monospace', display: 'block', marginTop: 2 }}>→ {v.internal}</Text>
+        <div key={i} className="px-2.5 py-2 rounded-lg bg-[var(--ant-color-fill-quaternary)]" style={{ border: `1px solid ${T.amber}33` }}>
+          <Text className="text-[11.5px] font-mono block" style={{ color: T.amber }}>{v.external}</Text>
+          <Text type="secondary" className="text-[10.5px] font-mono block mt-0.5">→ {v.internal}</Text>
         </div>
       ))}
     </div>
@@ -223,15 +216,10 @@ function VolumesTab({ service }: { service: any }) {
 function RawTab({ name, rawService }: { name: string; rawService: any }) {
   const yaml = toYamlLike(name, rawService);
   return (
-    <div style={{ padding: 16, height: '100%', overflowY: 'auto' }}>
-      <pre style={{
-        margin: 0, padding: 12, borderRadius: 8,
-        background: 'var(--ant-color-bg-container)',
-        border: '1px solid var(--ant-color-border)',
-        fontSize: 10.5, lineHeight: 1.7,
-        fontFamily: 'ui-monospace,Menlo,monospace',
-        overflow: 'auto', whiteSpace: 'pre-wrap',
-      }}>{yaml}</pre>
+    <div className="p-4 h-full overflow-y-auto">
+      <pre className="m-0 p-3 rounded-lg bg-[var(--ant-color-bg-container)] border border-[var(--ant-color-border)] text-[10.5px] leading-[1.7] font-mono overflow-auto whitespace-pre-wrap">
+        {yaml}
+      </pre>
     </div>
   );
 }
@@ -242,9 +230,9 @@ function NetworkView({ name, astObject }: { name: string; astObject: any }) {
   return (
     <>
       <Section label="NETWORK">
-        <div style={{ padding: '8px 10px', borderRadius: 8, background: 'var(--ant-color-fill-quaternary)', border: `1px solid ${T.violet}33` }}>
-          <Text strong style={{ fontSize: 12, color: T.violet, display: 'block' }}>{name}</Text>
-          <Text type="secondary" style={{ fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace', display: 'block', marginTop: 2 }}>
+        <div className="px-2.5 py-2 rounded-lg bg-[var(--ant-color-fill-quaternary)]" style={{ border: `1px solid ${T.violet}33` }}>
+          <Text strong className="text-xs block" style={{ color: T.violet }}>{name}</Text>
+          <Text type="secondary" className="text-[11px] font-mono block mt-0.5">
             driver: {(net as any)?.driver ?? 'bridge'}
           </Text>
         </div>
@@ -252,9 +240,9 @@ function NetworkView({ name, astObject }: { name: string; astObject: any }) {
       {attachedServices.length > 0 && (
         <Section label={`ATTACHED SERVICES · ${attachedServices.length}`}>
           {attachedServices.map((s: any) => (
-            <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 7, background: 'var(--ant-color-fill-quaternary)', marginBottom: 6 }}>
-              <img src={getIconUrl(s.image.name)} style={{ width: 14, height: 14, objectFit: 'contain' }} />
-              <Text style={{ fontSize: 12 }}>{s.name}</Text>
+            <div key={s.name} className="flex items-center gap-2 px-2 py-1.5 rounded-[7px] bg-[var(--ant-color-fill-quaternary)] mb-1.5">
+              <img src={getIconUrl(s.image.name)} className="w-3.5 h-3.5 object-contain" />
+              <Text className="text-xs">{s.name}</Text>
             </div>
           ))}
         </Section>
@@ -266,9 +254,9 @@ function NetworkView({ name, astObject }: { name: string; astObject: any }) {
 function VolumeView({ name }: { name: string }) {
   return (
     <Section label="VOLUME">
-      <div style={{ padding: '8px 10px', borderRadius: 8, background: 'var(--ant-color-fill-quaternary)', border: `1px solid ${T.amber}33` }}>
-        <Text strong style={{ fontSize: 12, color: T.amber, fontFamily: 'ui-monospace,Menlo,monospace', display: 'block' }}>{name}</Text>
-        <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 2 }}>Named volume</Text>
+      <div className="px-2.5 py-2 rounded-lg bg-[var(--ant-color-fill-quaternary)]" style={{ border: `1px solid ${T.amber}33` }}>
+        <Text strong className="text-xs font-mono block" style={{ color: T.amber }}>{name}</Text>
+        <Text type="secondary" className="text-[11px] block mt-0.5">Named volume</Text>
       </div>
     </Section>
   );
@@ -277,7 +265,7 @@ function VolumeView({ name }: { name: string }) {
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <Text type="secondary" style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.2, display: 'block', marginBottom: 8, textTransform: 'uppercase' as const }}>
+      <Text type="secondary" className="text-[10.5px] font-bold tracking-[1.2px] block mb-2 uppercase">
         {label}
       </Text>
       {children}
@@ -303,4 +291,3 @@ function toYamlLike(name: string, obj: Record<string, any>, indent = 0): string 
   }
   return out;
 }
-

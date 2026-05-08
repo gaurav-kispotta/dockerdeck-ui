@@ -23,11 +23,6 @@ const EDGE_STYLE_LABELS: Record<EdgeStyle, string> = {
   straight:   'Straight',
 };
 
-const selectStyle: React.CSSProperties = {
-  fontSize: 11,
-  fontFamily: 'ui-monospace,Menlo,monospace',
-};
-
 export default function StatusBar() {
   const { yamlObject } = useAppSelector((s) => s.uploadedFile);
   const { showDependencies, debugMode, mapLayout, edgeStyle } = useAppSelector((s) => s.settings);
@@ -42,20 +37,15 @@ export default function StatusBar() {
   return (
     <>
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
-      <div style={{
-        height: 32, display: 'flex', alignItems: 'center', padding: '0 14px', gap: 12,
-        borderTop: '1px solid var(--ant-color-border)',
-        fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 11,
-        flexShrink: 0,
-      }}>
+      <div className="h-8 flex items-center px-3.5 gap-3 font-mono text-[11px] shrink-0">
         {/* Settings cog */}
         <Tooltip title="Settings">
           <Button
             type="text"
             size="small"
-            icon={<SettingOutlined style={{ fontSize: 13 }} />}
+            icon={<SettingOutlined className="text-[13px]" />}
             onClick={() => setSettingsOpen(true)}
-            style={{ width: 24, height: 24, minWidth: 'unset', padding: 0, display: 'grid', placeItems: 'center' }}
+            className="!w-6 !h-6 !min-w-0 !p-0 grid place-items-center"
           />
         </Tooltip>
 
@@ -65,24 +55,24 @@ export default function StatusBar() {
         <Space size={12}>
           <Space size={4}>
             <Badge color={T.cyan} />
-            <Text style={{ fontSize: 11, fontFamily: 'inherit' }}>Networks {networkCount}</Text>
+            <Text className="text-[11px] font-[inherit]">Networks {networkCount}</Text>
           </Space>
           <Space size={4}>
             <Badge color={T.violet} />
-            <Text style={{ fontSize: 11, fontFamily: 'inherit' }}>Services {serviceCount}</Text>
+            <Text className="text-[11px] font-[inherit]">Services {serviceCount}</Text>
           </Space>
           <Space size={4}>
             <Badge color={T.amber} />
-            <Text style={{ fontSize: 11, fontFamily: 'inherit' }}>Volumes {volumeCount}</Text>
+            <Text className="text-[11px] font-[inherit]">Volumes {volumeCount}</Text>
           </Space>
         </Space>
 
-        <div style={{ flex: 1 }} />
+        <div className="flex-1" />
 
         {/* Controls */}
         <Space size={10}>
           <Space size={6}>
-            <Text type="secondary" style={{ fontSize: 11, fontFamily: 'inherit' }}>↳ deps</Text>
+            <Text type="secondary" className="text-[11px] font-[inherit]">↳ deps</Text>
             <Switch
               size="small"
               checked={showDependencies}
@@ -91,7 +81,7 @@ export default function StatusBar() {
             />
           </Space>
           <Space size={6}>
-            <Text type="secondary" style={{ fontSize: 11, fontFamily: 'inherit' }}>⬡ debug</Text>
+            <Text type="secondary" className="text-[11px] font-[inherit]">⬡ debug</Text>
             <Switch
               size="small"
               checked={debugMode}
@@ -100,7 +90,7 @@ export default function StatusBar() {
             />
           </Space>
           <Space size={6}>
-            <Text type="secondary" style={{ fontSize: 11, fontFamily: 'inherit' }}>&lt;/&gt; yaml</Text>
+            <Text type="secondary" className="text-[11px] font-[inherit]">&lt;/&gt; yaml</Text>
             <Switch
               size="small"
               checked={isViewerVisible}
@@ -120,19 +110,19 @@ export default function StatusBar() {
               variant="borderless"
               value={mapLayout}
               onChange={(v) => dispatch(setMapLayout(v))}
-              style={selectStyle}
+              style={{ fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace' }}
               options={(Object.entries(MAP_LAYOUT_LABELS) as [MapLayout, string][]).map(([value, label]) => ({ value, label }))}
               suffixIcon={null}
             />
           </Tooltip>
-          <Text type="secondary" style={{ fontSize: 11, fontFamily: 'inherit' }}>·</Text>
+          <Text type="secondary" className="text-[11px] font-[inherit]">·</Text>
           <Tooltip title="Edge style">
             <Select
               size="small"
               variant="borderless"
               value={edgeStyle}
               onChange={(v) => dispatch(setEdgeStyle(v))}
-              style={selectStyle}
+              style={{ fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace' }}
               options={(Object.entries(EDGE_STYLE_LABELS) as [EdgeStyle, string][]).map(([value, label]) => ({ value, label }))}
               suffixIcon={null}
             />
@@ -141,7 +131,7 @@ export default function StatusBar() {
 
         <Divider type="vertical" style={{ height: 14, margin: '0 2px' }} />
 
-        <Text style={{ fontSize: 11, fontFamily: 'inherit' }}>made with ♥ in Bengaluru 🇮🇳</Text>
+        <Text className="text-[11px] font-[inherit]">made with ♥ in Bengaluru 🇮🇳</Text>
       </div>
     </>
   );
