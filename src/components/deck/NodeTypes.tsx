@@ -7,6 +7,7 @@ import DockerDeckNode from "../nodes/DockerDeckNode";
 import BootStageLabelNode from "../nodes/BootStageLabelNode";
 import BootLaneBandNode from "../nodes/BootLaneBandNode";
 import BootTimelineRailNode from "../nodes/BootTimelineRailNode";
+import LayeredGroupBandNode from "../nodes/LayeredGroupBandNode";
 import nodesConfig from "./config/NodesConfig.json";
 
 interface NodeConfig {
@@ -55,6 +56,7 @@ const allNodeTypes: Record<string, NodeComponent> = {
     'boot-stage-label':    BootStageLabelNode  as NodeComponent,
     'boot-lane-band':      BootLaneBandNode    as NodeComponent,
     'boot-timeline-rail':  BootTimelineRailNode as NodeComponent,
+    'layered-group-band':  LayeredGroupBandNode as NodeComponent,
 };
 
 // Falls back to unknown-type when image name is not registered

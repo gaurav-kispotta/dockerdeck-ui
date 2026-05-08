@@ -27,6 +27,7 @@ import SimpleEdge from './SimpleEdge'
 import SmoothStepEdge from './SmoothStepEdge'
 import StraightEdge from './StraightEdge'
 import { buildBootAnnotationNodes, computeTimelinePositions } from './BootTimelineOverlay'
+import { buildLayeredAnnotationNodes } from './LayeredAnnotationOverlay'
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
 import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
@@ -248,6 +249,14 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         return [...annotations, ...positionedServices];
     }, [nodes, edges, settings.viewMode]);
 
+    // ── Layered-view group band annotations ───────────────────────────────────
+    const layeredAnnotations = useMemo(() => {
+        if (settings.mapLayout !== 'layered') return null;
+        if (settings.viewMode !== 'architecture') return null;
+        if (nodes.length === 0) return null;
+        return buildLayeredAnnotationNodes(nodes);
+    }, [nodes, settings.mapLayout, settings.viewMode]);
+
     // ── View-mode node filtering ──────────────────────────────────────────────
     const viewFilteredNodes = useMemo(() => {
         // In boot-order view: merge annotation nodes (not in original nodes)
@@ -261,10 +270,14 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             base = nodes;
         }
 
-        return base.filter(n => {
+        // Prepend layered-view band annotations (invisible to filter logic below)
+        const layerBands = layeredAnnotations ?? [];
+
+        return [...layerBands, ...base].filter(n => {
             const t = n.data?.nodeType as string | undefined;
             // Annotation nodes always pass through
             if (n.id.startsWith('__boot-')) return true;
+            if (n.id.startsWith('__layer-')) return true;
             switch (settings.viewMode) {
                 case 'ports':      return t !== 'volume';         // hide volume nodes
                 case 'volumes':    return t !== 'network';        // hide network nodes
@@ -272,11 +285,11 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                 default:           return true;
             }
         });
-    }, [nodes, bootOrderNodes, settings.viewMode]);
+    }, [nodes, bootOrderNodes, layeredAnnotations, settings.viewMode]);
 
     // Apply styling based on selection and dependency mode
     const styledNodes = useMemo(() => {
-        const isAnnotation = (id: string) => id.startsWith('__boot-');
+        const isAnnotation = (id: string) => id.startsWith('__boot-') || id.startsWith('__layer-');
 
         // showDependencies overlay
         if (settings.showDependencies) {
