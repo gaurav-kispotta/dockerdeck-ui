@@ -177,11 +177,12 @@ export function buildBootAnnotationNodes(
             data:        { rank: r, stepLabel: label, width: laneW, height: laneH, isFirst, connectorLen: Math.max(connectorLen, 0) },
             draggable:   false,
             selectable:  false,
+            focusable:   false,
             connectable: false,
-            zIndex:      0,
+            zIndex:      -1,   // below edges (z=0) and service nodes (z=1)
             width:       laneW,
             height:      laneH,
-            style:       { width: laneW, height: laneH },
+            style:       { width: laneW, height: laneH, pointerEvents: 'none' },
         } as Node);
     }
 
@@ -199,11 +200,12 @@ export function buildBootAnnotationNodes(
         },
         draggable:   false,
         selectable:  false,
+        focusable:   false,
         connectable: false,
-        zIndex:      2,
+        zIndex:      2,   // above service nodes (z=1) and edges (z=0)
         width:       railNodeW,
         height:      RAIL_H,
-        style:       { width: railNodeW, height: RAIL_H },
+        style:       { width: railNodeW, height: RAIL_H, pointerEvents: 'none' },
     } as Node);
 
     return annotations;
