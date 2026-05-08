@@ -1,11 +1,10 @@
-import { useState } from 'react';
 import { Modal, Slider, Switch, Select, Divider, Typography, Space, Tooltip } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../../hooks/useReduxHooks';
 import {
   setPlatformPadding, setNodeLevelPadding, setNodeSize,
-  setShowDependencies, setDebugMode, setViewMode,
-  type ViewMode,
+  setShowDependencies, setDebugMode, setViewMode, setMapLayout,
+  type ViewMode, type MapLayout,
 } from '../../store/slices/settingsSlice';
 
 const { Text, Title } = Typography;
@@ -16,6 +15,12 @@ const VIEW_MODE_OPTIONS: { label: string; value: ViewMode; description: string }
   { value: 'ports',        label: 'Ports',         description: 'External access / port mapping' },
   { value: 'volumes',      label: 'Volumes',       description: 'Storage – volume mounts' },
   { value: 'boot-order',   label: 'Boot Order',    description: 'Startup sequence (depends_on)' },
+];
+
+const MAP_LAYOUT_OPTIONS: { label: string; value: MapLayout; description: string }[] = [
+  { value: 'layered', label: 'Layered',  description: 'Rows: networks → services → volumes' },
+  { value: 'dagre',   label: 'Dagre',    description: 'Hierarchical graph layout' },
+  { value: 'elk',     label: 'ELK Tree', description: 'Tree layout via ELK.js' },
 ];
 
 function Row({ label, help, children }: { label: string; help?: string; children: React.ReactNode }) {
@@ -58,7 +63,7 @@ interface SettingsModalProps {
 
 export default function SettingsModal({ open, onClose }: SettingsModalProps) {
   const dispatch = useAppDispatch();
-  const { platformPadding, nodeLevelPadding, nodeSize, showDependencies, debugMode, viewMode } =
+  const { platformPadding, nodeLevelPadding, nodeSize, showDependencies, debugMode, viewMode, mapLayout } =
     useAppSelector((s) => s.settings);
 
   return (
@@ -96,6 +101,16 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
 
         {/* ── Layout ───────────────────────────────────── */}
         <Title level={5} style={{ marginBottom: 8 }}>Layout</Title>
+
+        <Row label="Map layout" help="Choose how nodes are positioned on the canvas">
+          <Select
+            size="small"
+            value={mapLayout}
+            onChange={(v) => dispatch(setMapLayout(v))}
+            style={{ width: 160 }}
+            options={MAP_LAYOUT_OPTIONS.map((o) => ({ label: o.label, value: o.value, title: o.description }))}
+          />
+        </Row>
 
         <SliderRow
           label="Platform padding" help="Outer padding around the entire graph"

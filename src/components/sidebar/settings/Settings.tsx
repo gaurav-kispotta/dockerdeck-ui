@@ -1,13 +1,19 @@
-import { Slider, Typography, Space, Switch, Tooltip } from 'antd'
+import { Slider, Typography, Space, Switch, Tooltip, Select } from 'antd'
 import { useAppDispatch, useAppSelector } from '../../../hooks/useReduxHooks'
-import { setPlatformPadding, setNodeLevelPadding, setNodeSize, setShowDependencies } from '../../../store/slices/settingsSlice'
+import { setPlatformPadding, setNodeLevelPadding, setNodeSize, setShowDependencies, setMapLayout, MapLayout } from '../../../store/slices/settingsSlice'
 import { QuestionCircleOutlined } from '@ant-design/icons';
 
 const { Text } = Typography
 
+const MAP_LAYOUT_OPTIONS: { value: MapLayout; label: string; description: string }[] = [
+  { value: 'layered', label: 'Layered', description: 'Rows: networks → services → volumes' },
+  { value: 'dagre',   label: 'Dagre',   description: 'Hierarchical graph layout (Dagre)' },
+  { value: 'elk',     label: 'ELK Tree', description: 'Tree layout via ELK.js' },
+];
+
 export default function Settings() {
   const dispatch = useAppDispatch()
-  const { platformPadding, nodeLevelPadding, nodeSize, showDependencies } = useAppSelector((state) => state.settings)
+  const { platformPadding, nodeLevelPadding, nodeSize, showDependencies, mapLayout } = useAppSelector((state) => state.settings)
 
   const handlePlatformPaddingChange = (value: number) => {
     dispatch(setPlatformPadding(value))
@@ -25,8 +31,34 @@ export default function Settings() {
     dispatch(setShowDependencies(checked))
   }
 
+  const handleMapLayoutChange = (value: MapLayout) => {
+    dispatch(setMapLayout(value))
+  }
+
   return (
       <Space direction="vertical" size="small" className="w-full">
+        <div>
+          <div className="flex items-center mb-1">
+            <Text strong className="dark:text-gray-200 mr-1">Map Layout</Text>
+            <Tooltip title="Choose how nodes are positioned on the canvas">
+              <QuestionCircleOutlined className="text-gray-400" />
+            </Tooltip>
+          </div>
+          <Select
+            value={mapLayout}
+            onChange={handleMapLayoutChange}
+            className="w-full"
+            options={MAP_LAYOUT_OPTIONS.map(o => ({
+              value: o.value,
+              label: (
+                <div>
+                  <span className="font-medium">{o.label}</span>
+                  <span className="text-xs text-gray-400 ml-1">— {o.description}</span>
+                </div>
+              ),
+            }))}
+          />
+        </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Text strong className="dark:text-gray-200 mr-1">Show dependencies</Text>

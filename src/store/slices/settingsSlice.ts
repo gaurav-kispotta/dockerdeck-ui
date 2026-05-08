@@ -7,6 +7,11 @@ export type ViewMode =
   | 'volumes'       // D: Storage — volume mounts
   | 'boot-order';   // E: Startup sequence — depends_on dagre
 
+export type MapLayout =
+  | 'layered'  // Custom row layout: networks → services → volumes
+  | 'dagre'    // Dagre hierarchical graph layout
+  | 'elk';     // ELK.js tree layout
+
 export interface SettingsState {
   platformPadding: number;
   nodeLevelPadding: number;
@@ -14,6 +19,7 @@ export interface SettingsState {
   showDependencies: boolean;
   debugMode: boolean;
   viewMode: ViewMode;
+  mapLayout: MapLayout;
 }
 
 const initialState: SettingsState = {
@@ -23,6 +29,7 @@ const initialState: SettingsState = {
   showDependencies: false,
   debugMode: false,
   viewMode: 'architecture',
+  mapLayout: 'layered',
 };
 
 export const settingsSlice = createSlice({
@@ -35,12 +42,13 @@ export const settingsSlice = createSlice({
     setShowDependencies: (state, action: PayloadAction<boolean>) => { state.showDependencies = action.payload; },
     setDebugMode: (state, action: PayloadAction<boolean>) => { state.debugMode = action.payload; },
     setViewMode: (state, action: PayloadAction<ViewMode>) => { state.viewMode = action.payload; },
+    setMapLayout: (state, action: PayloadAction<MapLayout>) => { state.mapLayout = action.payload; },
   },
 });
 
 export const {
   setPlatformPadding, setNodeLevelPadding, setNodeSize,
-  setShowDependencies, setDebugMode, setViewMode,
+  setShowDependencies, setDebugMode, setViewMode, setMapLayout,
 } = settingsSlice.actions;
 
 export default settingsSlice.reducer;
