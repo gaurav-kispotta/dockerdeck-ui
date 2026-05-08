@@ -1,0 +1,517 @@
+# Stress-Testing Infrastructure Stack
+# ──────────────────────────────────────────────────────────────────────────────
+# Purpose  : Full stress-test infrastructure — target services, load generators,
+#            real-time monitoring, alerting, and result storage.
+#
+# Services (17 total across 4 networks, 12 volumes):
+#
+#  ┌─ Target Tier ─────────────────────────────────────────────────────────────┐
+#  │  nginx-lb   → api-1, api-2, api-3 (round-robin)                          │
+#  │  api-1/2/3  → postgres (primary), redis-cache, mongo                     │
+#  │  postgres   → postgres-replica (streaming replication)                   │
+#  └───────────────────────────────────────────────────────────────────────────┘
+#  ┌─ Load-Test Tier ───────────────────────────────────────────────────────────┐
+#  │  k6-runner  → (runs tests; reports to influxdb)                           │
+#  │  locust-master → locust-worker-1, locust-worker-2                         │
+#  └───────────────────────────────────────────────────────────────────────────┘
+#  ┌─ Observability Tier ───────────────────────────────────────────────────────┐
+#  │  prometheus → node-exporter, cadvisor, postgres-exporter, redis-exporter  │
+#  │  grafana    → prometheus, influxdb                                        │
+#  │  alertmanager ← prometheus                                                │
+#  └───────────────────────────────────────────────────────────────────────────┘
+#  ┌─ Storage Tier ─────────────────────────────────────────────────────────────┐
+#  │  influxdb   (k6 result sink)                                              │
+#  └───────────────────────────────────────────────────────────────────────────┘
+
+version: '3.9'
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  target-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+  loadtest-net:
+    driver: bridge
+  observability-net:
+    driver: bridge
+  storage-net:
+    driver: bridge
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  postgres-primary-data:
+  postgres-replica-data:
+  mongo-data:
+  redis-data:
+  influxdb-data:
+  prometheus-data:
+  grafana-data:
+  alertmanager-data:
+  k6-results:
+  locust-results:
+  node-exporter-rootfs:
+  cadvisor-data:
+
+# ── Services ──────────────────────────────────────────────────────────────────
+services:
+
+  # ── 1. STORAGE TIER ─────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: stress-postgres
+    environment:
+      POSTGRES_USER: stress
+      POSTGRES_PASSWORD: stress_password
+      POSTGRES_DB: stressdb
+      POSTGRES_MAX_CONNECTIONS: "500"
+    volumes:
+      - postgres-primary-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - target-net
+      - storage-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stress -d stressdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+  postgres-replica:
+    image: postgres:16-alpine
+    container_name: stress-postgres-replica
+    environment:
+      POSTGRES_USER: stress
+      POSTGRES_PASSWORD: stress_password
+      POSTGRES_DB: stressdb
+    volumes:
+      - postgres-replica-data:/var/lib/postgresql/data
+    networks:
+      - target-net
+      - storage-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  redis-cache:
+    image: redis:7.2-alpine
+    container_name: stress-redis
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - target-net
+      - storage-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  mongo:
+    image: mongo:7.0
+    container_name: stress-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: stress
+      MONGO_INITDB_ROOT_PASSWORD: stress_password
+      MONGO_INITDB_DATABASE: stressdb
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - target-net
+      - storage-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: stress-influxdb
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: influx_password
+      DOCKER_INFLUXDB_INIT_ORG: stress-org
+      DOCKER_INFLUXDB_INIT_BUCKET: k6-results
+      DOCKER_INFLUXDB_INIT_RETENTION: 7d
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    ports:
+      - "8086:8086"
+    networks:
+      - storage-net
+      - observability-net
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── 2. TARGET TIER ──────────────────────────────────────────────────────────
+
+  api-1:
+    image: node:20-alpine
+    container_name: stress-api-1
+    working_dir: /app
+    command: >
+      sh -c "npm install --silent express pg redis &&
+             node -e \"
+               const app = require('express')();
+               app.get('/health', (_, res) => res.json({ status: 'ok', instance: 1 }));
+               app.get('/heavy', async (_, res) => {
+                 let x = 0; for (let i = 0; i < 1e7; i++) x += Math.sqrt(i);
+                 res.json({ result: x });
+               });
+               app.listen(3000, () => console.log('API-1 on :3000'));
+             \""
+    ports:
+      - "3001:3000"
+    networks:
+      - target-net
+      - loadtest-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+
+  api-2:
+    image: node:20-alpine
+    container_name: stress-api-2
+    working_dir: /app
+    command: >
+      sh -c "npm install --silent express pg redis &&
+             node -e \"
+               const app = require('express')();
+               app.get('/health', (_, res) => res.json({ status: 'ok', instance: 2 }));
+               app.get('/heavy', async (_, res) => {
+                 let x = 0; for (let i = 0; i < 1e7; i++) x += Math.sqrt(i);
+                 res.json({ result: x });
+               });
+               app.listen(3000, () => console.log('API-2 on :3000'));
+             \""
+    ports:
+      - "3002:3000"
+    networks:
+      - target-net
+      - loadtest-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+
+  api-3:
+    image: node:20-alpine
+    container_name: stress-api-3
+    working_dir: /app
+    command: >
+      sh -c "npm install --silent express pg redis &&
+             node -e \"
+               const app = require('express')();
+               app.get('/health', (_, res) => res.json({ status: 'ok', instance: 3 }));
+               app.get('/heavy', async (_, res) => {
+                 let x = 0; for (let i = 0; i < 1e7; i++) x += Math.sqrt(i);
+                 res.json({ result: x });
+               });
+               app.listen(3000, () => console.log('API-3 on :3000'));
+             \""
+    ports:
+      - "3003:3000"
+    networks:
+      - target-net
+      - loadtest-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+
+  nginx-lb:
+    image: nginx:alpine
+    container_name: stress-nginx-lb
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx-stress.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - target-net
+      - loadtest-net
+    depends_on:
+      api-1:
+        condition: service_healthy
+      api-2:
+        condition: service_healthy
+      api-3:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ── 3. LOAD TEST TIER ───────────────────────────────────────────────────────
+
+  k6-runner:
+    image: grafana/k6:latest
+    container_name: stress-k6
+    command: >
+      run
+      --out influxdb=http://influxdb:8086/k6-results
+      --vus 50
+      --duration 5m
+      /scripts/stress.js
+    volumes:
+      - k6-results:/results
+    environment:
+      K6_INFLUXDB_TOKEN: ""
+      TARGET_URL: http://nginx-lb:80
+    networks:
+      - loadtest-net
+      - storage-net
+    depends_on:
+      nginx-lb:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+
+  locust-master:
+    image: locustio/locust:latest
+    container_name: stress-locust-master
+    command: >
+      -f /locust/locustfile.py
+      --master
+      --host http://nginx-lb:80
+      --users 200
+      --spawn-rate 10
+      --headless
+      --run-time 5m
+      --html /results/report.html
+    volumes:
+      - locust-results:/results
+    ports:
+      - "8089:8089"
+    networks:
+      - loadtest-net
+    depends_on:
+      nginx-lb:
+        condition: service_healthy
+
+  locust-worker-1:
+    image: locustio/locust:latest
+    container_name: stress-locust-worker-1
+    command: >
+      -f /locust/locustfile.py
+      --worker
+      --master-host locust-master
+    networks:
+      - loadtest-net
+    depends_on:
+      - locust-master
+
+  locust-worker-2:
+    image: locustio/locust:latest
+    container_name: stress-locust-worker-2
+    command: >
+      -f /locust/locustfile.py
+      --worker
+      --master-host locust-master
+    networks:
+      - loadtest-net
+    depends_on:
+      - locust-master
+
+  # ── 4. OBSERVABILITY TIER ───────────────────────────────────────────────────
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: stress-node-exporter
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro,rslave
+      - node-exporter-rootfs:/rootfs
+    ports:
+      - "9100:9100"
+    networks:
+      - observability-net
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: stress-cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - cadvisor-data:/var/lib/cadvisor
+    ports:
+      - "8081:8080"
+    networks:
+      - observability-net
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: stress-postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://stress:stress_password@postgres:5432/stressdb?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - storage-net
+      - observability-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.62.0
+    container_name: stress-redis-exporter
+    environment:
+      REDIS_ADDR: redis://redis-cache:6379
+    ports:
+      - "9121:9121"
+    networks:
+      - storage-net
+      - observability-net
+    depends_on:
+      redis-cache:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: stress-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - observability-net
+    depends_on:
+      - node-exporter
+      - cadvisor
+      - postgres-exporter
+      - redis-exporter
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: stress-alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - alertmanager-data:/alertmanager
+    ports:
+      - "9093:9093"
+    networks:
+      - observability-net
+    depends_on:
+      prometheus:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: stress-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: grafana_password
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - observability-net
+      - storage-net
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
