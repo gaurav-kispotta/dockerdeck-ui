@@ -179,6 +179,8 @@ export function buildBootAnnotationNodes(
             selectable:  false,
             connectable: false,
             zIndex:      0,
+            width:       laneW,
+            height:      laneH,
             style:       { width: laneW, height: laneH },
         } as Node);
     }
@@ -199,6 +201,8 @@ export function buildBootAnnotationNodes(
         selectable:  false,
         connectable: false,
         zIndex:      2,
+        width:       railNodeW,
+        height:      RAIL_H,
         style:       { width: railNodeW, height: RAIL_H },
     } as Node);
 
