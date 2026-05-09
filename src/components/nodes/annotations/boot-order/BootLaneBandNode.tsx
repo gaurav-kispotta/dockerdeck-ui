@@ -1,6 +1,6 @@
 import { NodeProps } from '@xyflow/react';
-import { useAppSelector } from '../../hooks/useReduxHooks';
-import { T } from '../../styles/tokens';
+import { useAppSelector } from '../../../../hooks/useReduxHooks';
+import { T } from '../../../../styles/tokens';
 
 export interface BootLaneBandData {
     rank: number;

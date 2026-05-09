@@ -1,5 +1,5 @@
 import type { Node } from '@xyflow/react';
-import type { LayerType } from '../nodes/LayeredGroupBandNode';
+import type { LayerType } from '../nodes/annotations/architecture/LayeredGroupBandNode';
 
 // Layout constants — match PositioningStage.ts values
 const CARD_W    = 200;

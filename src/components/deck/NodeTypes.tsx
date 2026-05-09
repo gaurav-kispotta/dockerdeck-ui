@@ -2,12 +2,12 @@ import React from "react";
 import { NodeProps } from "@xyflow/react";
 import NodejsNode from "../nodes/NodejsNode";
 import RedisNode from "../nodes/RedisNode";
-import ServiceGroupNode from "../nodes/ServiceGroupNode";
+import ServiceGroupNode from "../nodes/annotations/architecture/ServiceGroupNode";
 import DockerDeckNode from "../nodes/DockerDeckNode";
-import BootStageLabelNode from "../nodes/BootStageLabelNode";
-import BootLaneBandNode from "../nodes/BootLaneBandNode";
-import BootTimelineRailNode from "../nodes/BootTimelineRailNode";
-import LayeredGroupBandNode from "../nodes/LayeredGroupBandNode";
+import BootStageLabelNode from "../nodes/annotations/boot-order/BootStageLabelNode";
+import BootLaneBandNode from "../nodes/annotations/boot-order/BootLaneBandNode";
+import BootTimelineRailNode from "../nodes/annotations/boot-order/BootTimelineRailNode";
+import LayeredGroupBandNode from "../nodes/annotations/architecture/LayeredGroupBandNode";
 import nodesConfig from "./config/NodesConfig.json";
 
 interface NodeConfig {

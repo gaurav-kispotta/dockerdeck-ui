@@ -1,6 +1,6 @@
 import { NodeProps } from '@xyflow/react';
-import { useAppSelector } from '../../hooks/useReduxHooks';
-import { T } from '../../styles/tokens';
+import { useAppSelector } from '../../../../hooks/useReduxHooks';
+import { T } from '../../../../styles/tokens';
 
 interface BootStageLabelData {
     stage: number;
