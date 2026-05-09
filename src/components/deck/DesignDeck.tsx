@@ -38,7 +38,7 @@ interface DesignDeckProperties extends IDesignElement {
 
 // Inner component that has access to ReactFlow context
 function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
-    const { getNode, setCenter, fitView } = useReactFlow();
+    const { getNode, fitView } = useReactFlow();
     const selection = useAppSelector((state) => state.selection);
     const yamlObject = useAppSelector((state) => state.uploadedFile.yamlObject);
     const [hasNewFile, setHasNewFile] = useState(false);
@@ -67,16 +67,14 @@ function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
         }
     }, [hasNewFile, propNodes.length, fitView]);
     
-    // Effect to center on node when selected from AST viewer
+    // Effect to fit view on the selected node
     useEffect(() => {
-        // Only center if selection came from AST (indicated by empty connectedNodeIds)
-        if (selection.selectedNodeId && selection.connectedNodeIds.length === 0) {
-            const node = getNode(selection.selectedNodeId);
-            if (node && node.position) {
-                fitView({ nodes: [node], duration: 800, maxZoom: 1 }); // Fit view first (zoomed out, instant)
-            }
+        if (!selection.selectedNodeId) return;
+        const node = getNode(selection.selectedNodeId);
+        if (node) {
+            fitView({ nodes: [node], duration: 600, maxZoom: 1.5, padding: 0.35 });
         }
-    }, [selection.selectedNodeId, selection.connectedNodeIds, getNode, setCenter, fitView]);
+    }, [selection.selectedNodeId, getNode, fitView]);
 
     return null; // This component only handles side effects
 }

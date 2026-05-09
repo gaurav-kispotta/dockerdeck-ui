@@ -10,7 +10,7 @@ function AppShell() {
 
   return (
     <div
-      className="w-screen h-screen flex flex-col overflow-hidden"
+      className="w-screen h-screen flex flex-col overflow-hidden select-none"
       style={{
         background: token.colorBgLayout,
         color: token.colorText,

@@ -114,7 +114,7 @@ export default function OutlinePanel() {
                 size="small"
                 dataSource={filteredVolumes}
                 renderItem={v => (
-                  <OutlineRow key={v.name} accent={T.amber} selected={selectedNodeId === v.name} onClick={() => {}}>
+                  <OutlineRow key={v.name} accent={T.amber} selected={selectedNodeId === v.name} onClick={() => handleSelectService(v.name ?? '')}>
                     <img src={VOLUME_ICON} className="w-3.5 h-3.5 object-contain shrink-0 opacity-70" />
                     <Text ellipsis className="flex-1 min-w-0 text-[12.5px] font-mono">{v.name}</Text>
                   </OutlineRow>

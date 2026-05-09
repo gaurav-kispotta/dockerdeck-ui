@@ -18,7 +18,7 @@ export const T = {
   rose: "#FF7A8A",
   lbg0: "#F6F7F9",
   lbg1: "#FFFFFF",
-  lline: "#E5E8EE",
+  lline: "#cdd0d4",
 } as const;
 
 /**
