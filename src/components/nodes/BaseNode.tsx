@@ -2,6 +2,7 @@ import { Handle, Position } from '@xyflow/react';
 import { useState, ReactNode } from 'react';
 import { useAppSelector } from '../../hooks/useReduxHooks';
 import { T } from '../../styles/tokens';
+import { getIconUrl, VOLUME_ICON } from '../../utils/nodeIcons';
 
 import '@xyflow/react/dist/style.css';
 
@@ -51,6 +52,12 @@ export default function BaseNode({
   const svcAst  = astObject?.services?.find((s) => s.name === dockerServiceId);
   const imageTag = svcAst ? `${svcAst.image.name}:${svcAst.image.tag}` : dockerImageName;
 
+  const iconUrl = nodeType === 'volume'
+    ? VOLUME_ICON
+    : svcAst
+    ? getIconUrl(svcAst.image.name)
+    : dockerIconUrl;
+
   const borderColor = isSelected
     ? accent
     : isConnected ? `${accent}88`
@@ -94,8 +101,8 @@ export default function BaseNode({
           background: `${accent}1F`, border: `1px solid ${accent}44`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
         }}>
-          {dockerIconUrl
-            ? <img src={dockerIconUrl} style={{ width: 18, height: 18, objectFit: 'contain', display: 'block' }} />
+          {iconUrl
+            ? <img src={iconUrl} style={{ width: 18, height: 18, objectFit: 'contain', display: 'block' }} />
             : <span style={{ fontSize: 13 }}>📦</span>}
         </div>
 
