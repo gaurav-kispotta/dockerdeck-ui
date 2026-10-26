@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { Tabs, Tag, Button, Typography, Empty, Space, Badge } from 'antd';
+import { Tabs, Tag, Button, Typography, Empty, Space } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks';
 import { clearSelection } from '../../store/slices/selectionSlice';
 import { T } from '../../styles/tokens';
+import { RuntimeStatus } from '../runtime/RuntimeStatus';
 import { getIconUrl, VOLUME_ICON } from '../../utils/nodeIcons';
 
 const { Text } = Typography;
@@ -39,7 +40,7 @@ export default function InspectorPanel() {
     {
       key: 'overview',
       label: 'Overview',
-      children: <OverviewTab service={service} connectedNodeIds={connectedNodeIds} />,
+      children: <OverviewTab service={service} rawService={rawService} connectedNodeIds={connectedNodeIds} />,
     },
     {
       key: 'env',
@@ -87,7 +88,7 @@ export default function InspectorPanel() {
             </div>
 
             <Space size={4}>
-              {service && <Badge status="success" text={<Text className="text-[10px]">running</Text>} />}
+              {service && <RuntimeStatus />}
               <Button
                 type="text"
                 size="small"
@@ -119,9 +120,20 @@ export default function InspectorPanel() {
   );
 }
 
-function OverviewTab({ service, connectedNodeIds }: { service: any; connectedNodeIds: string[] }) {
+function OverviewTab({ service, rawService, connectedNodeIds }: { service: any; rawService: any; connectedNodeIds: string[] }) {
   return (
     <div className="p-4 flex flex-col gap-4 overflow-y-auto h-full">
+      <Section label="RUNTIME">
+        <Text type="secondary" className="text-[11px]">Engine not connected. Runtime state is unknown.</Text>
+      </Section>
+      {rawService.healthcheck && (
+        <Section label="HEALTHCHECK CONFIGURATION">
+          <Text type="secondary" className="text-[11px]">
+            {rawService.healthcheck.disable ? 'Disabled in Compose configuration.' : 'Configured in Compose; no health result has been observed.'}
+          </Text>
+          <pre className="text-[10.5px] whitespace-pre-wrap break-all">{JSON.stringify(rawService.healthcheck, null, 2)}</pre>
+        </Section>
+      )}
       {/* Ports */}
       {service.ports?.length > 0 && (
         <Section label="PORTS">

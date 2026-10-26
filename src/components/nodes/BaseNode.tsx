@@ -2,6 +2,7 @@ import { Handle, Position } from '@xyflow/react';
 import { useState, ReactNode } from 'react';
 import { useAppSelector } from '../../hooks/useReduxHooks';
 import { T } from '../../styles/tokens';
+import { RuntimeStatus } from '../runtime/RuntimeStatus';
 import { getIconUrl, VOLUME_ICON } from '../../utils/nodeIcons';
 
 import '@xyflow/react/dist/style.css';
@@ -94,7 +95,7 @@ export default function BaseNode({
         background: `linear-gradient(180deg, ${accent}0E, transparent 50%)`,
       }} />
 
-      {/* Header: icon · name · image tag · health dot */}
+      {/* Header: icon · name · image tag · runtime indicator */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>
         <div style={{
           width: 28, height: 28, borderRadius: 8, flexShrink: 0,
@@ -118,10 +119,7 @@ export default function BaseNode({
           }}>{imageTag}</div>
         </div>
 
-        <span style={{
-          width: 7, height: 7, borderRadius: 999, flexShrink: 0,
-          background: T.green, boxShadow: `0 0 0 2px ${T.green}22`,
-        }} />
+        {nodeType === 'service' && <RuntimeStatus compact />}
       </div>
 
       {/* View-mode-specific slot */}

@@ -5,13 +5,14 @@ import { SearchOutlined } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks';
 import { selectNode } from '../../store/slices/selectionSlice';
 import { T } from '../../styles/tokens';
+import { RuntimeStatus } from '../runtime/RuntimeStatus';
 import { getIconUrl, VOLUME_ICON } from '../../utils/nodeIcons';
 
 const { Text } = Typography;
 
 export default function OutlinePanel() {
   const isDark = useAppSelector((s) => s.theme.isDark);
-  const { yamlObject, astObject } = useAppSelector((s) => s.uploadedFile);
+  const { astObject } = useAppSelector((s) => s.uploadedFile);
   const { selectedNodeId } = useAppSelector((s) => s.selection);
   const edges = useAppSelector((s) => s.dockerdeck.edges);
   const dispatch = useAppDispatch();
@@ -64,8 +65,6 @@ export default function OutlinePanel() {
             dataSource={filteredServices}
             renderItem={s => {
               const isSelected = selectedNodeId === s.name;
-              const rawSvc = (yamlObject?.services as any)?.[s.name] ?? {};
-              const health = rawSvc.healthcheck ? 'running' : 'running';
               return (
                 <OutlineRow key={s.name} selected={isSelected} accent={T.cyan} onClick={() => handleSelectService(s.name)}>
                   <div className="w-[28px] h-[28px] rounded-[7px] bg-[var(--ant-color-fill-secondary)] flex items-center justify-center shrink-0">
@@ -79,7 +78,7 @@ export default function OutlinePanel() {
                       {s.image.name}:{s.image.tag}
                     </Text>
                   </div>
-                  <HealthBadge health={health} />
+                  <RuntimeStatus compact />
                 </OutlineRow>
               );
             }}
@@ -163,9 +162,4 @@ function OutlineRow({ children, selected, accent, onClick }: {
       {children}
     </List.Item>
   );
-}
-
-function HealthBadge({ health }: { health: string }) {
-  const status = health === 'running' ? 'success' : health === 'warn' ? 'warning' : 'error';
-  return <Badge status={status} />;
 }
