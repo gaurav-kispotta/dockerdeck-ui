@@ -1,12 +1,7 @@
 import type { Node } from '@xyflow/react';
 import type { LayerType } from '../nodes/annotations/architecture/LayeredGroupBandNode';
 
-// Layout constants — match PositioningStage.ts values
-const CARD_W    = 200;
-const CARD_H    = 80;
-const PAD_X     = 48;   // horizontal padding beyond node edges
-const PAD_Y_TOP = 44;   // top padding (includes space for the label badge)
-const PAD_Y_BOT = 24;   // bottom padding
+import { CARD_WIDTH, CARD_HEIGHT, LAYER_PAD_X, LAYER_PAD_TOP, LAYER_PAD_BOTTOM } from '../../constants/graphLayout';
 
 const LAYER_TYPES: LayerType[] = ['network', 'service', 'volume'];
 
@@ -26,18 +21,15 @@ export function buildLayeredAnnotationNodes(nodes: Node[]): Node[] {
         const group = nodes.filter(n => n.data?.nodeType === layerType);
         if (group.length === 0) continue;
 
-        const xs = group.map(n => n.position?.x ?? 0);
-        const ys = group.map(n => n.position?.y ?? 0);
+        const minX = Math.min(...group.map(n => n.position.x));
+        const maxX = Math.max(...group.map(n => n.position.x + Math.max(CARD_WIDTH, n.measured?.width ?? n.width ?? 0)));
+        const minY = Math.min(...group.map(n => n.position.y));
+        const maxY = Math.max(...group.map(n => n.position.y + Math.max(CARD_HEIGHT, n.measured?.height ?? n.height ?? 0)));
 
-        const minX = Math.min(...xs);
-        const maxX = Math.max(...xs);
-        const minY = Math.min(...ys);
-        const maxY = Math.max(...ys);
-
-        const bandX = minX - PAD_X;
-        const bandY = minY - PAD_Y_TOP;
-        const bandW = (maxX - minX) + CARD_W + PAD_X * 2;
-        const bandH = (maxY - minY) + CARD_H + PAD_Y_TOP + PAD_Y_BOT;
+        const bandX = minX - LAYER_PAD_X;
+        const bandY = minY - LAYER_PAD_TOP;
+        const bandW = maxX - minX + LAYER_PAD_X * 2;
+        const bandH = maxY - minY + LAYER_PAD_TOP + LAYER_PAD_BOTTOM;
 
         annotations.push({
             id:          `__layer-${layerType}`,

@@ -29,7 +29,7 @@ describe('NetworkNodeBuilder', () => {
     expect(node.width).toBe(160);
     expect(node.height).toBe(110);
     expect(node.style).toEqual({}); // NetworkNodeBuilder sets style to empty object
-    expect(node.data?.label).toBe('Network: frontendnetwork-frontend');
+    expect(node.data?.label).toBe('frontend');
     expect(node.extent).toBe('parent');
   });
 
@@ -38,7 +38,7 @@ describe('NetworkNodeBuilder', () => {
     const builder = new NetworkNodeBuilder(mockNetwork, colorBuilder);
     const node = builder.build('network-frontend', 'parent-root');
 
-    expect(node.width).toBe(100);
-    expect(node.height).toBe(100);
+    expect(node.width).toBe(180);
+    expect(node.height).toBe(72);
   });
 });

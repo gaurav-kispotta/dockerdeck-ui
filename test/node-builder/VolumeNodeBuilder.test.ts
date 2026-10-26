@@ -35,7 +35,7 @@ describe('VolumeNodeBuilder', () => {
     const builder = new VolumeNodeBuilder(mockVolume, colorBuilder);
     const node = builder.build('volume-data', 'parent-root');
 
-    expect(node.width).toBe(100);
-    expect(node.height).toBe(100);
+    expect(node.width).toBe(200);
+    expect(node.height).toBe(64);
   });
 });

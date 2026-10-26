@@ -16,7 +16,9 @@ export class EdgeBuildStage implements IMapBuildStage {
     async execute(context: MapBuildContext): Promise<MapBuildContext> {
         const edgeBuilder = this.edgeBuilderFactory(context.ast!);
         context.rawEdges = edgeBuilder.getAllEdges({
-            showDependencyEdges: context.settings?.showDependencies,
+            // Retain semantic dependency data for boot-order and view overlays.
+            // showDependencies controls UI emphasis, not graph construction.
+            showDependencyEdges: true,
         });
         return context;
     }

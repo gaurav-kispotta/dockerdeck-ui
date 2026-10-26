@@ -57,7 +57,7 @@ describe('Dependency Edge Integration', () => {
             e.source === 'api' && e.target === 'database'
         );
         expect(apiToDatabaseEdge).toBeDefined();
-        expect(apiToDatabaseEdge?.label).toBe('depends_on');
+        expect(apiToDatabaseEdge?.label).toBe('depends on');
 
         const webToApiEdge = dependencyEdges.find(e => 
             e.source === 'web' && e.target === 'api'

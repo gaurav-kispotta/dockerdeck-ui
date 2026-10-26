@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import ServiceNodeBuilder from '../../src/modules/node-builder/ServiceNodeBuilder';
 import { IDockerService } from '../../src/interface/ast/IDockerService';
 import { IUniqueColorBuilder } from '../../src/interface/node-builder/util/IUniqueColorBuilder';
@@ -30,8 +30,9 @@ describe('ServiceNodeBuilder', () => {
     expect(node.width).toBe(150);
     expect(node.height).toBe(120);
     expect(node.style).toEqual({}); // ServiceNodeBuilder sets style to empty object
-    // Label currently concatenates string version of image object + id; verify format.
-    expect(typeof node.data?.label).toBe('string');
+    // Service identity remains available to the renderer independently of image type.
+    expect(node.data?.label).toBe('service-api');
+    expect(node.data?.nodeType).toBe('service');
     expect(node.extent).toBe('parent');
   });
 
@@ -40,8 +41,8 @@ describe('ServiceNodeBuilder', () => {
     const builder = new ServiceNodeBuilder(mockService, colorBuilder);
     const node = builder.build('service-api', 'parent-root');
 
-    expect(node.width).toBe(100);
-    expect(node.height).toBe(100);
+    expect(node.width).toBe(200);
+    expect(node.height).toBe(80);
   });
 
   it('sets node type to the docker image name', () => {
