@@ -1,8 +1,5 @@
 import React from "react";
 import { NodeProps } from "@xyflow/react";
-import NodejsNode from "../nodes/NodejsNode";
-import RedisNode from "../nodes/RedisNode";
-import ServiceGroupNode from "../nodes/annotations/architecture/ServiceGroupNode";
 import DockerDeckNode from "../nodes/DockerDeckNode";
 import BootStageLabelNode from "../nodes/annotations/boot-order/BootStageLabelNode";
 import BootLaneBandNode from "../nodes/annotations/boot-order/BootLaneBandNode";

@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { Tabs, Tag, Button, Typography, Empty, Space, Divider, Badge } from 'antd';
+import { Tabs, Tag, Button, Typography, Empty, Space, Badge } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks';
 import { clearSelection } from '../../store/slices/selectionSlice';
 import { T } from '../../styles/tokens';
 import { getIconUrl, VOLUME_ICON } from '../../utils/nodeIcons';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 export default function InspectorPanel() {
   const { selectedNodeId, connectedNodeIds } = useAppSelector((s) => s.selection);
@@ -39,7 +39,7 @@ export default function InspectorPanel() {
     {
       key: 'overview',
       label: 'Overview',
-      children: <OverviewTab service={service} rawService={rawService} connectedNodeIds={connectedNodeIds} />,
+      children: <OverviewTab service={service} connectedNodeIds={connectedNodeIds} />,
     },
     {
       key: 'env',
@@ -119,7 +119,7 @@ export default function InspectorPanel() {
   );
 }
 
-function OverviewTab({ service, rawService, connectedNodeIds }: { service: any; rawService: any; connectedNodeIds: string[] }) {
+function OverviewTab({ service, connectedNodeIds }: { service: any; connectedNodeIds: string[] }) {
   return (
     <div className="p-4 flex flex-col gap-4 overflow-y-auto h-full">
       {/* Ports */}
