@@ -3,13 +3,14 @@ import {
     applyEdgeChanges,
     applyNodeChanges,
     Background,
+    BackgroundVariant,
     Controls,
     type Node,
     type Edge,
     type NodeMouseHandler,
     type EdgeMouseHandler,
     MiniMap,
-    useReactFlow
+    useReactFlow,
 } from '@xyflow/react'
 import { useCallback, useState, useEffect, useMemo } from 'react'
 import dagre from 'dagre'
@@ -18,9 +19,13 @@ import '@xyflow/react/dist/style.css'
 import { IDesignElement } from '../../interface/IDesignElements'
 import nodeTypes from './NodeTypes'
 import MapMaker from '../../modules/MapMaker'
-// import SimpleFloatingEdge from './SimpleFloatingEdge'
-import SimpleEdge from './SimpleEdge'
-import DownloadControls from './DownloadControls'
+import OrthogonalEdge, { RouteComputer } from './edges/OrthogonalEdge'
+import BridgeEdge from './edges/BridgeEdge'
+import SimpleEdge from './edges/SimpleEdge'
+import SmoothStepEdge from './edges/SmoothStepEdge'
+import StraightEdge from './edges/StraightEdge'
+import { buildBootAnnotationNodes, computeTimelinePositions } from './BootTimelineOverlay'
+import { buildLayeredAnnotationNodes } from './LayeredAnnotationOverlay'
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
 import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
@@ -33,7 +38,7 @@ interface DesignDeckProperties extends IDesignElement {
 
 // Inner component that has access to ReactFlow context
 function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
-    const { getNode, setCenter, fitView } = useReactFlow();
+    const { getNode, fitView } = useReactFlow();
     const selection = useAppSelector((state) => state.selection);
     const yamlObject = useAppSelector((state) => state.uploadedFile.yamlObject);
     const [hasNewFile, setHasNewFile] = useState(false);
@@ -62,22 +67,20 @@ function FlowWithCentering({ nodes: propNodes }: { nodes: Node[] }) {
         }
     }, [hasNewFile, propNodes.length, fitView]);
     
-    // Effect to center on node when selected from AST viewer
+    // Effect to fit view on the selected node
     useEffect(() => {
-        // Only center if selection came from AST (indicated by empty connectedNodeIds)
-        if (selection.selectedNodeId && selection.connectedNodeIds.length === 0) {
-            const node = getNode(selection.selectedNodeId);
-            if (node && node.position) {
-                fitView({ nodes: [node], duration: 800, maxZoom: 1 }); // Fit view first (zoomed out, instant)
-            }
+        if (!selection.selectedNodeId) return;
+        const node = getNode(selection.selectedNodeId);
+        if (node) {
+            fitView({ nodes: [node], duration: 600, maxZoom: 1.5, padding: 0.35 });
         }
-    }, [selection.selectedNodeId, selection.connectedNodeIds, getNode, setCenter, fitView]);
+    }, [selection.selectedNodeId, getNode, fitView]);
 
     return null; // This component only handles side effects
 }
 
 function DesignDeck({ clear = false }: DesignDeckProperties) {
-    const { themeMode, isDark } = useAppSelector((state) => state.theme)
+    const { themeMode } = useAppSelector((state) => state.theme)
 
     const { yamlObject } = useAppSelector((state) => state.uploadedFile)
     const astObject = useAppSelector((state) => state.uploadedFile.astObject)
@@ -196,129 +199,224 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         });
     }, [])
 
-    // Use our safe simple edge that doesn't require specific handles
-    const edgeTypes = {
-        default: SimpleEdge,
-    };
+    const edgeTypes = useMemo(() => {
+        const edgeComponent = {
+            orthogonal: OrthogonalEdge,
+            bridge:     BridgeEdge,
+            bezier:     SimpleEdge,
+            smoothstep: SmoothStepEdge,
+            straight:   StraightEdge,
+        }[settings.edgeStyle ?? 'orthogonal'] ?? OrthogonalEdge;
+        return { default: edgeComponent };
+    }, [settings.edgeStyle]);
+
+    // ── Boot-order timeline layout ────────────────────────────────────────────
+    const bootOrderNodes = useMemo(() => {
+        if (settings.viewMode !== 'boot-order') return null;
+        const serviceNodes = nodes.filter(n => n.data?.nodeType === 'service');
+        const depEdges = edges.filter(e => e.data?.connectionType === 'depends_on');
+        if (serviceNodes.length === 0) return null;
+
+        const positions = computeTimelinePositions(
+            serviceNodes.map(n => n.id),
+            depEdges,
+        );
+
+        // Reposition service nodes and lock them in place
+        const positionedServices = serviceNodes.map(node => {
+            const pos = positions.get(node.id);
+            return {
+                ...(pos ? { ...node, position: pos } : node),
+                draggable:   false,
+                selectable:  true,
+                connectable: false,
+                zIndex:      1,
+            };
+        });
+
+        // Build annotation nodes (lane bands + rail)
+        const annotations = buildBootAnnotationNodes(
+            serviceNodes.map(n => n.id),
+            depEdges,
+            positions,
+        );
+
+        // Annotations first so they render behind service nodes
+        return [...annotations, ...positionedServices];
+    }, [nodes, edges, settings.viewMode]);
+
+    // ── Layered-view group band annotations ───────────────────────────────────
+    const layeredAnnotations = useMemo(() => {
+        if (settings.mapLayout !== 'layered') return null;
+        if (settings.viewMode !== 'architecture') return null;
+        if (nodes.length === 0) return null;
+        return buildLayeredAnnotationNodes(nodes);
+    }, [nodes, settings.mapLayout, settings.viewMode]);
+
+    // ── View-mode node filtering ──────────────────────────────────────────────
+    const viewFilteredNodes = useMemo(() => {
+        // In boot-order view: merge annotation nodes (not in original nodes)
+        // with repositioned service nodes.
+        let base: typeof nodes;
+        if (bootOrderNodes) {
+            const annotations = bootOrderNodes.filter(n => n.id.startsWith('__boot-'));
+            const repositioned = nodes.map(n => bootOrderNodes.find(l => l.id === n.id) ?? n);
+            base = [...annotations, ...repositioned];
+        } else {
+            base = nodes;
+        }
+
+        // Prepend layered-view band annotations (invisible to filter logic below)
+        const layerBands = layeredAnnotations ?? [];
+
+        return [...layerBands, ...base].filter(n => {
+            const t = n.data?.nodeType as string | undefined;
+            // Annotation nodes always pass through
+            if (n.id.startsWith('__boot-')) return true;
+            if (n.id.startsWith('__layer-')) return true;
+            switch (settings.viewMode) {
+                case 'ports':      return t !== 'volume';         // hide volume nodes
+                case 'volumes':    return t !== 'network';        // hide network nodes
+                case 'boot-order': return t === 'service';        // services only
+                default:           return true;
+            }
+        });
+    }, [nodes, bootOrderNodes, layeredAnnotations, settings.viewMode]);
 
     // Apply styling based on selection and dependency mode
     const styledNodes = useMemo(() => {
-        // In dependency mode, highlight nodes involved in dependency relationships
-        if (settings.showDependencies) {
-            // Find nodes involved in dependency edges
-            const dependencyEdges = edges.filter(edge => 
-                edge.data?.connectionType === 'depends_on'
-            );
-            
-            const involvedNodeIds = new Set<string>();
-            dependencyEdges.forEach(edge => {
-                involvedNodeIds.add(edge.source);
-                involvedNodeIds.add(edge.target);
-            });
+        const isAnnotation = (id: string) => id.startsWith('__boot-') || id.startsWith('__layer-');
 
-            return nodes.map(node => {
-                const isInvolved = involvedNodeIds.has(node.id);
-                
+        // showDependencies overlay
+        if (settings.showDependencies) {
+            const depIds = new Set<string>();
+            edges.filter(e => e.data?.connectionType === 'depends_on')
+                 .forEach(e => { depIds.add(e.source); depIds.add(e.target); });
+            return viewFilteredNodes.map(n => {
+                if (isAnnotation(n.id)) return n;
                 return {
-                    ...node,
-                    style: {
-                        ...node.style,
-                        opacity: isInvolved ? 1 : 0.3,
-                        filter: isInvolved ? 'none' : 'grayscale(100%)',
-                        transition: 'opacity 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease',
-                        boxShadow: isInvolved 
-                            ? '0 0 15px rgba(239, 68, 68, 0.5)' // Red glow for dependency nodes
-                            : 'none',
-                        border: isInvolved ? '2px solid #ef4444' : node.style?.border,
-                        transform: 'none' // Prevent scaling to maintain alignment
-                    },
-                    className: isInvolved ? 'dependency-involved' : 'dependency-grayed'
-                }
+                    ...n,
+                    style: { ...n.style, opacity: depIds.has(n.id) ? 1 : 0.25,
+                             filter: depIds.has(n.id) ? 'none' : 'grayscale(100%)', transition: 'opacity 0.3s' },
+                    className: depIds.has(n.id) ? 'dependency-involved' : 'dependency-grayed',
+                };
             });
         }
 
-        // Regular selection-based styling
-        if (!selection.selectedNodeId) return nodes
+        // View-mode node dimming (in ports view: fade services without exposed ports)
+        if (settings.viewMode === 'ports') {
+            const svcsWithPorts = new Set(
+                astObject?.services?.filter(s => s.ports.length > 0).map(s => s.name) ?? []
+            );
+            return viewFilteredNodes.map(n => ({
+                ...n,
+                style: {
+                    ...n.style,
+                    opacity: n.data?.nodeType !== 'service' || svcsWithPorts.has(n.id) ? 1 : 0.35,
+                    filter:  n.data?.nodeType !== 'service' || svcsWithPorts.has(n.id) ? 'none' : 'grayscale(80%)',
+                    transition: 'opacity 0.3s, filter 0.3s',
+                },
+            }));
+        }
 
-        return nodes.map(node => {
+        // Selection-based styling
+        if (!selection.selectedNodeId) return viewFilteredNodes
+
+        return viewFilteredNodes.map(node => {
+            // Annotation nodes are never grayed
+            if (isAnnotation(node.id)) return node;
             const isSelected = node.id === selection.selectedNodeId
             const isConnected = selection.connectedNodeIds.includes(node.id)
             const isGrayed = !isSelected && !isConnected
-
-            const nodeStyleLogic = () => {
-                const selectedNodeStyle = 'selected rounded-full';
-                if (isSelected) {
-                    if (isDark) {
-                        return 'selected-dark ' + selectedNodeStyle;
-                    } else {
-                        return 'selected-light ' + selectedNodeStyle;
-                    }
-                }
-                if (isConnected) {
-                    const connectedStyle = 'connected rounded-full shadow-lg';
-                    if (isDark) {
-                        return 'connected-dark ' + connectedStyle;
-                    } else {
-                        return 'connected-light ' + connectedStyle;
-                    }
-                }
-                return '';
-            }
-
             return {
                 ...node,
                 style: {
                     ...node.style,
                     opacity: isGrayed ? 0.3 : 1,
                     filter: isGrayed ? 'grayscale(100%)' : 'none',
-                    transition: 'opacity 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease',
+                    transition: 'opacity 0.3s, filter 0.3s',
                 },
-                className: nodeStyleLogic()
             }
         })
-    }, [nodes, selection, settings.showDependencies, edges])
+    }, [viewFilteredNodes, selection, settings.showDependencies, settings.viewMode, edges, astObject])
 
-    const styledEdges = useMemo(() => {
-        // In dependency mode, highlight dependency edges
+    // ── View-mode edge filtering + labelling ──────────────────────────────────
+    const viewModeEdges = useMemo(() => {
+        const vm = settings.viewMode;
+
+        // showDependencies overlay always wins
         if (settings.showDependencies) {
-            return edges.map(edge => {
-                const isDependencyEdge = edge.data?.connectionType === 'depends_on';
-                
-                return {
-                    ...edge,
-                    style: {
-                        ...edge.style,
-                        opacity: isDependencyEdge ? 1 : 0.2, // Hide non-dependency edges
-                        strokeWidth: isDependencyEdge ? 4 : 1,
-                        transition: 'opacity 0.3s ease, stroke-width 0.3s ease',
-                    },
-                    animated: isDependencyEdge ? true : false,
-                    className: isDependencyEdge ? 'dependency-edge' : 'grayed-edge'
-                }
+            return edges.map(e => {
+                const isDep = e.data?.connectionType === 'depends_on';
+                return { ...e, style: { ...e.style, opacity: isDep ? 1 : 0.15, strokeWidth: isDep ? 3 : 1 }, animated: isDep };
             });
         }
 
-        // Regular selection-based styling
-        if (!selection.selectedNodeId) return edges
+        // Keep only edges whose endpoints exist in the filtered node set
+        const visibleIds = new Set(viewFilteredNodes.map(n => n.id));
+        let filtered = edges.filter(e => visibleIds.has(e.source) && visibleIds.has(e.target));
 
-        return edges.map(edge => {
-            const isConnected = selection.connectedEdgeIds.includes(edge.id)
-            const isGrayed = !isConnected
+        switch (vm) {
+            case 'networks':
+                // Network edges prominent, others faded
+                filtered = filtered.map(e => {
+                    const isNet = e.data?.connectionType === 'network';
+                    return { ...e, style: { ...e.style, opacity: isNet ? 1 : 0.08, strokeWidth: isNet ? 2.5 : 1 } };
+                });
+                break;
 
-            return {
-                ...edge,
-                style: {
-                    ...edge.style,
-                    opacity: isGrayed ? 0.3 : 1,
-                    strokeWidth: isConnected ? 6 : 2,
-                    transition: 'opacity 0.3s ease, stroke-width 0.3s ease',
-                    filter: isConnected ? 'drop-shadow(0px 0px 4px rgba(59, 130, 246, 0.5))' : 'none',
-                },
-                animated: isConnected ? true : edge.animated,
-                className: isConnected ? 'highlighted' : ''
+            case 'ports':
+                // Fade all edges — the node badges carry the info
+                filtered = filtered.map(e => ({ ...e, style: { ...e.style, opacity: 0.1 } }));
+                break;
+
+            case 'volumes': {
+                // Volume edges prominent with mount-path labels; others faded
+                filtered = filtered.map(e => {
+                    const isVol = e.data?.connectionType === 'volume';
+                    if (!isVol) return { ...e, style: { ...e.style, opacity: 0.08, strokeWidth: 1 } };
+                    // Look up mount path from AST
+                    const svcAst = astObject?.services?.find(s => s.name === e.source);
+                    const volInfo = svcAst?.volumes?.find(v => v.external === e.target || e.target.startsWith(v.external));
+                    return {
+                        ...e,
+                        label: volInfo?.internal ?? '',
+                        style: { ...e.style, opacity: 1, strokeWidth: 2.5 },
+                    };
+                });
+                break;
             }
-        })
-    }, [edges, selection, settings.showDependencies])
+
+            case 'boot-order':
+                // Only depends_on edges
+                filtered = filtered
+                    .filter(e => e.data?.connectionType === 'depends_on')
+                    .map(e => ({ ...e, style: { ...e.style, opacity: 1, strokeWidth: 2.5 }, animated: true }));
+                break;
+
+            default: // architecture — all edges at normal weight
+                break;
+        }
+
+        // Selection overlay on top of view-mode filtering
+        if (!selection.selectedNodeId) return filtered;
+        return filtered.map(e => {
+            const isConn = selection.connectedEdgeIds.includes(e.id);
+            return {
+                ...e,
+                style: {
+                    ...e.style,
+                    opacity: isConn ? 1 : (e.style?.opacity as number ?? 1) * 0.4,
+                    strokeWidth: isConn ? 4 : (e.style?.strokeWidth as number ?? 1.5),
+                    filter: isConn ? 'drop-shadow(0 0 4px rgba(91,200,255,0.6))' : 'none',
+                },
+                animated: isConn ? true : e.animated,
+            };
+        });
+    }, [edges, viewFilteredNodes, selection, settings.showDependencies, settings.viewMode, astObject])
+
+    // Legacy alias kept so the ReactFlow render can use styledEdges name
+    const styledEdges = viewModeEdges;
 
     useEffect(() => {
         if (clear) {
@@ -380,16 +478,15 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             edgeTypes={edgeTypes}
             colorMode={themeMode}
             className='overview'
-            
         >
             <FlowWithCentering nodes={nodes} />
-            <DownloadControls />
-            <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable={true} zoomable={true} />
-            <Background />
-            <Controls position={'bottom-left'} orientation={'horizontal'} />
-
+            <RouteComputer />
+            <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable zoomable />
+            <Background variant={BackgroundVariant.Dots} gap={22} size={1} />
+            <Controls position="bottom-left" orientation="horizontal" />
         </ReactFlow>
     )
 }
+
 
 export default DesignDeck

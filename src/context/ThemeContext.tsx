@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { ConfigProvider, theme } from 'antd'
+import { ConfigProvider } from 'antd'
+import { antThemeConfig } from '../styles/tokens'
 
 type ThemeMode = 'light' | 'dark' | 'system'
 
@@ -96,14 +97,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
         setThemeMode: handleSetThemeMode 
       }}
     >
-      <ConfigProvider
-        theme={{
-          algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-          token: {
-            colorPrimary: '#1890ff',
-            borderRadius: 6,
-          },
-        }}
+      <ConfigProvider theme={antThemeConfig(isDark)}
       >
         {children}
       </ConfigProvider>

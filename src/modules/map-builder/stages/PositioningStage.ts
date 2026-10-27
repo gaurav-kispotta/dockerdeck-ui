@@ -1,58 +1,49 @@
 import { IMapBuildStage } from '../../../interface/map-builder/IMapBuildStage';
 import { MapBuildContext } from '../../../interface/map-builder/MapBuildContext';
 
+import { CARD_WIDTH, CARD_HEIGHT, LAYER_PAD_TOP, LAYER_PAD_BOTTOM } from '../../../constants/graphLayout';
+
 export class PositioningStage implements IMapBuildStage {
     async execute(context: MapBuildContext): Promise<MapBuildContext> {
-        const nodeSize = context.settings?.nodeSize ?? 100;
-        const spacing = context.settings ? context.settings.nodeLevelPadding * 3 : 300;
+        const gap = context.settings?.nodeLevelPadding ?? 80;
+        const padding = context.settings?.platformPadding ?? 100;
+        const width = (node: MapBuildContext['laidOutNodes'][number]) => Math.max(CARD_WIDTH, node.width ?? 0);
+        const height = (node: MapBuildContext['laidOutNodes'][number]) => Math.max(CARD_HEIGHT, node.height ?? 0);
+        const layers = [context.networkNodes, context.serviceNodes, context.volumeNodes].map(category => {
+            const ids = new Set(category.map(node => node.id));
+            return context.laidOutNodes.filter(node => ids.has(node.id));
+        });
 
-        const networkY = 0;
-        const serviceY = networkY + spacing;
-        const volumeY = serviceY + spacing;
-
-        // Store raw layer Y values before centering — AssemblyStage uses these for group container nodes
-        context.networkLayerY = networkY;
-        context.serviceLayerY = serviceY;
-        context.volumeLayerY = volumeY;
-
-        const networkNodeIds = new Set(context.networkNodes.map((n) => n.id));
-        const serviceNodeIds = new Set(context.serviceNodes.map((n) => n.id));
-        const volumeNodeIds = new Set(context.volumeNodes.map((n) => n.id));
-
-        const placedNetworks = context.laidOutNodes.filter((n) => networkNodeIds.has(n.id));
-        const placedServices = context.laidOutNodes.filter((n) => serviceNodeIds.has(n.id));
-        const placedVolumes = context.laidOutNodes.filter((n) => volumeNodeIds.has(n.id));
-
-        const positionLayer = (nodes: typeof placedNetworks, layerY: number) => {
-            nodes.forEach((n, index) => {
-                const centerX = (index * (nodeSize + 50)) - ((nodes.length - 1) * (nodeSize + 50)) / 2;
-                n.position = { x: centerX, y: layerY };
-            });
-        };
-
-        positionLayer(placedNetworks, networkY);
-        positionLayer(placedServices, serviceY);
-        positionLayer(placedVolumes, volumeY);
-
-        // Center the entire layout on the canvas origin
-        const allPlaced = [...placedNetworks, ...placedServices, ...placedVolumes];
-        if (allPlaced.length > 0) {
-            const minX = Math.min(...allPlaced.map((n) => n.position?.x ?? 0));
-            const maxX = Math.max(...allPlaced.map((n) => (n.position?.x ?? 0) + nodeSize));
-            const minY = Math.min(...allPlaced.map((n) => n.position?.y ?? 0));
-            const maxY = Math.max(...allPlaced.map((n) => (n.position?.y ?? 0) + nodeSize));
-
-            const centerOffsetX = -(maxX - minX) / 2;
-            const centerOffsetY = -(maxY - minY) / 2;
-
-            allPlaced.forEach((n) => {
-                if (n.position) {
-                    n.position.x += centerOffsetX;
-                    n.position.y += centerOffsetY;
+        let nextY = padding;
+        const layerYs: number[] = [];
+        for (const nodes of layers) {
+            layerYs.push(nextY);
+            if (nodes.length === 0) continue;
+            // Keep wide categories to at most two rows, centering each row.
+            const cols = nodes.length > 5 ? Math.ceil(nodes.length / 2) : nodes.length;
+            let rowY = nextY;
+            for (let start = 0; start < nodes.length; start += cols) {
+                const row = nodes.slice(start, start + cols);
+                const rowWidth = row.reduce((sum, node) => sum + width(node), 0) + (row.length - 1) * gap;
+                let x = -rowWidth / 2;
+                for (const node of row) {
+                    node.position = { x, y: rowY };
+                    x += width(node) + gap;
                 }
-            });
+                rowY += Math.max(...row.map(height)) + gap;
+            }
+            // Reserve annotation label/footer space between categories as well.
+            nextY = rowY + LAYER_PAD_TOP + LAYER_PAD_BOTTOM;
         }
 
+        // Match other engines' graph-coordinate margins. ReactFlow fitView owns
+        // viewport whitespace, so this margin does not control screen padding.
+        const placed = layers.flat();
+        if (placed.length > 0) {
+            const minX = Math.min(...placed.map(node => node.position.x));
+            placed.forEach(node => { node.position.x += padding - minX; });
+        }
+        [context.networkLayerY, context.serviceLayerY, context.volumeLayerY] = layerYs;
         context.positionedNodes = context.laidOutNodes;
         return context;
     }

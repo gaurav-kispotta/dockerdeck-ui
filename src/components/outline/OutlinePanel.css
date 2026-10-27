@@ -1,0 +1,3 @@
+.outline-row:hover {
+  background: var(--ant-color-bg-text-hover) !important;
+}

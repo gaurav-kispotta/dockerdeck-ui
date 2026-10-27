@@ -1,5 +1,5 @@
 import { NodeProps, Position } from '@xyflow/react'
-import BaseNode from './BaseNode'
+import IconNode from './IconNode'
 
 import '@xyflow/react/dist/style.css';
 
@@ -44,7 +44,7 @@ function RedisNode(props: NodeProps) {
     ];
 
     return (
-        <BaseNode
+        <IconNode
             handles={handles}
             hoverAreaSize={140}
             label={<span style={labelStyle}>{label}</span>}
@@ -56,7 +56,7 @@ function RedisNode(props: NodeProps) {
                     style={{ width: iconSize, height: iconSize, objectFit: 'contain', display: 'block' }}
                 />
             </div>
-        </BaseNode>
+        </IconNode>
     );
 }
 

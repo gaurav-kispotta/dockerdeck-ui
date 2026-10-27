@@ -1,9 +1,10 @@
 import React from "react";
 import { NodeProps } from "@xyflow/react";
-import NodejsNode from "../nodes/NodejsNode";
-import RedisNode from "../nodes/RedisNode";
-import ServiceGroupNode from "../nodes/ServiceGroupNode";
 import DockerDeckNode from "../nodes/DockerDeckNode";
+import BootStageLabelNode from "../nodes/annotations/boot-order/BootStageLabelNode";
+import BootLaneBandNode from "../nodes/annotations/boot-order/BootLaneBandNode";
+import BootTimelineRailNode from "../nodes/annotations/boot-order/BootTimelineRailNode";
+import LayeredGroupBandNode from "../nodes/annotations/architecture/LayeredGroupBandNode";
 import nodesConfig from "./config/NodesConfig.json";
 
 interface NodeConfig {
@@ -22,14 +23,14 @@ function generateDockerDeckNodeComponents(config: NodeConfig[]): Record<string, 
     config.forEach((nodeConfig: NodeConfig) => {
         // Create a component for each docker image in the config
         const NodeComponent: NodeComponent = (props: NodeProps) => {
-            // Extract the label from props data or use id as fallback
             const serviceId = (props.data?.label as string) || props.id || '';
-            
+            const nodeType = (props.data?.nodeType as 'service' | 'network' | 'volume') || 'service';
             return (
                 <DockerDeckNode
                     dockerServiceId={serviceId}
                     dockerImageName={nodeConfig.dockerImageName}
                     dockerIconUrl={nodeConfig.dockerIconUrl}
+                    nodeType={nodeType}
                 />
             );
         };
@@ -49,6 +50,10 @@ const generatedNodeTypes = generateDockerDeckNodeComponents(nodesConfig);
 
 const allNodeTypes: Record<string, NodeComponent> = {
     ...generatedNodeTypes,
+    'boot-stage-label':    BootStageLabelNode  as NodeComponent,
+    'boot-lane-band':      BootLaneBandNode    as NodeComponent,
+    'boot-timeline-rail':  BootTimelineRailNode as NodeComponent,
+    'layered-group-band':  LayeredGroupBandNode as NodeComponent,
 };
 
 // Falls back to unknown-type when image name is not registered

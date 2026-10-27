@@ -6,7 +6,7 @@ import BaseNodeBuilder from "./BaseNodeBuilder";
 class ServiceNodeBuilder extends BaseNodeBuilder {
     private serviceAst: IDockerService;
 
-    constructor(serviceAst: IDockerService, uniqueColorBuilder: IUniqueColorBuilder, width = 100, height = 100) {
+    constructor(serviceAst: IDockerService, uniqueColorBuilder: IUniqueColorBuilder, width = 200, height = 80) {
         super(uniqueColorBuilder, width, height);
         this.serviceAst = serviceAst;
     }

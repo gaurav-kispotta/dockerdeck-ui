@@ -100,7 +100,7 @@ describe('EdgeBuilder', () => {
                 edge.source === 'web' && edge.target === 'frontend'
             );
             expect(webToFrontend).toBeDefined();
-            expect(webToFrontend?.label).toBe('network');
+            expect(webToFrontend?.label).toBe('frontend');
             expect(webToFrontend?.style?.stroke).toBe('#10b981');
 
             const apiToBackend = networkEdges.find(edge =>
@@ -126,11 +126,23 @@ describe('EdgeBuilder', () => {
                 edge.source === 'web' && edge.target === 'web-content'
             );
             expect(webToVolume).toBeDefined();
-            expect(webToVolume?.label).toBe('volume');
+            expect(webToVolume?.label).toBe('/usr/share/nginx/html');
             expect(webToVolume?.style?.stroke).toBe('#f59e0b');
             expect(webToVolume?.data?.serviceName).toBe('web');
             expect(webToVolume?.data?.volumeName).toBe('web-content');
         });
+    });
+
+    it('honors an explicit dependency-edge opt out while preserving other connections', () => {
+        const ast = { ...mockAst, services: [{ ...mockService1, dependsOn: ['api'] }, mockService2, mockService3] };
+        const builder = new EdgeBuilder(ast);
+        const enabled = builder.getAllEdges();
+        const disabled = builder.getAllEdges({ showDependencyEdges: false });
+        expect(enabled.filter(e => e.data?.connectionType === 'depends_on')).toMatchObject([
+            { id: 'web-depends-on-api', source: 'web', target: 'api', label: 'depends on' },
+        ]);
+        expect(disabled.some(e => e.data?.connectionType === 'depends_on')).toBe(false);
+        expect(disabled).toEqual(enabled.filter(e => e.data?.connectionType !== 'depends_on'));
     });
 
     describe('buildServiceToServiceEdges', () => {

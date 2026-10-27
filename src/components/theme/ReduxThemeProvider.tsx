@@ -1,7 +1,8 @@
 import { useEffect, ReactNode } from 'react'
-import { ConfigProvider, theme } from 'antd'
+import { ConfigProvider } from 'antd'
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
 import { updateSystemTheme, initializeTheme } from '../../store/slices/themeSlice'
+import { antThemeConfig } from '../../styles/tokens'
 
 interface ReduxThemeProviderProps {
   children: ReactNode
@@ -31,15 +32,7 @@ export const ReduxThemeProvider = ({ children }: ReduxThemeProviderProps) => {
   }, [themeMode, dispatch])
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        token: {
-          colorPrimary: '#1890ff',
-          borderRadius: 6,
-        },
-      }}
-    >
+    <ConfigProvider theme={antThemeConfig(isDark)}>
       {children}
     </ConfigProvider>
   )

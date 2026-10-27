@@ -1,106 +1,138 @@
-import { Radio, Tag, Tooltip, Typography, Switch } from 'antd'
-import { ApartmentOutlined, BugOutlined, GlobalOutlined, LayoutOutlined, ShareAltOutlined } from '@ant-design/icons'
-import { useAppSelector, useAppDispatch } from "../../hooks/useReduxHooks"
-import { useViewer } from "../../hooks/useReduxHooks"
-import { setDebugMode, setShowDependencies } from "../../store/slices/settingsSlice"
+import { useState } from 'react';
+import { Badge, Switch, Space, Typography, Divider, Button, Tooltip, Select } from 'antd';
+import { SettingOutlined } from '@ant-design/icons';
+import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks';
+import { useViewer } from '../../hooks/useReduxHooks';
+import { setDebugMode, setShowDependencies, setMapLayout, setEdgeStyle, MapLayout, EdgeStyle } from '../../store/slices/settingsSlice';
+import { T } from '../../styles/tokens';
+import SettingsModal from '../modals/SettingsModal';
 
-const { Text } = Typography
+const { Text } = Typography;
+
+const MAP_LAYOUT_LABELS: Record<MapLayout, string> = {
+  layered: 'Layered',
+  dagre:   'Dagre',
+  elk:     'ELK',
+};
+
+const EDGE_STYLE_LABELS: Record<EdgeStyle, string> = {
+  orthogonal: 'Orthogonal',
+  bridge:     'Bridge',
+  bezier:     'Bezier',
+  smoothstep: 'Smooth Step',
+  straight:   'Straight',
+};
 
 export default function StatusBar() {
-    const { yamlObject } = useAppSelector((state) => state.uploadedFile)
-    const { showDependencies, debugMode } = useAppSelector((state) => state.settings)
-    const { isViewerVisible, toggleViewer } = useViewer()
-    const dispatch = useAppDispatch()
+  const { yamlObject } = useAppSelector((s) => s.uploadedFile);
+  const { showDependencies, debugMode, mapLayout, edgeStyle } = useAppSelector((s) => s.settings);
+  const { isViewerVisible, toggleViewer } = useViewer();
+  const dispatch = useAppDispatch();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-    const networkCounter = () => {
-        let counter = 0
-        if (yamlObject && yamlObject.networks) {
-            counter = Object.keys(yamlObject.networks).length || 0
-        }
-        return counter
-    }
+  const serviceCount = yamlObject?.services ? Object.keys(yamlObject.services).length : 0;
+  const networkCount = yamlObject?.networks ? Object.keys(yamlObject.networks).length : 0;
+  const volumeCount  = yamlObject?.volumes  ? Object.keys(yamlObject.volumes).length  : 0;
 
-    const serviceCounter = () => {
-        let counter = 0
-        if (yamlObject && yamlObject.services) {
-            counter = Object.keys(yamlObject.services).length || 0
-        }
-        return counter
-    }
+  return (
+    <>
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <div className="h-8 flex items-center px-3.5 gap-3 font-mono text-[11px] shrink-0">
+        {/* Settings cog */}
+        <Tooltip title="Settings">
+          <Button
+            type="text"
+            size="small"
+            icon={<SettingOutlined className="text-[13px]" />}
+            onClick={() => setSettingsOpen(true)}
+            className="!w-6 !h-6 !min-w-0 !p-0 grid place-items-center"
+          />
+        </Tooltip>
 
-    const volumeCounter = () => {
-        let counter = 0
-        if (yamlObject && yamlObject.volumes) {
-            counter = Object.keys(yamlObject.volumes).length || 0
-        }
-        return counter
-    }
+        <Divider type="vertical" style={{ height: 14, margin: '0 2px' }} />
 
-    const handleDependencyToggle = (checked: boolean) => {
-        dispatch(setShowDependencies(checked))
-    }
+        {/* Left — counters */}
+        <Space size={12}>
+          <Space size={4}>
+            <Badge color={T.cyan} />
+            <Text className="text-[11px] font-[inherit]">Networks {networkCount}</Text>
+          </Space>
+          <Space size={4}>
+            <Badge color={T.violet} />
+            <Text className="text-[11px] font-[inherit]">Services {serviceCount}</Text>
+          </Space>
+          <Space size={4}>
+            <Badge color={T.amber} />
+            <Text className="text-[11px] font-[inherit]">Volumes {volumeCount}</Text>
+          </Space>
+        </Space>
 
-    const handleDebugToggle = (checked: boolean) => {
-        dispatch(setDebugMode(checked))
-    }
+        <div className="flex-1" />
 
-    return (
-        <div className="flex w-full items-center">
-            <div className="flex-1 flex items-center">
-                <Tag icon={<GlobalOutlined />} color="blue">
-                    Networks: {networkCounter()}
-                </Tag>
-                <Tag icon={<GlobalOutlined />} color="blue">
-                    Services: {serviceCounter()}
-                </Tag>
-                <Tag icon={<GlobalOutlined />} color="blue">
-                    Volumes: {volumeCounter()}
-                </Tag>
-            </div>
-            <div className="flex-1 flex justify-center">
-                <Text>made with ❤️ in Bengaluru 🇮🇳</Text>
-            </div>
-            <div className="flex-1 flex justify-end items-center space-x-4">
-                {/* Debug toggle — reveals hover-area and bounding-box overlays on all nodes */}
-                <div className="flex items-center space-x-2">
-                    <BugOutlined style={{ color: debugMode ? '#f59e0b' : undefined }} />
-                    <Switch
-                        checked={debugMode}
-                        onChange={handleDebugToggle}
-                        size="small"
-                    />
-                    <Tooltip placement="top" title="Show node hit-areas and bounding boxes for debugging handle alignment">
-                        <Text className="text-sm" style={{ color: debugMode ? '#f59e0b' : undefined }}>
-                            Debug
-                        </Text>
-                    </Tooltip>
-                </div>
+        {/* Controls */}
+        <Space size={10}>
+          <Space size={6}>
+            <Text type="secondary" className="text-[11px] font-[inherit]">↳ deps</Text>
+            <Switch
+              size="small"
+              checked={showDependencies}
+              onChange={v => dispatch(setShowDependencies(v))}
+              style={{ backgroundColor: showDependencies ? T.rose : undefined }}
+            />
+          </Space>
+          <Space size={6}>
+            <Text type="secondary" className="text-[11px] font-[inherit]">⬡ debug</Text>
+            <Switch
+              size="small"
+              checked={debugMode}
+              onChange={v => dispatch(setDebugMode(v))}
+              style={{ backgroundColor: debugMode ? T.amber : undefined }}
+            />
+          </Space>
+          <Space size={6}>
+            <Text type="secondary" className="text-[11px] font-[inherit]">&lt;/&gt; yaml</Text>
+            <Switch
+              size="small"
+              checked={isViewerVisible}
+              onChange={() => toggleViewer()}
+              style={{ backgroundColor: isViewerVisible ? T.cyan : undefined }}
+            />
+          </Space>
+        </Space>
 
-                <div className="flex items-center space-x-2">
-                    <ShareAltOutlined />
-                    <Switch
-                        checked={showDependencies}
-                        onChange={handleDependencyToggle}
-                        size="small"
-                    />
-                    <Tooltip placement="top" title="Show dependency relationships and restructure as dependency tree">
-                        <Text className="text-sm">Show Dependencies</Text>
-                    </Tooltip>
-                </div>
-                <Radio.Group block value={isViewerVisible ? "yaml-view" : "map-view"} onChange={toggleViewer} optionType="button"
-                    buttonStyle="solid" size='small'>
-                    <Radio value="yaml-view">
-                        <Tooltip placement="topRight" title="Docker Compose YAML view" >
-                            <LayoutOutlined />
-                        </Tooltip>
-                    </Radio>
-                    <Radio value="map-view">
-                        <Tooltip placement="topRight" title="Docker Compose Map view" >
-                            <ApartmentOutlined />
-                        </Tooltip>
-                    </Radio>
-                </Radio.Group>
-            </div>
-        </div>
-    )
+        <Divider type="vertical" style={{ height: 14, margin: '0 2px' }} />
+
+        {/* Quick-change: Map Layout & Edge Style */}
+        <Space size={6}>
+          <Tooltip title="Map layout">
+            <Select
+              size="small"
+              variant="borderless"
+              value={mapLayout}
+              onChange={(v) => dispatch(setMapLayout(v))}
+              style={{ fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace' }}
+              options={(Object.entries(MAP_LAYOUT_LABELS) as [MapLayout, string][]).map(([value, label]) => ({ value, label }))}
+              suffixIcon={null}
+            />
+          </Tooltip>
+          <Text type="secondary" className="text-[11px] font-[inherit]">·</Text>
+          <Tooltip title="Edge style">
+            <Select
+              size="small"
+              variant="borderless"
+              value={edgeStyle}
+              onChange={(v) => dispatch(setEdgeStyle(v))}
+              style={{ fontSize: 11, fontFamily: 'ui-monospace,Menlo,monospace' }}
+              options={(Object.entries(EDGE_STYLE_LABELS) as [EdgeStyle, string][]).map(([value, label]) => ({ value, label }))}
+              suffixIcon={null}
+            />
+          </Tooltip>
+        </Space>
+
+        <Divider type="vertical" style={{ height: 14, margin: '0 2px' }} />
+
+        <Text className="text-[11px] font-[inherit]">made with ♥ in Bengaluru 🇮🇳</Text>
+      </div>
+    </>
+  );
 }

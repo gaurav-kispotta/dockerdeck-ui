@@ -1,29 +1,37 @@
 import './App.css'
-import { Layout } from 'antd'
+import { theme } from 'antd'
 import { Navbar } from './components/navbar/Navbar'
 import AppProvider from './context/ReduxAppContext'
 import StatusBar from './components/status/StatusBar'
 import Main from './components/main/Main'
 
-const { Header, Content, Footer } = Layout
-
-function App() {
+function AppShell() {
+  const { token } = theme.useToken();
 
   return (
+    <div
+      className="w-screen h-screen flex flex-col overflow-hidden select-none"
+      style={{
+        background: token.colorBgLayout,
+        color: token.colorText,
+        fontFamily: token.fontFamily,
+      }}
+    >
+      <Navbar />
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        <Main />
+      </div>
+      <StatusBar />
+    </div>
+  );
+}
+
+function App() {
+  return (
     <AppProvider>
-      <Layout className='w-screen h-screen'>
-        <Header className='flex-none w-full  py-1 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 electron-drag'>
-          <Navbar></Navbar>
-        </Header>
-        <Content className='grow h-full bg-gray-50 dark:bg-gray-900'>
-          <Main></Main>
-        </Content>
-        <Footer className='p-2' style={{ height: 'auto' }}>
-          <StatusBar />
-        </Footer>
-      </Layout>
+      <AppShell />
     </AppProvider>
-  )
+  );
 }
 
 export default App

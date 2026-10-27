@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { settingsSlice } from '../../src/store/slices/settingsSlice';
 import MapMaker from '../../src/modules/MapMaker';
 import { YamlDockerCompose } from '../../src/store/slices/uploadedFileSlice';
 
@@ -8,6 +9,7 @@ describe('MapMaker Edge Integration', () => {
         services: {
             web: {
                 image: 'nginx:latest',
+                depends_on: ['api'],
                 ports: ['80:8080'],
                 networks: ['frontend'],
                 volumes: ['web-content:/usr/share/nginx/html']
@@ -46,7 +48,7 @@ describe('MapMaker Edge Integration', () => {
         }
     };
 
-    it.skip('should generate edges when building map', async () => {
+    it('should generate edges when building map', async () => {
         const mapMaker = new MapMaker();
         
         await mapMaker.buildMap3(sampleYaml);
@@ -75,13 +77,17 @@ describe('MapMaker Edge Integration', () => {
         );
         expect(serviceToServiceEdges.length).toBeGreaterThan(0);
         
-        console.log('Generated edges:', mapMaker.edges.length);
-        console.log('Network edges:', networkEdges.length);
-        console.log('Volume edges:', volumeEdges.length);
-        console.log('Service-to-service edges:', serviceToServiceEdges.length);
+        // All relationships must connect existing nodes, including the restored
+        // network-sharing edges (these tests previously skipped the entire path).
+        const ids = new Set(mapMaker.nodes.map(node => node.id));
+        expect(new Set(mapMaker.edges.map(edge => edge.id)).size).toBe(mapMaker.edges.length);
+        for (const edge of mapMaker.edges) {
+            expect(ids.has(edge.source)).toBe(true);
+            expect(ids.has(edge.target)).toBe(true);
+        }
     });
 
-    it.skip('should create correct edge IDs', async () => {
+    it('should create correct edge IDs', async () => {
         const mapMaker = new MapMaker();
         
         await mapMaker.buildMap3(sampleYaml);
@@ -97,4 +103,12 @@ describe('MapMaker Edge Integration', () => {
         );
         expect(volumeEdge).toBeDefined();
     });
+    it.each([false, true])('retains dependency data when UI emphasis is %s', async (showDependencies) => {
+        const mapMaker = new MapMaker();
+        await mapMaker.buildMap3(sampleYaml, { ...settingsSlice.getInitialState(), showDependencies });
+        expect(mapMaker.edges.filter(edge => edge.data?.connectionType === 'depends_on')).toMatchObject([
+            { id: 'web-depends-on-api', source: 'web', target: 'api', label: 'depends on' },
+        ]);
+    });
+
 });

@@ -24,5 +24,8 @@ dist-ssr
 *.sw?
 src/index.css
 .firebase/
+.playwright-mcp/
+.testing/
+.stories/
 
 .worktrees/
