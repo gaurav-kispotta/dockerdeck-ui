@@ -1,0 +1,21 @@
+#!/bin/sh
+# DockerDeck team entry point; resolves correctly in a primary checkout or Git worktree.
+set -eu
+checkout=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+common=$(git -C "$checkout" rev-parse --path-format=absolute --git-common-dir)
+primary=$(dirname -- "$common")
+case "$(basename -- "$primary")" in
+  dockerdeck-core) core=$primary ;;
+  dockerdeck-ui|dockerdeck-desktop) core=$(dirname -- "$primary")/dockerdeck-core ;;
+  *) echo 'Cannot locate DockerDeck portfolio; expected sibling dockerdeck-* primary checkouts.' >&2; exit 1 ;;
+esac
+command=${1:-where}
+if [ "$#" -gt 0 ]; then shift; fi
+case "$command" in
+  where) printf '%s\n' "$core/.ai-team" ;;
+  backlog) exec "$core/scripts/backlog" "$@" ;;
+  gate) exec python3 "$core/scripts/team-gate" "$@" ;;
+  worktree) exec python3 "$core/scripts/team-worktree" "$@" ;;
+  sync) exec python3 "$core/scripts/sync-ai-team" "$@" ;;
+  *) echo 'Usage: scripts/team [where|backlog|gate|worktree|sync] [arguments]' >&2; exit 2 ;;
+esac
