@@ -1,0 +1,236 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: D
+      - strong [ref=e10]: docker·deck
+      - generic [ref=e12]: alpha
+      - generic [ref=e14]: v0.0.20
+    - button "upload multi-service-compose.yml · 6 svc · 2 net · 0 vol" [ref=e128] [cursor=pointer]:
+      - img "upload" [ref=e18]:
+        - img [ref=e19]
+      - generic [ref=e21]: multi-service-compose.yml
+      - generic [ref=e129]: · 6 svc · 2 net · 0 vol
+    - generic [ref=e22]:
+      - button "check" [ref=e24] [cursor=pointer]:
+        - img "check" [ref=e26]:
+          - img [ref=e27]
+      - button "search" [ref=e30] [cursor=pointer]:
+        - img "search" [ref=e32]:
+          - img [ref=e33]
+      - separator [ref=e36]
+      - button "desktop" [ref=e38] [cursor=pointer]:
+        - img "desktop" [ref=e40]:
+          - img [ref=e41]
+      - separator [ref=e44]
+      - generic [ref=e46]:
+        - button "download PNG" [ref=e47] [cursor=pointer]:
+          - img "download" [ref=e131]:
+            - img [ref=e132]
+          - generic [ref=e134]: PNG
+        - button "down" [ref=e48] [cursor=pointer]:
+          - img "down" [ref=e136]:
+            - img [ref=e137]
+  - generic [ref=e50]:
+    - generic [ref=e139]:
+      - generic [ref=e141]:
+        - img "search" [ref=e143]:
+          - img [ref=e144]
+        - textbox "Filter resources…" [ref=e146]
+      - generic [ref=e148]:
+        - generic [ref=e149]:
+          - generic [ref=e150]: SERVICES
+          - superscript [ref=e152]:
+            - generic [ref=e154]: "6"
+        - list [ref=e158]:
+          - listitem [ref=e159] [cursor=pointer]:
+            - img [ref=e160]
+            - generic [ref=e161]:
+              - generic [ref=e162]: postgres
+              - generic [ref=e163]: postgres:16
+          - listitem [ref=e166] [cursor=pointer]:
+            - img [ref=e167]
+            - generic [ref=e168]:
+              - generic [ref=e169]: mysql
+              - generic [ref=e170]: mysql:8.0
+          - listitem [ref=e173] [cursor=pointer]:
+            - img [ref=e174]
+            - generic [ref=e175]:
+              - generic [ref=e176]: mongodb
+              - generic [ref=e177]: mongodb:7.0
+          - listitem [ref=e180] [cursor=pointer]:
+            - img [ref=e181]
+            - generic [ref=e182]:
+              - generic [ref=e183]: redis
+              - generic [ref=e184]: redis:7.2
+          - listitem [ref=e187] [cursor=pointer]:
+            - img [ref=e188]
+            - generic [ref=e189]:
+              - generic [ref=e190]: api
+              - generic [ref=e191]: node:20
+          - listitem [ref=e194] [cursor=pointer]:
+            - img [ref=e195]
+            - generic [ref=e196]:
+              - generic [ref=e197]: nginx
+              - generic [ref=e198]: nginx:latest
+        - generic [ref=e201]:
+          - generic [ref=e202]: NETWORKS
+          - superscript [ref=e204]:
+            - generic [ref=e206]: "2"
+        - list [ref=e210]:
+          - listitem [ref=e211] [cursor=pointer]:
+            - generic [ref=e213]: backend
+            - generic [ref=e214]: bridge
+          - listitem [ref=e215] [cursor=pointer]:
+            - generic [ref=e217]: frontend
+            - generic [ref=e218]: bridge
+    - generic [ref=e51]:
+      - generic [ref=e219]:
+        - radiogroup "segmented control" [ref=e220]:
+          - generic [ref=e221]:
+            - generic [ref=e222] [cursor=pointer]:
+              - radio
+              - img [ref=e225]
+            - generic [ref=e231] [cursor=pointer]:
+              - radio
+              - img [ref=e234]
+            - generic [ref=e240] [cursor=pointer]:
+              - radio
+              - img [ref=e243]
+            - generic [ref=e248] [cursor=pointer]:
+              - radio
+              - img [ref=e251]
+            - generic [ref=e254] [cursor=pointer]:
+              - radio [checked]
+              - img [ref=e257]
+        - separator [ref=e265]
+        - generic [ref=e266]: Boot Order
+        - generic [ref=e267]: —
+        - generic [ref=e268]: Startup sequence — which services must start first
+        - generic [ref=e269]:
+          - generic [ref=e270] [cursor=pointer]: "1"
+          - generic [ref=e271] [cursor=pointer]: "2"
+          - generic [ref=e272] [cursor=pointer]: "3"
+          - generic [ref=e273] [cursor=pointer]: "4"
+          - generic [ref=e274] [cursor=pointer]: "5"
+      - generic [ref=e277]:
+        - generic [ref=e279]:
+          - generic:
+            - generic:
+              - img
+              - img:
+                - button "Edge from api to postgres" [ref=e535] [cursor=pointer]
+              - img:
+                - button "Edge from api to redis" [ref=e539] [cursor=pointer]
+              - img:
+                - button "Edge from nginx to api" [ref=e543] [cursor=pointer]
+            - generic:
+              - button "Step 1 · Boots first" [ref=e547] [cursor=pointer]:
+                - generic:
+                  - img
+                  - generic:
+                    - generic: Step 1 · Boots first
+              - button "Step 2" [ref=e548] [cursor=pointer]:
+                - generic:
+                  - img
+                  - generic:
+                    - generic: Step 2
+              - button "Step 3" [ref=e549] [cursor=pointer]:
+                - generic:
+                  - img
+                  - generic:
+                    - generic: Step 3
+              - button [ref=e550] [cursor=pointer]:
+                - generic:
+                  - img:
+                    - generic:
+                      - generic: ▶ START
+                    - generic:
+                      - generic: ✓ READY
+              - button "postgres postgres:16" [ref=e386] [cursor=pointer]:
+                - generic [ref=e388]:
+                  - img [ref=e390]
+                  - generic [ref=e391]:
+                    - generic [ref=e392]: postgres
+                    - generic [ref=e393]: postgres:16
+              - button "mysql mysql:8.0" [ref=e403] [cursor=pointer]:
+                - generic [ref=e405]:
+                  - img [ref=e407]
+                  - generic [ref=e408]:
+                    - generic [ref=e409]: mysql
+                    - generic [ref=e410]: mysql:8.0
+              - button "mongodb mongodb:7.0" [ref=e420] [cursor=pointer]:
+                - generic [ref=e422]:
+                  - img [ref=e424]
+                  - generic [ref=e425]:
+                    - generic [ref=e426]: mongodb
+                    - generic [ref=e427]: mongodb:7.0
+              - button "redis redis:7.2" [ref=e437] [cursor=pointer]:
+                - generic [ref=e439]:
+                  - img [ref=e441]
+                  - generic [ref=e442]:
+                    - generic [ref=e443]: redis
+                    - generic [ref=e444]: redis:7.2
+              - button "api node:20" [ref=e454] [cursor=pointer]:
+                - generic [ref=e456]:
+                  - img [ref=e458]
+                  - generic [ref=e459]:
+                    - generic [ref=e460]: api
+                    - generic [ref=e461]: node:20
+              - button "nginx nginx:latest" [ref=e471] [cursor=pointer]:
+                - generic [ref=e473]:
+                  - img [ref=e475]
+                  - generic [ref=e476]:
+                    - generic [ref=e477]: nginx
+                    - generic [ref=e478]: nginx:latest
+        - img "React Flow mini map" [ref=e489]
+        - img
+        - generic "React Flow controls" [ref=e498]:
+          - button "zoom in" [ref=e499] [cursor=pointer]:
+            - img [ref=e500]
+          - button "zoom out" [ref=e502] [cursor=pointer]:
+            - img [ref=e503]
+          - button "fit view" [active] [ref=e505] [cursor=pointer]:
+            - img [ref=e506]
+          - button "toggle interactivity" [ref=e508] [cursor=pointer]:
+            - img [ref=e509]
+        - generic [ref=e512]:
+          - generic [ref=e513]:
+            - button "◇" [ref=e514] [cursor=pointer]
+            - button "</>" [ref=e515] [cursor=pointer]
+          - generic [ref=e516]:
+            - button "↳" [ref=e517] [cursor=pointer]
+            - button "⛶" [ref=e518] [cursor=pointer]
+          - generic [ref=e519]: 78%
+        - link "React Flow attribution" [ref=e521] [cursor=pointer]:
+          - /url: https://reactflow.dev
+          - text: React Flow
+  - generic [ref=e58]:
+    - button "setting" [ref=e59] [cursor=pointer]:
+      - img "setting" [ref=e61]:
+        - img [ref=e62]
+    - separator [ref=e64]
+    - generic [ref=e65]:
+      - generic [ref=e72]: Networks 2
+      - generic [ref=e79]: Services 6
+      - generic [ref=e86]: Volumes 0
+    - generic [ref=e87]:
+      - generic [ref=e89]:
+        - generic [ref=e90]: ↳ deps
+        - switch [ref=e92] [cursor=pointer]
+      - generic [ref=e96]:
+        - generic [ref=e97]: ⬡ debug
+        - switch [ref=e99] [cursor=pointer]
+      - generic [ref=e103]:
+        - generic [ref=e104]: </> yaml
+        - switch [ref=e106] [cursor=pointer]
+    - separator [ref=e109]
+    - generic [ref=e110]:
+      - generic [ref=e114] [cursor=pointer]:
+        - combobox [ref=e116]
+        - generic "Layered" [ref=e117]
+      - generic [ref=e118]: ·
+      - generic [ref=e122] [cursor=pointer]:
+        - combobox [ref=e124]
+        - generic "Orthogonal" [ref=e125]
+    - separator [ref=e126]
+    - generic [ref=e127]: made with ♥ in Bengaluru 🇮🇳

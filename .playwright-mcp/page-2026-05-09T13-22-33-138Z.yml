@@ -1,0 +1,91 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: D
+      - strong [ref=e10]: docker·deck
+      - generic [ref=e12]: alpha
+      - generic [ref=e14]: v0.0.20
+    - button "upload Upload docker-compose.yml" [ref=e16] [cursor=pointer]:
+      - img "upload" [ref=e18]:
+        - img [ref=e19]
+      - generic [ref=e21]: Upload docker-compose.yml
+    - generic [ref=e22]:
+      - button "check" [ref=e24] [cursor=pointer]:
+        - img "check" [ref=e26]:
+          - img [ref=e27]
+      - button "search" [ref=e30] [cursor=pointer]:
+        - img "search" [ref=e32]:
+          - img [ref=e33]
+      - separator [ref=e36]
+      - button "desktop" [ref=e38] [cursor=pointer]:
+        - img "desktop" [ref=e40]:
+          - img [ref=e41]
+      - separator [ref=e44]
+      - generic [ref=e46]:
+        - button "download PNG" [disabled] [ref=e47]:
+          - generic:
+            - img "download":
+              - img
+          - generic: PNG
+        - button "down" [disabled] [ref=e48]:
+          - generic:
+            - img "down":
+              - img
+  - generic [ref=e52]:
+    - img [ref=e53]:
+      - generic [ref=e55]: ⬡ frontend
+      - generic [ref=e57]: ⬡ backend
+      - generic [ref=e60]:
+        - generic [ref=e63]: 🌐
+        - generic [ref=e64]: nginx
+        - generic [ref=e65]: :80
+      - generic [ref=e66]:
+        - generic [ref=e69]: ⚙️
+        - generic [ref=e70]: api-server
+        - generic [ref=e71]: :3000
+      - generic [ref=e72]:
+        - generic [ref=e75]: 🐘
+        - generic [ref=e76]: postgres
+        - generic [ref=e77]: :5432
+      - generic [ref=e78]:
+        - generic [ref=e81]: ⚡
+        - generic [ref=e82]: worker
+      - generic [ref=e83]:
+        - generic [ref=e86]: 🔴
+        - generic [ref=e87]: redis
+        - generic [ref=e88]: :6379
+    - generic [ref=e89]: 🐳
+    - generic [ref=e90]:
+      - generic [ref=e91]: Drop a docker-compose file
+      - generic [ref=e92]: Click ↑ Upload in the header to get started
+    - generic [ref=e93]: ⚠ Your file is never uploaded — all parsing happens locally in your browser. Anonymous usage analytics are collected via Firebase Analytics.
+  - generic [ref=e94]:
+    - button "setting" [ref=e95] [cursor=pointer]:
+      - img "setting" [ref=e97]:
+        - img [ref=e98]
+    - separator [ref=e100]
+    - generic [ref=e101]:
+      - generic [ref=e108]: Networks 0
+      - generic [ref=e115]: Services 0
+      - generic [ref=e122]: Volumes 0
+    - generic [ref=e123]:
+      - generic [ref=e125]:
+        - generic [ref=e126]: ↳ deps
+        - switch [ref=e128] [cursor=pointer]
+      - generic [ref=e132]:
+        - generic [ref=e133]: ⬡ debug
+        - switch [ref=e135] [cursor=pointer]
+      - generic [ref=e139]:
+        - generic [ref=e140]: </> yaml
+        - switch [ref=e142] [cursor=pointer]
+    - separator [ref=e145]
+    - generic [ref=e146]:
+      - generic [ref=e150] [cursor=pointer]:
+        - combobox [ref=e152]
+        - generic "Layered" [ref=e153]
+      - generic [ref=e154]: ·
+      - generic [ref=e158] [cursor=pointer]:
+        - combobox [ref=e160]
+        - generic "Orthogonal" [ref=e161]
+    - separator [ref=e162]
+    - generic [ref=e163]: made with ♥ in Bengaluru 🇮🇳

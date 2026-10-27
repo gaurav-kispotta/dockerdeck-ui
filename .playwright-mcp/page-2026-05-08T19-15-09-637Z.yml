@@ -1,0 +1,294 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: D
+      - strong [ref=e10]: docker·deck
+      - generic [ref=e12]: alpha
+      - generic [ref=e14]: v0.0.20
+    - button "upload docker-compose-3.yml · 5 svc · 2 net · 2 vol" [active] [ref=e129] [cursor=pointer]:
+      - img "upload" [ref=e18]:
+        - img [ref=e19]
+      - generic [ref=e21]: docker-compose-3.yml
+      - generic [ref=e130]: · 5 svc · 2 net · 2 vol
+    - generic [ref=e22]:
+      - button "check" [ref=e24] [cursor=pointer]:
+        - img "check" [ref=e26]:
+          - img [ref=e27]
+      - button "search" [ref=e30] [cursor=pointer]:
+        - img "search" [ref=e32]:
+          - img [ref=e33]
+      - separator [ref=e36]
+      - button "desktop" [ref=e38] [cursor=pointer]:
+        - img "desktop" [ref=e40]:
+          - img [ref=e41]
+      - separator [ref=e44]
+      - generic [ref=e46]:
+        - button "download PNG" [ref=e47] [cursor=pointer]:
+          - img "download" [ref=e132]:
+            - img [ref=e133]
+          - generic [ref=e135]: PNG
+        - button "down" [ref=e48] [cursor=pointer]:
+          - img "down" [ref=e137]:
+            - img [ref=e138]
+  - generic [ref=e50]:
+    - generic [ref=e140]:
+      - generic [ref=e142]:
+        - img "search" [ref=e144]:
+          - img [ref=e145]
+        - textbox "Filter resources…" [ref=e147]
+      - generic [ref=e149]:
+        - generic [ref=e150]:
+          - generic [ref=e151]: SERVICES
+          - superscript [ref=e153]:
+            - generic [ref=e155]: "5"
+        - list [ref=e159]:
+          - listitem [ref=e160] [cursor=pointer]:
+            - img [ref=e161]
+            - generic [ref=e162]:
+              - generic [ref=e163]: prometheus
+              - generic [ref=e164]: prom/prometheus:v2.36.2
+          - listitem [ref=e167] [cursor=pointer]:
+            - img [ref=e168]
+            - generic [ref=e169]:
+              - generic [ref=e170]: node-exporter
+              - generic [ref=e171]: quay.io/prometheus/node-exporter:latest
+          - listitem [ref=e174] [cursor=pointer]:
+            - img [ref=e175]
+            - generic [ref=e176]:
+              - generic [ref=e177]: alertmanager
+              - generic [ref=e178]: prom/alertmanager:latest
+          - listitem [ref=e181] [cursor=pointer]:
+            - img [ref=e182]
+            - generic [ref=e183]:
+              - generic [ref=e184]: cadvisor
+              - generic [ref=e185]: gcr.io/cadvisor/cadvisor:latest
+          - listitem [ref=e188] [cursor=pointer]:
+            - img [ref=e189]
+            - generic [ref=e190]:
+              - generic [ref=e191]: grafana
+              - generic [ref=e192]: grafana/grafana:latest
+        - generic [ref=e195]:
+          - generic [ref=e196]: NETWORKS
+          - superscript [ref=e198]:
+            - generic [ref=e200]: "2"
+        - list [ref=e204]:
+          - listitem [ref=e205] [cursor=pointer]:
+            - generic [ref=e207]: front-tier
+            - generic [ref=e208]: bridge
+          - listitem [ref=e209] [cursor=pointer]:
+            - generic [ref=e211]: back-tier
+            - generic [ref=e212]: bridge
+        - generic [ref=e213]:
+          - generic [ref=e214]: VOLUMES
+          - superscript [ref=e216]:
+            - generic [ref=e218]: "2"
+        - list [ref=e222]:
+          - listitem [ref=e223] [cursor=pointer]:
+            - img [ref=e224]
+            - generic [ref=e225]: prometheus_data
+          - listitem [ref=e226] [cursor=pointer]:
+            - img [ref=e227]
+            - generic [ref=e228]: grafana_data
+    - generic [ref=e51]:
+      - generic [ref=e229]:
+        - radiogroup "segmented control" [ref=e230]:
+          - generic [ref=e231]:
+            - generic [ref=e232] [cursor=pointer]:
+              - radio [checked]
+              - img [ref=e235]
+            - generic [ref=e241] [cursor=pointer]:
+              - radio
+              - img [ref=e244]
+            - generic [ref=e250] [cursor=pointer]:
+              - radio
+              - img [ref=e253]
+            - generic [ref=e258] [cursor=pointer]:
+              - radio
+              - img [ref=e261]
+            - generic [ref=e264] [cursor=pointer]:
+              - radio
+              - img [ref=e267]
+        - separator [ref=e275]
+        - generic [ref=e276]: Architecture
+        - generic [ref=e277]: —
+        - generic [ref=e278]: Full data flow — all services, networks and volumes
+        - generic [ref=e279]:
+          - generic [ref=e280] [cursor=pointer]: "1"
+          - generic [ref=e281] [cursor=pointer]: "2"
+          - generic [ref=e282] [cursor=pointer]: "3"
+          - generic [ref=e283] [cursor=pointer]: "4"
+          - generic [ref=e284] [cursor=pointer]: "5"
+      - generic [ref=e287]:
+        - generic [ref=e289]:
+          - generic:
+            - generic:
+              - img
+              - img:
+                - button "Edge from prometheus to back-tier" [ref=e290] [cursor=pointer]
+              - img:
+                - button "Edge from node-exporter to back-tier" [ref=e294] [cursor=pointer]
+              - img:
+                - button "Edge from alertmanager to back-tier" [ref=e298] [cursor=pointer]
+              - img:
+                - button "Edge from cadvisor to back-tier" [ref=e302] [cursor=pointer]
+              - img:
+                - button "Edge from grafana to back-tier" [ref=e306] [cursor=pointer]
+              - img:
+                - button "Edge from grafana to front-tier" [ref=e310] [cursor=pointer]
+              - img:
+                - button "Edge from prometheus to prometheus_data" [ref=e314] [cursor=pointer]
+              - img:
+                - button "Edge from grafana to grafana_data" [ref=e318] [cursor=pointer]
+              - img:
+                - button "Edge from prometheus to cadvisor" [ref=e322] [cursor=pointer]
+              - img:
+                - button "Edge from grafana to prometheus" [ref=e326] [cursor=pointer]
+              - img:
+                - button "Edge from prometheus to node-exporter" [ref=e330] [cursor=pointer]
+              - img:
+                - button "Edge from prometheus to alertmanager" [ref=e334] [cursor=pointer]
+              - img:
+                - button "Edge from prometheus to cadvisor" [ref=e338] [cursor=pointer]
+              - img:
+                - button "Edge from prometheus to grafana" [ref=e342] [cursor=pointer]
+              - img:
+                - button "Edge from node-exporter to alertmanager" [ref=e346] [cursor=pointer]
+              - img:
+                - button "Edge from node-exporter to cadvisor" [ref=e350] [cursor=pointer]
+              - img:
+                - button "Edge from node-exporter to grafana" [ref=e354] [cursor=pointer]
+              - img:
+                - button "Edge from alertmanager to cadvisor" [ref=e358] [cursor=pointer]
+              - img:
+                - button "Edge from alertmanager to grafana" [ref=e362] [cursor=pointer]
+              - img:
+                - button "Edge from cadvisor to grafana" [ref=e366] [cursor=pointer]
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: ⬡
+                      - generic: NETWORKS
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: ⬢
+                      - generic: SERVICES
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: ▣
+                      - generic: VOLUMES
+              - button "front-tier unknown-type" [ref=e370]:
+                - generic [ref=e372] [cursor=pointer]:
+                  - img [ref=e374]
+                  - generic [ref=e375]:
+                    - generic [ref=e376]: front-tier
+                    - generic [ref=e377]: unknown-type
+              - button "back-tier unknown-type" [ref=e387]:
+                - generic [ref=e389] [cursor=pointer]:
+                  - img [ref=e391]
+                  - generic [ref=e392]:
+                    - generic [ref=e393]: back-tier
+                    - generic [ref=e394]: unknown-type
+              - button "prometheus prom/prometheus:v2.36.2" [ref=e404]:
+                - generic [ref=e406] [cursor=pointer]:
+                  - img [ref=e408]
+                  - generic [ref=e409]:
+                    - generic [ref=e410]: prometheus
+                    - generic [ref=e411]: prom/prometheus:v2.36.2
+              - button "node-exporter quay.io/prometheus/node-exporter:latest" [ref=e421]:
+                - generic [ref=e423] [cursor=pointer]:
+                  - img [ref=e425]
+                  - generic [ref=e426]:
+                    - generic [ref=e427]: node-exporter
+                    - generic [ref=e428]: quay.io/prometheus/node-exporter:latest
+              - button "alertmanager prom/alertmanager:latest" [ref=e438]:
+                - generic [ref=e440] [cursor=pointer]:
+                  - img [ref=e442]
+                  - generic [ref=e443]:
+                    - generic [ref=e444]: alertmanager
+                    - generic [ref=e445]: prom/alertmanager:latest
+              - button "cadvisor gcr.io/cadvisor/cadvisor:latest" [ref=e455]:
+                - generic [ref=e457] [cursor=pointer]:
+                  - img [ref=e459]
+                  - generic [ref=e460]:
+                    - generic [ref=e461]: cadvisor
+                    - generic [ref=e462]: gcr.io/cadvisor/cadvisor:latest
+              - button "grafana grafana/grafana:latest" [ref=e472]:
+                - generic [ref=e474] [cursor=pointer]:
+                  - img [ref=e476]
+                  - generic [ref=e477]:
+                    - generic [ref=e478]: grafana
+                    - generic [ref=e479]: grafana/grafana:latest
+              - button "prometheus_data volume" [ref=e489]:
+                - generic [ref=e491] [cursor=pointer]:
+                  - img [ref=e493]
+                  - generic [ref=e494]:
+                    - generic [ref=e495]: prometheus_data
+                    - generic [ref=e496]: volume
+              - button "grafana_data volume" [ref=e506]:
+                - generic [ref=e508] [cursor=pointer]:
+                  - img [ref=e510]
+                  - generic [ref=e511]:
+                    - generic [ref=e512]: grafana_data
+                    - generic [ref=e513]: volume
+        - img "React Flow mini map" [ref=e524]
+        - img
+        - generic "React Flow controls" [ref=e537]:
+          - button "zoom in" [ref=e538] [cursor=pointer]:
+            - img [ref=e539]
+          - button "zoom out" [ref=e541] [cursor=pointer]:
+            - img [ref=e542]
+          - button "fit view" [ref=e544] [cursor=pointer]:
+            - img [ref=e545]
+          - button "toggle interactivity" [ref=e547] [cursor=pointer]:
+            - img [ref=e548]
+        - generic [ref=e551]:
+          - generic [ref=e552]:
+            - button "◇" [ref=e553] [cursor=pointer]:
+              - generic [ref=e554]: ◇
+            - button "</>" [ref=e555] [cursor=pointer]:
+              - generic [ref=e556]: </>
+          - generic [ref=e557]:
+            - button "↳" [ref=e558] [cursor=pointer]:
+              - generic [ref=e559]: ↳
+            - button "⛶" [ref=e560] [cursor=pointer]:
+              - generic [ref=e561]: ⛶
+          - generic [ref=e562]: 85%
+        - link "React Flow attribution" [ref=e564] [cursor=pointer]:
+          - /url: https://reactflow.dev
+          - text: React Flow
+  - generic [ref=e59]:
+    - button "setting" [ref=e60] [cursor=pointer]:
+      - img "setting" [ref=e62]:
+        - img [ref=e63]
+    - separator [ref=e65]
+    - generic [ref=e66]:
+      - generic [ref=e73]: Networks 2
+      - generic [ref=e80]: Services 5
+      - generic [ref=e87]: Volumes 2
+    - generic [ref=e88]:
+      - generic [ref=e90]:
+        - generic [ref=e91]: ↳ deps
+        - switch [ref=e93] [cursor=pointer]
+      - generic [ref=e97]:
+        - generic [ref=e98]: ⬡ debug
+        - switch [ref=e100] [cursor=pointer]
+      - generic [ref=e104]:
+        - generic [ref=e105]: </> yaml
+        - switch [ref=e107] [cursor=pointer]
+    - separator [ref=e110]
+    - generic [ref=e111]:
+      - generic [ref=e115] [cursor=pointer]:
+        - combobox [ref=e117]
+        - generic "Layered" [ref=e118]
+      - generic [ref=e119]: ·
+      - generic [ref=e123] [cursor=pointer]:
+        - combobox [ref=e125]
+        - generic "Orthogonal" [ref=e126]
+    - separator [ref=e127]
+    - generic [ref=e128]: made with ♥ in Bengaluru 🇮🇳

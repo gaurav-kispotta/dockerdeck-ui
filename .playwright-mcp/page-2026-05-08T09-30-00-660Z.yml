@@ -1,0 +1,69 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: D
+      - strong [ref=e10]: docker·deck
+      - generic [ref=e12]: alpha
+      - generic [ref=e14]: v0.0.20
+    - button "upload Upload docker-compose.yml" [ref=e16] [cursor=pointer]:
+      - img "upload" [ref=e18]:
+        - img [ref=e19]
+      - generic [ref=e21]: Upload docker-compose.yml
+    - generic [ref=e22]:
+      - button "check" [ref=e24] [cursor=pointer]:
+        - img "check" [ref=e26]:
+          - img [ref=e27]
+      - button "search" [ref=e30] [cursor=pointer]:
+        - img "search" [ref=e32]:
+          - img [ref=e33]
+      - separator [ref=e36]
+      - button "desktop" [ref=e38] [cursor=pointer]:
+        - img "desktop" [ref=e40]:
+          - img [ref=e41]
+      - separator [ref=e44]
+      - generic [ref=e46]:
+        - button "download PNG" [disabled] [ref=e47]:
+          - generic:
+            - img "download":
+              - img
+          - generic: PNG
+        - button "down" [disabled] [ref=e48]:
+          - generic:
+            - img "down":
+              - img
+  - generic [ref=e52]:
+    - generic [ref=e53]: 🐳
+    - generic [ref=e54]:
+      - generic [ref=e55]: Drop a docker-compose file
+      - generic [ref=e56]: Click ↑ Upload in the header to get started
+    - generic [ref=e57]: ⚠ Your file is never uploaded — all parsing happens locally in your browser. Anonymous usage analytics are collected via Firebase Analytics.
+  - generic [ref=e58]:
+    - button "setting" [ref=e59] [cursor=pointer]:
+      - img "setting" [ref=e61]:
+        - img [ref=e62]
+    - separator [ref=e64]
+    - generic [ref=e65]:
+      - generic [ref=e72]: Networks 0
+      - generic [ref=e79]: Services 0
+      - generic [ref=e86]: Volumes 0
+    - generic [ref=e87]:
+      - generic [ref=e89]:
+        - generic [ref=e90]: ↳ deps
+        - switch [ref=e92] [cursor=pointer]
+      - generic [ref=e96]:
+        - generic [ref=e97]: ⬡ debug
+        - switch [ref=e99] [cursor=pointer]
+      - generic [ref=e103]:
+        - generic [ref=e104]: </> yaml
+        - switch [ref=e106] [cursor=pointer]
+    - separator [ref=e109]
+    - generic [ref=e110]:
+      - generic [ref=e114] [cursor=pointer]:
+        - combobox [ref=e116]
+        - generic "Layered" [ref=e117]
+      - generic [ref=e118]: ·
+      - generic [ref=e122] [cursor=pointer]:
+        - combobox [ref=e124]
+        - generic "Orthogonal" [ref=e125]
+    - separator [ref=e126]
+    - generic [ref=e127]: made with ♥ in Bengaluru 🇮🇳
