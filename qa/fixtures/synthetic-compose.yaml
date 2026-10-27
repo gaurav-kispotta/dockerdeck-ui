@@ -1,0 +1,22 @@
+# Synthetic parsing/visualization input only. Never launch this fixture.
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - '8080:80'
+    depends_on:
+      - db
+    networks:
+      - app
+  db:
+    image: postgres:16
+    healthcheck:
+      test: ['CMD', 'true']
+    volumes:
+      - data:/var/lib/postgresql/data
+    networks:
+      - app
+networks:
+  app: {}
+volumes:
+  data: {}
