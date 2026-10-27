@@ -15,7 +15,8 @@ case "$command" in
   where) printf '%s\n' "$core/.ai-team" ;;
   backlog) exec "$core/scripts/backlog" "$@" ;;
   gate) exec python3 "$core/scripts/team-gate" "$@" ;;
+  ports) exec python3 "$core/scripts/team-port" "$@" ;;
   worktree) exec python3 "$core/scripts/team-worktree" "$@" ;;
   sync) exec python3 "$core/scripts/sync-ai-team" "$@" ;;
-  *) echo 'Usage: scripts/team [where|backlog|gate|worktree|sync] [arguments]' >&2; exit 2 ;;
+  *) echo 'Usage: scripts/team [where|backlog|gate|worktree|ports|sync] [arguments]' >&2; exit 2 ;;
 esac
