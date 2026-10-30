@@ -25,7 +25,7 @@ describe('DockerComposeAstBuilder', () => {
         expect(influx).toBeDefined();
         expect(influx?.image.name).toBe('influxdb');
         expect(influx?.image.tag.startsWith('2.7')).toBe(true); // tag may include suffix
-        expect(influx?.ports).toContainEqual({ internal: 8087, external: 8086 });
+        expect(influx?.ports).toContainEqual({ internal: 8086, external: 8087 });
         expect(influx?.volumes.some(v => v.internal.includes('influxdb_data') || v.external.includes('influxdb_data'))).toBe(true);
 
         // Networks
