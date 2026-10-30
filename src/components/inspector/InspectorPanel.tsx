@@ -6,6 +6,7 @@ import { clearSelection } from '../../store/slices/selectionSlice';
 import { T } from '../../styles/tokens';
 import { RuntimeStatus } from '../runtime/RuntimeStatus';
 import { getIconUrl, VOLUME_ICON } from '../../utils/nodeIcons';
+import { parseResourceId } from '../../utils/resourceIdentity';
 
 const { Text } = Typography;
 
@@ -13,26 +14,28 @@ export default function InspectorPanel() {
   const { selectedNodeId, connectedNodeIds } = useAppSelector((s) => s.selection);
   const { yamlObject, astObject } = useAppSelector((s) => s.uploadedFile);
   const dispatch = useAppDispatch();
+  const selectedResource = selectedNodeId ? parseResourceId(selectedNodeId) : null;
+  const selectedName = selectedResource?.name ?? '';
 
   const service = useMemo(() => {
-    if (!selectedNodeId || !astObject?.services) return null;
-    return astObject.services.find(s => s.name === selectedNodeId) ?? null;
-  }, [selectedNodeId, astObject]);
+    if (selectedResource?.kind !== 'service' || !astObject?.services) return null;
+    return astObject.services.find(s => s.name === selectedName) ?? null;
+  }, [selectedResource?.kind, selectedName, astObject]);
 
   const rawService: Record<string, any> = useMemo(() => {
-    if (!selectedNodeId || !yamlObject?.services) return {};
-    return (yamlObject.services as any)[selectedNodeId] ?? {};
-  }, [selectedNodeId, yamlObject]);
+    if (selectedResource?.kind !== 'service' || !yamlObject?.services) return {};
+    return (yamlObject.services as any)[selectedName] ?? {};
+  }, [selectedResource?.kind, selectedName, yamlObject]);
 
   const isNetwork = useMemo(() => {
-    if (!selectedNodeId || !astObject?.networks) return false;
-    return astObject.networks.some(n => n.name === selectedNodeId);
-  }, [selectedNodeId, astObject]);
+    if (selectedResource?.kind !== 'network' || !astObject?.networks) return false;
+    return astObject.networks.some(n => n.name === selectedName);
+  }, [selectedResource?.kind, selectedName, astObject]);
 
   const isVolume = useMemo(() => {
-    if (!selectedNodeId || !astObject?.volumes) return false;
-    return astObject.volumes.some(v => v.name === selectedNodeId);
-  }, [selectedNodeId, astObject]);
+    if (selectedResource?.kind !== 'volume' || !astObject?.volumes) return false;
+    return astObject.volumes.some(v => v.name === selectedName);
+  }, [selectedResource?.kind, selectedName, astObject]);
 
   const visible = !!selectedNodeId;
 
@@ -55,7 +58,7 @@ export default function InspectorPanel() {
     {
       key: 'raw',
       label: 'Raw',
-      children: <RawTab name={selectedNodeId!} rawService={rawService} />,
+      children: <RawTab name={selectedName} rawService={rawService} />,
     },
   ] : [];
 
@@ -77,7 +80,7 @@ export default function InspectorPanel() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <Text strong ellipsis className="text-sm block">{selectedNodeId}</Text>
+              <Text strong ellipsis className="text-sm block">{selectedName}</Text>
               {service && (
                 <Text type="secondary" className="text-[11px] font-mono">
                   {service.image.name}:{service.image.tag}
@@ -110,8 +113,8 @@ export default function InspectorPanel() {
             />
           ) : (
             <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-[18px]">
-              {isNetwork && <NetworkView name={selectedNodeId!} astObject={astObject} />}
-              {isVolume && !service && <VolumeView name={selectedNodeId!} />}
+              {isNetwork && <NetworkView name={selectedName} astObject={astObject} />}
+              {isVolume && !service && <VolumeView name={selectedName} />}
             </div>
           )}
         </>
@@ -176,7 +179,7 @@ function OverviewTab({ service, rawService, connectedNodeIds }: { service: any; 
         <Section label="CONNECTED">
           <Space wrap size={4}>
             {connectedNodeIds.map(id => (
-              <Tag key={id} color="cyan" className="font-mono text-[11px]">{id}</Tag>
+              <Tag key={id} color="cyan" className="font-mono text-[11px]">{parseResourceId(id)?.name ?? id}</Tag>
             ))}
           </Space>
         </Section>

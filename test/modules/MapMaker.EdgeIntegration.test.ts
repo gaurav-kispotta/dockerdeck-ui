@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { settingsSlice } from '../../src/store/slices/settingsSlice';
 import MapMaker from '../../src/modules/MapMaker';
 import { YamlDockerCompose } from '../../src/store/slices/uploadedFileSlice';
+import { relationshipId, resourceId } from '../../src/utils/resourceIdentity';
 
 describe('MapMaker Edge Integration', () => {
     const sampleYaml: YamlDockerCompose = {
@@ -94,12 +95,12 @@ describe('MapMaker Edge Integration', () => {
         
         // Check that edge IDs follow expected format
         const networkEdge = mapMaker.edges.find(edge =>
-            edge.id.includes('web-to-frontend')
+            edge.id === relationshipId('network', resourceId('service', 'web'), resourceId('network', 'frontend'))
         );
         expect(networkEdge).toBeDefined();
         
         const volumeEdge = mapMaker.edges.find(edge =>
-            edge.id.includes('web-to-web-content')
+            edge.source === resourceId('service', 'web') && edge.target === resourceId('volume', 'web-content')
         );
         expect(volumeEdge).toBeDefined();
     });
@@ -107,7 +108,7 @@ describe('MapMaker Edge Integration', () => {
         const mapMaker = new MapMaker();
         await mapMaker.buildMap3(sampleYaml, { ...settingsSlice.getInitialState(), showDependencies });
         expect(mapMaker.edges.filter(edge => edge.data?.connectionType === 'depends_on')).toMatchObject([
-            { id: 'web-depends-on-api', source: 'web', target: 'api', label: 'depends on' },
+            { id: relationshipId('depends_on', 'service:web', 'service:api'), source: 'service:web', target: 'service:api', label: 'depends on' },
         ]);
     });
 

@@ -5,7 +5,7 @@ import BaseNode, { BaseNodeProps } from '../../BaseNode';
 export default function PortsNode(props: BaseNodeProps) {
   const isDark    = useAppSelector((s) => s.theme.isDark);
   const astObject = useAppSelector((s) => s.uploadedFile.astObject);
-  const ports     = astObject?.services?.find((s) => s.name === props.dockerServiceId)?.ports ?? [];
+  const ports     = props.nodeType === 'service' ? astObject?.services?.find((s) => s.name === props.resourceName)?.ports ?? [] : [];
 
   return (
     <BaseNode {...props}>

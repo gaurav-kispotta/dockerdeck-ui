@@ -31,7 +31,9 @@ describe('ServiceNodeBuilder', () => {
     expect(node.height).toBe(120);
     expect(node.style).toEqual({}); // ServiceNodeBuilder sets style to empty object
     // Service identity remains available to the renderer independently of image type.
-    expect(node.data?.label).toBe('service-api');
+    expect(node.data?.label).toBe('api');
+    expect(node.data?.resourceName).toBe('api');
+    expect(node.data?.resourceKind).toBe('service');
     expect(node.data?.nodeType).toBe('service');
     expect(node.extent).toBe('parent');
   });

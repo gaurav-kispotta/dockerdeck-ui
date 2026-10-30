@@ -54,18 +54,18 @@ describe('Dependency Edge Integration', () => {
 
         // Check specific edges
         const apiToDatabaseEdge = dependencyEdges.find(e => 
-            e.source === 'api' && e.target === 'database'
+            e.source === 'service:api' && e.target === 'service:database'
         );
         expect(apiToDatabaseEdge).toBeDefined();
         expect(apiToDatabaseEdge?.label).toBe('depends on');
 
         const webToApiEdge = dependencyEdges.find(e => 
-            e.source === 'web' && e.target === 'api'
+            e.source === 'service:web' && e.target === 'service:api'
         );
         expect(webToApiEdge).toBeDefined();
 
         const webToDatabaseEdge = dependencyEdges.find(e => 
-            e.source === 'web' && e.target === 'database'
+            e.source === 'service:web' && e.target === 'service:database'
         );
         expect(webToDatabaseEdge).toBeDefined();
     });

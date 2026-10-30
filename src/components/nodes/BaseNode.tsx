@@ -9,6 +9,7 @@ import '@xyflow/react/dist/style.css';
 
 export interface BaseNodeProps {
   dockerServiceId: string;
+  resourceName: string;
   dockerImageName: string;
   dockerIconUrl?: string;
   nodeType?: 'service' | 'network' | 'volume';
@@ -34,6 +35,7 @@ const HANDLES = [
 
 export default function BaseNode({
   dockerServiceId,
+  resourceName,
   dockerImageName,
   dockerIconUrl,
   nodeType = 'service',
@@ -50,7 +52,7 @@ export default function BaseNode({
   const isSelected  = selection.selectedNodeId === dockerServiceId;
   const isConnected = selection.connectedNodeIds.includes(dockerServiceId);
 
-  const svcAst  = astObject?.services?.find((s) => s.name === dockerServiceId);
+  const svcAst  = nodeType === 'service' ? astObject?.services?.find((s) => s.name === resourceName) : undefined;
   const imageTag = svcAst ? `${svcAst.image.name}:${svcAst.image.tag}` : dockerImageName;
 
   const iconUrl = nodeType === 'volume'
@@ -111,7 +113,7 @@ export default function BaseNode({
           <div style={{
             fontSize: 12.5, fontWeight: 600, color: isDark ? T.text : '#0B0E14',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>{dockerServiceId}</div>
+          }}>{resourceName}</div>
           <div style={{
             fontSize: 10, color: isDark ? T.textFaint : '#8A93A6',
             fontFamily: 'ui-monospace,Menlo,monospace',

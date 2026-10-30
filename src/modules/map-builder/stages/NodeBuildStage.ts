@@ -6,6 +6,7 @@ import NetworkNodeBuilder from '../../node-builder/NetworkNodeBuilder';
 import ServiceNodeBuilder from '../../node-builder/ServiceNodeBuilder';
 import VolumeNodeBuilder from '../../node-builder/VolumeNodeBuilder';
 import UniqueColorBuilder from '../../node-builder/util/UniqueColorBuilder';
+import { resourceId } from '../../../utils/resourceIdentity';
 
 // Descriptor pairing an AST accessor with a node builder factory — OCP extension point.
 // To add a new node type (secrets, configs, etc.), provide an extra INodeCategoryHandler
@@ -21,7 +22,7 @@ function buildNetworkHandler(): INodeCategoryHandler<any> {
         getItems: (ast) => ast.networks,
         buildNode: (network, nodeWidth, nodeHeight) => {
             const builder = new NetworkNodeBuilder(network, new UniqueColorBuilder(), nodeWidth, nodeHeight);
-            return builder.build(network.name, '');
+            return builder.build(resourceId('network', network.name), '');
         },
         pushToContext: (context, nodes) => { context.networkNodes = nodes; },
     };
@@ -32,7 +33,7 @@ function buildServiceHandler(): INodeCategoryHandler<any> {
         getItems: (ast) => ast.services,
         buildNode: (service, nodeWidth, nodeHeight) => {
             const builder = new ServiceNodeBuilder(service, new UniqueColorBuilder(), nodeWidth, nodeHeight);
-            const node = builder.build(service.name, '');
+            const node = builder.build(resourceId('service', service.name), '');
             if (service.dependsOn && service.dependsOn.length > 0) {
                 node.data = { ...node.data, dependsOn: service.dependsOn };
             }
@@ -47,7 +48,7 @@ function buildVolumeHandler(): INodeCategoryHandler<any> {
         getItems: (ast) => ast.volumes,
         buildNode: (volume, nodeWidth, nodeHeight) => {
             const builder = new VolumeNodeBuilder(volume, new UniqueColorBuilder(), nodeWidth, nodeHeight);
-            return builder.build(volume.name, '');
+            return builder.build(resourceId('volume', volume.name), '');
         },
         pushToContext: (context, nodes) => { context.volumeNodes = nodes; },
     };

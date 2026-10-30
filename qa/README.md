@@ -15,3 +15,9 @@ This is new QA automation for DD-37, not recovery of the deleted October 26 scri
 6. Stop the port wrapper with Ctrl-C after QA and verify the lease and listener are gone. Preserve the unrelated CEO board on port 6420.
 
 The harness uses a real browser and production assets, with every external request blocked. It covers empty state, local import, rendered services/edges, neutral runtime despite Compose healthcheck, five views, resource filtering already-loaded offline re-import and malformed YAML recovery. It does not certify cold-offline loading, CDN Monaco/assets, real engine transport, Docker behavior, export, exhaustive accessibility/security/performance, WebKit, Electron or signed cross-platform releases. DD-34 already owns unnamed switch controls; their count is an inventory value rather than a new acceptance claim. API mocks and Docker daemons are not used.
+
+## Resource identity acceptance fixture (DD-23 / UI-007)
+
+Import `fixtures/resource-identity.yaml` through the normal file picker. It defines services, networks and volumes with the same `data` and `data.to-data_1` names, plus two mounts from `data` to the same volume. Expect six distinct resource nodes and nine edges in Architecture. DOM graph IDs use `service:`, `network:` and `volume:` prefixes, while labels remain the original keys.
+
+Select every resource through graph cards, its Outline section and its AST section (enable AST from Settings). Confirm the inspector shows the matching kind, service ports remain on services, and network/volume names never open service details. Switch through all five diagram views and return to Architecture; original IDs and mount labels must persist. Export JSON and check six unique IDs and original `data.resourceName`/`data.resourceKind` metadata. Re-import `synthetic-compose.yaml`; no old identity fixture resource or route should remain. These are manual independent acceptance steps, distinct from the automated baseline harness above.

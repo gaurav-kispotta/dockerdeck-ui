@@ -15,6 +15,8 @@ class NetworkNodeBuilder extends BaseNodeBuilder {
         const baseNode: DockerDeckNode = super.build(id, parentId);
 
         baseNode.data.label = this.networkAst.name || id;
+        baseNode.data.resourceName = this.networkAst.name;
+        baseNode.data.resourceKind = 'network';
         baseNode.data.nodeType = 'network';
         baseNode.extent = 'parent';
         baseNode.type = "unknown-type";

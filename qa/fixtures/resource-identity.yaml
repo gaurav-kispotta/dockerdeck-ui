@@ -1,0 +1,18 @@
+# Synthetic graph-only fixture. No Docker processes are required.
+services:
+  data:
+    image: nginx:latest
+    ports: ["8080:80"]
+    networks: [data, data.to-data_1]
+    volumes: ["data:/data", "data:/backup", "data.to-data_1:/punctuation"]
+    depends_on: [data.to-data_1]
+  data.to-data_1:
+    image: redis:latest
+    networks: [data]
+    volumes: ["data.to-data_1:/data"]
+networks:
+  data: {}
+  data.to-data_1: {}
+volumes:
+  data: {}
+  data.to-data_1: {}

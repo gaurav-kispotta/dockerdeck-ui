@@ -7,6 +7,7 @@ import { selectNode } from '../../store/slices/selectionSlice';
 import { T } from '../../styles/tokens';
 import { RuntimeStatus } from '../runtime/RuntimeStatus';
 import { getIconUrl, VOLUME_ICON } from '../../utils/nodeIcons';
+import { resourceId, ResourceKind } from '../../utils/resourceIdentity';
 
 const { Text } = Typography;
 
@@ -28,16 +29,17 @@ export default function OutlinePanel() {
   const filteredNetworks  = q ? networks.filter(n => n.name?.toLowerCase().includes(q)) : networks;
   const filteredVolumes   = q ? volumes.filter(v => v.name?.toLowerCase().includes(q))  : volumes;
 
-  function handleSelectService(name: string) {
+  function handleSelectResource(kind: ResourceKind, name: string) {
+    const nodeId = resourceId(kind, name);
     const connectedEdgeIds: string[] = [];
     const connectedNodeIds: string[] = [];
     edges.forEach(e => {
-      if (e.source === name || e.target === name) {
+      if (e.source === nodeId || e.target === nodeId) {
         connectedEdgeIds.push(e.id);
-        connectedNodeIds.push(e.source === name ? e.target : e.source);
+        connectedNodeIds.push(e.source === nodeId ? e.target : e.source);
       }
     });
-    dispatch(selectNode({ nodeId: name, connectedNodeIds, connectedEdgeIds, astObject }));
+    dispatch(selectNode({ nodeId, connectedNodeIds, connectedEdgeIds, astObject }));
   }
 
   const hasResults = filteredServices.length > 0 || filteredNetworks.length > 0 || filteredVolumes.length > 0;
@@ -64,9 +66,9 @@ export default function OutlinePanel() {
             size="small"
             dataSource={filteredServices}
             renderItem={s => {
-              const isSelected = selectedNodeId === s.name;
+              const isSelected = selectedNodeId === resourceId('service', s.name);
               return (
-                <OutlineRow key={s.name} selected={isSelected} accent={T.cyan} onClick={() => handleSelectService(s.name)}>
+                <OutlineRow key={s.name} selected={isSelected} accent={T.cyan} onClick={() => handleSelectResource('service', s.name)}>
                   <div className="w-[28px] h-[28px] rounded-[7px] bg-[var(--ant-color-fill-secondary)] flex items-center justify-center shrink-0">
                     <img src={getIconUrl(s.image.name)} className="w-4 h-4 object-contain" />
                   </div>
@@ -92,7 +94,7 @@ export default function OutlinePanel() {
                 size="small"
                 dataSource={filteredNetworks}
                 renderItem={n => (
-                  <OutlineRow key={n.name} accent={T.violet} selected={selectedNodeId === n.name} onClick={() => handleSelectService(n.name ?? '')}>
+                  <OutlineRow key={n.name} accent={T.violet} selected={selectedNodeId === resourceId('network', n.name)} onClick={() => handleSelectResource('network', n.name)}>
                     <span
                       className="w-3.5 h-3.5 rounded-[4px] shrink-0"
                       style={{ background: `${T.violet}22`, border: `1px solid ${T.violet}55` }}
@@ -113,7 +115,7 @@ export default function OutlinePanel() {
                 size="small"
                 dataSource={filteredVolumes}
                 renderItem={v => (
-                  <OutlineRow key={v.name} accent={T.amber} selected={selectedNodeId === v.name} onClick={() => handleSelectService(v.name ?? '')}>
+                  <OutlineRow key={v.name} accent={T.amber} selected={selectedNodeId === resourceId('volume', v.name)} onClick={() => handleSelectResource('volume', v.name)}>
                     <img src={VOLUME_ICON} className="w-3.5 h-3.5 object-contain shrink-0 opacity-70" />
                     <Text ellipsis className="flex-1 min-w-0 text-[12.5px] font-mono">{v.name}</Text>
                   </OutlineRow>

@@ -7,6 +7,7 @@ import BootOrderNode from './views/boot-order/BootOrderNode';
 
 export interface DockerDeckNodeProps {
   dockerServiceId: string;
+  resourceName: string;
   dockerImageName: string;
   dockerIconUrl?: string;
   nodeType?: 'service' | 'network' | 'volume';

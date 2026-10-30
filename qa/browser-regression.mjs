@@ -45,8 +45,8 @@ try {
   });
   await check('Local synthetic import renders services and dependency edges', async () => {
     await page.locator('input[type=file]').setInputFiles(fileURLToPath(new URL('fixtures/synthetic-compose.yaml', import.meta.url)));
-    await page.locator('.react-flow__node[data-id="web"]').waitFor();
-    await page.locator('.react-flow__node[data-id="db"]').waitFor();
+    await page.locator('.react-flow__node[data-id="service:web"]').waitFor();
+    await page.locator('.react-flow__node[data-id="service:db"]').waitFor();
     await page.waitForFunction(() => document.querySelectorAll('.react-flow__edge').length > 0);
     await page.getByRole('button', { name: /synthetic-compose.yaml/ }).waitFor();
   });
@@ -59,8 +59,8 @@ try {
       const index = ['boot-order', 'architecture', 'networks', 'ports', 'volumes'].indexOf(mode);
       await page.locator('.ant-segmented-item').nth(index).click();
       await page.locator('.ant-segmented-item-selected').nth(0).waitFor();
-      await page.locator('.react-flow__node[data-id="web"]').waitFor();
-      await page.locator('.react-flow__node[data-id="db"]').waitFor();
+      await page.locator('.react-flow__node[data-id="service:web"]').waitFor();
+      await page.locator('.react-flow__node[data-id="service:db"]').waitFor();
     }
   });
   await check('Resource filter matches and handles no results', async () => {
@@ -75,7 +75,7 @@ try {
     await page.context().setOffline(true);
     await page.locator('input[type=file]').setInputFiles([]);
     await page.locator('input[type=file]').setInputFiles(fileURLToPath(new URL('fixtures/synthetic-compose.yaml', import.meta.url)));
-    await page.locator('.react-flow__node[data-id="web"]').waitFor();
+    await page.locator('.react-flow__node[data-id="service:web"]').waitFor();
     await page.context().setOffline(false);
   });
   await check('Malformed YAML produces a parsing error and allows recovery', async () => {
@@ -84,7 +84,7 @@ try {
     await dialog.getByText('File Parsing Failed', { exact: true }).waitFor();
     await dialog.getByRole('button', { name: 'Dismiss', exact: true }).click();
     await page.locator('input[type=file]').setInputFiles(fileURLToPath(new URL('fixtures/synthetic-compose.yaml', import.meta.url)));
-    await page.locator('.react-flow__node[data-id="web"]').waitFor();
+    await page.locator('.react-flow__node[data-id="service:web"]').waitFor();
   });
   await check('No uncaught JavaScript exceptions', async () => assert.deepEqual(report.pageErrors, []));
   // Inventory only: DD-34 already owns unnamed switch accessibility defects.

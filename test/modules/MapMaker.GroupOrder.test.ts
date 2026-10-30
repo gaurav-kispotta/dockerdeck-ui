@@ -54,8 +54,8 @@ describe('MapMaker Group Ordering', () => {
     it('should position network nodes above service nodes (lower Y)', async () => {
         await mapMaker.buildMap3(sampleYaml, defaultSettings);
 
-        const networkNode = mapMaker.nodes.find(n => n.id === 'frontend');
-        const serviceNode = mapMaker.nodes.find(n => n.id === 'web');
+        const networkNode = mapMaker.nodes.find(n => n.id === 'network:frontend');
+        const serviceNode = mapMaker.nodes.find(n => n.id === 'service:web');
 
         expect(networkNode).toBeDefined();
         expect(serviceNode).toBeDefined();
@@ -65,8 +65,8 @@ describe('MapMaker Group Ordering', () => {
     it('should position service nodes above volume nodes (lower Y)', async () => {
         await mapMaker.buildMap3(sampleYaml, defaultSettings);
 
-        const serviceNode = mapMaker.nodes.find(n => n.id === 'web');
-        const volumeNode = mapMaker.nodes.find(n => n.id === 'web-content');
+        const serviceNode = mapMaker.nodes.find(n => n.id === 'service:web');
+        const volumeNode = mapMaker.nodes.find(n => n.id === 'volume:web-content');
 
         expect(serviceNode).toBeDefined();
         expect(volumeNode).toBeDefined();
@@ -79,8 +79,8 @@ describe('MapMaker Group Ordering', () => {
         await compact.buildMap3(sampleYaml, { ...defaultSettings, nodeLevelPadding: 20 });
         await mapMaker.buildMap3(sampleYaml, { ...defaultSettings, nodeLevelPadding: 100 });
         const layerGap = (map: MapMaker) => {
-            const network = map.nodes.find(n => n.id === 'frontend')!;
-            const service = map.nodes.find(n => n.id === 'web')!;
+            const network = map.nodes.find(n => n.id === 'network:frontend')!;
+            const service = map.nodes.find(n => n.id === 'service:web')!;
             return service.position.y - network.position.y - network.height!;
         };
         const serviceGap = (map: MapMaker) => {

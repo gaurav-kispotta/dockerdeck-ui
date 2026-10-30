@@ -31,6 +31,7 @@ import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
 import { setEdges, setNodes } from '../../store/slices/dockerdeckSlice'
 import { setAstObject } from '../../store/slices/uploadedFileSlice'
+import { resourceId } from '../../utils/resourceIdentity'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -306,7 +307,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         // View-mode node dimming (in ports view: fade services without exposed ports)
         if (settings.viewMode === 'ports') {
             const svcsWithPorts = new Set(
-                astObject?.services?.filter(s => s.ports.length > 0).map(s => s.name) ?? []
+                astObject?.services?.filter(s => s.ports.length > 0).map(s => resourceId('service', s.name)) ?? []
             );
             return viewFilteredNodes.map(n => ({
                 ...n,
@@ -375,12 +376,10 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                 filtered = filtered.map(e => {
                     const isVol = e.data?.connectionType === 'volume';
                     if (!isVol) return { ...e, style: { ...e.style, opacity: 0.08, strokeWidth: 1 } };
-                    // Look up mount path from AST
-                    const svcAst = astObject?.services?.find(s => s.name === e.source);
-                    const volInfo = svcAst?.volumes?.find(v => v.external === e.target || e.target.startsWith(v.external));
+                    // Keep the exact mount associated with this typed edge.
                     return {
                         ...e,
-                        label: volInfo?.internal ?? '',
+                        label: e.data?.internalPath as string ?? '',
                         style: { ...e.style, opacity: 1, strokeWidth: 2.5 },
                     };
                 });
@@ -424,6 +423,10 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             setEdges([])
         }
     }, [clear])
+
+    useEffect(() => {
+        dispatch(clearSelection());
+    }, [yamlObject, dispatch]);
 
     useEffect(() => {
         console.log(yamlObject)

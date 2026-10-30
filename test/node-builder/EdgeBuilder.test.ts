@@ -3,6 +3,7 @@ import EdgeBuilder from '../../src/modules/node-builder/EdgeBuilder';
 import { IDockerService } from '../../src/interface/ast/IDockerService';
 import { IDockerNetwork } from '../../src/interface/ast/IDockerNetwork';
 import { IDockerVolume } from '../../src/interface/ast/IDockerVolume';
+import { relationshipId } from '../../src/utils/resourceIdentity';
 
 interface IDockerComposeAst {
     services: IDockerService[];
@@ -97,14 +98,14 @@ describe('EdgeBuilder', () => {
 
             // Check specific edges
             const webToFrontend = networkEdges.find(edge => 
-                edge.source === 'web' && edge.target === 'frontend'
+                edge.source === 'service:web' && edge.target === 'network:frontend'
             );
             expect(webToFrontend).toBeDefined();
             expect(webToFrontend?.label).toBe('frontend');
             expect(webToFrontend?.style?.stroke).toBe('#10b981');
 
             const apiToBackend = networkEdges.find(edge =>
-                edge.source === 'api' && edge.target === 'backend'
+                edge.source === 'service:api' && edge.target === 'network:backend'
             );
             expect(apiToBackend).toBeDefined();
             expect(apiToBackend?.data?.serviceName).toBe('api');
@@ -123,7 +124,7 @@ describe('EdgeBuilder', () => {
 
             // Check specific edge
             const webToVolume = volumeEdges.find(edge =>
-                edge.source === 'web' && edge.target === 'web-content'
+                edge.source === 'service:web' && edge.target === 'volume:web-content'
             );
             expect(webToVolume).toBeDefined();
             expect(webToVolume?.label).toBe('/usr/share/nginx/html');
@@ -139,7 +140,7 @@ describe('EdgeBuilder', () => {
         const enabled = builder.getAllEdges();
         const disabled = builder.getAllEdges({ showDependencyEdges: false });
         expect(enabled.filter(e => e.data?.connectionType === 'depends_on')).toMatchObject([
-            { id: 'web-depends-on-api', source: 'web', target: 'api', label: 'depends on' },
+            { id: relationshipId('depends_on', 'service:web', 'service:api'), source: 'service:web', target: 'service:api', label: 'depends on' },
         ]);
         expect(disabled.some(e => e.data?.connectionType === 'depends_on')).toBe(false);
         expect(disabled).toEqual(enabled.filter(e => e.data?.connectionType !== 'depends_on'));
@@ -156,8 +157,8 @@ describe('EdgeBuilder', () => {
 
             // Check web to api edge (they share 'backend' network)
             const webToApi = serviceToServiceEdges.find(edge =>
-                (edge.source === 'web' && edge.target === 'api') ||
-                (edge.source === 'api' && edge.target === 'web')
+                (edge.source === 'service:web' && edge.target === 'service:api') ||
+                (edge.source === 'service:api' && edge.target === 'service:web')
             );
             expect(webToApi).toBeDefined();
             expect(webToApi?.data?.connectionType).toBe('service-to-service');
@@ -165,8 +166,8 @@ describe('EdgeBuilder', () => {
 
             // Check api to db edge (they share 'database' network)
             const apiToDb = serviceToServiceEdges.find(edge =>
-                (edge.source === 'api' && edge.target === 'db') ||
-                (edge.source === 'db' && edge.target === 'api')
+                (edge.source === 'service:api' && edge.target === 'service:db') ||
+                (edge.source === 'service:db' && edge.target === 'service:api')
             );
             expect(apiToDb).toBeDefined();
             expect(apiToDb?.data?.sharedNetworks).toContain('database');

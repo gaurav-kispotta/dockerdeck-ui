@@ -3,6 +3,7 @@ import { IDockerService } from "../../interface/ast/IDockerService";
 import { IDockerNetwork } from "../../interface/ast/IDockerNetwork";
 import { IDockerVolume } from "../../interface/ast/IDockerVolume";
 import { MarkerType } from "@xyflow/react";
+import { resourceId, resourcePath, relationshipId } from '../../utils/resourceIdentity';
 
 interface IDockerComposeAst {
     services: IDockerService[];
@@ -59,9 +60,9 @@ export class EdgeBuilder {
                 
                 if (networkExists || this.shouldCreateImplicitNetwork(networkName)) {
                     const edge: DockerDeckEdge = {
-                        id: `${service.name}-to-${networkName}`,
-                        source: service.name,
-                        target: networkName,
+                        id: relationshipId('network', resourceId('service', service.name), resourceId('network', networkName)),
+                        source: resourceId('service', service.name),
+                        target: resourceId('network', networkName),
                         type: 'default',
                         animated: false,
                         style: {
@@ -69,9 +70,9 @@ export class EdgeBuilder {
                             strokeWidth: 2,
                         },
                         label: networkName,
-                        path: [`services.${service.name}`, `networks.${networkName}`],
-                        sources: [service.name],
-                        targets: [networkName],
+                        path: [resourcePath('service', service.name), resourcePath('network', networkName)],
+                        sources: [resourceId('service', service.name)],
+                        targets: [resourceId('network', networkName)],
                         data: {
                             connectionType: 'network',
                             serviceName: service.name,
@@ -90,7 +91,7 @@ export class EdgeBuilder {
      */
     private buildServiceVolumeEdges(): void {
         this.ast.services.forEach(service => {
-            service.volumes.forEach(volumeMapping => {
+            service.volumes.forEach((volumeMapping, mountIndex) => {
                 // Extract volume name from the external path
                 // Handle both named volumes and bind mounts
                 const volumeName = this.extractVolumeName(volumeMapping.external);
@@ -101,9 +102,9 @@ export class EdgeBuilder {
                     
                     if (isNamedVolume) {
                         const edge: DockerDeckEdge = {
-                            id: `${service.name}-to-${volumeName}`,
-                            source: service.name,
-                            target: volumeName,
+                            id: relationshipId('volume', resourceId('service', service.name), resourceId('volume', volumeName), `${volumeMapping.internal}:${mountIndex}`),
+                            source: resourceId('service', service.name),
+                            target: resourceId('volume', volumeName),
                             type: 'default',
                             animated: false,
                             style: {
@@ -113,9 +114,9 @@ export class EdgeBuilder {
                             // Show the internal mount path as the label (e.g. /var/lib/mysql)
                             label: volumeMapping.internal || volumeName,
                             markerEnd: { type: MarkerType.Arrow, color: '#f59e0b' },
-                            path: [`services.${service.name}`, `volumes.${volumeName}`],
-                            sources: [service.name],
-                            targets: [volumeName],
+                            path: [resourcePath('service', service.name), resourcePath('volume', volumeName)],
+                            sources: [resourceId('service', service.name)],
+                            targets: [resourceId('volume', volumeName)],
                             data: {
                                 connectionType: 'volume',
                                 serviceName: service.name,
@@ -182,18 +183,18 @@ export class EdgeBuilder {
 
                     if (sharedNetworks.length > 0) {
                         // Create edge only if it doesn't already exist (avoid duplicates)
-                        const edgeId = `${serviceA.name}-to-${serviceB.name}`;
-                        const reverseEdgeId = `${serviceB.name}-to-${serviceA.name}`;
+                        const [sourceName, targetName] = [serviceA.name, serviceB.name].sort();
+                        const edgeId = relationshipId('service-to-service', resourceId('service', sourceName), resourceId('service', targetName));
                         
                         const edgeExists = serviceToServiceEdges.some(edge => 
-                            edge.id === edgeId || edge.id === reverseEdgeId
+                            edge.id === edgeId
                         );
 
                         if (!edgeExists) {
                             const edge: DockerDeckEdge = {
-                                id: `${serviceA.name}-to-${serviceB.name}`,
-                                source: serviceA.name,
-                                target: serviceB.name,
+                                id: edgeId,
+                                source: resourceId('service', sourceName),
+                                target: resourceId('service', targetName),
                                 type: 'default', // Use default instead of smoothstep
                                 animated: false,
                                 style: {
@@ -202,13 +203,13 @@ export class EdgeBuilder {
                                     strokeDasharray: '5,5', // Dashed line to differentiate
                                 },
                                 label: 'communicates',
-                                path: [`services.${serviceA.name}`, `services.${serviceB.name}`],
-                                sources: [serviceA.name],
-                                targets: [serviceB.name],
+                                path: [resourcePath('service', sourceName), resourcePath('service', targetName)],
+                                sources: [resourceId('service', sourceName)],
+                                targets: [resourceId('service', targetName)],
                                 data: {
                                     connectionType: 'service-to-service',
-                                    sourceService: serviceA.name,
-                                    targetService: serviceB.name,
+                                    sourceService: sourceName,
+                                    targetService: targetName,
                                     sharedNetworks: sharedNetworks,
                                 }
                             };
@@ -254,14 +255,14 @@ export class EdgeBuilder {
                     return;
                 }
 
-                const edgeId = `${service.name}-depends-on-${depName}`;
+                const edgeId = relationshipId('depends_on', resourceId('service', service.name), resourceId('service', depName));
                 const alreadyExists = this.edges.some(e => e.id === edgeId);
                 if (alreadyExists) return;
 
                 const edge: DockerDeckEdge = {
                     id: edgeId,
-                    source: service.name,
-                    target: depName,
+                    source: resourceId('service', service.name),
+                    target: resourceId('service', depName),
                     type: 'default',
                     animated: true,
                     style: {
@@ -270,9 +271,9 @@ export class EdgeBuilder {
                     },
                     label: 'depends on',
                     markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' },
-                    path: [`services.${service.name}.depends_on`, `services.${depName}`],
-                    sources: [service.name],
-                    targets: [depName],
+                    path: [`${resourcePath('service', service.name)}.depends_on`, resourcePath('service', depName)],
+                    sources: [resourceId('service', service.name)],
+                    targets: [resourceId('service', depName)],
                     data: {
                         connectionType: 'depends_on',
                         sourceService: service.name,
