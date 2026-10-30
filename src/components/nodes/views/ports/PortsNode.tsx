@@ -18,7 +18,7 @@ export default function PortsNode(props: BaseNodeProps) {
               border: `1px solid ${T.green}44`,
               fontFamily: 'ui-monospace,Menlo,monospace', lineHeight: 1.6,
             }}>
-              {p.external}:{p.internal}
+              {p.diagnostic ?? `${p.external}:${p.internal}`}{p.protocol ? `/${p.protocol}` : ''}
             </span>
           ))}
           {ports.length > 4 && (

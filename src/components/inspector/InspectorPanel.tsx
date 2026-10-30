@@ -139,7 +139,7 @@ function OverviewTab({ service, rawService, connectedNodeIds }: { service: any; 
         <Section label="PORTS">
           <Space wrap size={4}>
             {service.ports.map((p: any, i: number) => (
-              <Tag key={i} className="font-mono text-[11px]">{p.internal}:{p.external}</Tag>
+              <Tag key={i} color={p.diagnostic ? 'orange' : undefined} className="font-mono text-[11px]">{p.diagnostic ?? `${p.external}:${p.internal}`}{p.protocol ? `/${p.protocol}` : ''}</Tag>
             ))}
           </Space>
         </Section>

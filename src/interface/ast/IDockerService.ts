@@ -8,6 +8,9 @@ export interface IDockerService {
     ports: {
         internal: number;
         external: number;
+        hostIp?: string;
+        protocol?: string;
+        diagnostic?: string;
     }[];
     volumes: {
         internal: string;

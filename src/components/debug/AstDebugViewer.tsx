@@ -70,12 +70,12 @@ export const AstDebugViewer: React.FC = () => {
                             icon: <LinkOutlined />,
                             children: service.ports.flatMap((port, portIndex) => [
                                 {
-                                    title: `External: ${port.external}`,
+                                    title: port.diagnostic ?? `Published/host: ${port.external}`,
                                     key: `service-${index}-port-${portIndex}-external`,
                                     icon: <ApiOutlined />
                                 },
                                 {
-                                    title: `Internal: ${port.internal}`,
+                                    title: `Target/container: ${port.internal}`,
                                     key: `service-${index}-port-${portIndex}-internal`,
                                     icon: <ApiOutlined />
                                 }

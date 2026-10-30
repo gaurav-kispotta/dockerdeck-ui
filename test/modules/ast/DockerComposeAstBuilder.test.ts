@@ -1,8 +1,20 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DockerComposeAstBuilder, IDockerComposeAst } from '../../../src/modules/ast/DockerComposeAstBuilder';
+import { DockerComposeAstBuilder, IDockerComposeAst, normalizeComposePort } from '../../../src/modules/ast/DockerComposeAstBuilder';
 import { YamlDockerCompose } from '../../../src/store/slices/uploadedFileSlice';
 
 describe('DockerComposeAstBuilder', () => {
+    describe('normalizeComposePort', () => {
+        it('normalizes numeric, short, host-IP, protocol, and long-form ports', () => {
+            expect(normalizeComposePort(80)).toEqual({ internal: 80, external: 80 });
+            expect(normalizeComposePort('8080:80')).toEqual({ internal: 80, external: 8080 });
+            expect(normalizeComposePort('127.0.0.1:8080:80/tcp')).toEqual({ internal: 80, external: 8080, hostIp: '127.0.0.1', protocol: 'tcp' });
+            expect(normalizeComposePort({ target: 80, published: 8080, host_ip: '127.0.0.1', protocol: 'udp' })).toEqual({ internal: 80, external: 8080, hostIp: '127.0.0.1', protocol: 'udp' });
+        });
+
+        it('returns a diagnostic for unsupported ranges instead of throwing', () => {
+            expect(normalizeComposePort('8000-8010:80')).toMatchObject({ diagnostic: expect.stringContaining('ranges') });
+        });
+    });
     let yamlObject: YamlDockerCompose;
     let astBuilder: DockerComposeAstBuilder;
 
@@ -95,8 +107,8 @@ describe('DockerComposeAstBuilder', () => {
             expect(webService!.image.tag).toBe('latest');
             expect(webService!.containerName).toBe('web-container');
             expect(webService!.ports).toEqual([
-                { internal: 80, external: 8080 },
-                { internal: 443, external: 8443 }
+                { internal: 8080, external: 80 },
+                { internal: 8443, external: 443 }
             ]);
             expect(webService!.volumes).toEqual([
                 { internal: '/usr/share/nginx/html', external: 'web-content' }
@@ -337,8 +349,8 @@ describe('DockerComposeAstBuilder', () => {
             const webService = ast.services.find(s => s.name === 'web');
             
             expect(webService!.ports).toEqual([
-                { internal: 80, external: 8080 },
-                { internal: 443, external: 8443 }
+                { internal: 8080, external: 80 },
+                { internal: 8443, external: 443 }
             ]);
         });
 
