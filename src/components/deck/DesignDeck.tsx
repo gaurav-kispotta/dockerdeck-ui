@@ -468,6 +468,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
     }, [yamlObject, settings, dispatch, getDependencyLayout])
 
     return (
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', minHeight: 0, minWidth: 0 }}>
+        <div style={{ flex: '1 1 0', minHeight: 0, position: 'relative' }}>
         <ReactFlow
             nodeTypes={nodeTypes}
             fitView
@@ -485,11 +487,13 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         >
             <FlowWithCentering nodes={nodes} />
             <RouteComputer />
-            <RelationshipLegend />
             <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable zoomable />
             <Background variant={BackgroundVariant.Dots} gap={22} size={1} />
             <Controls position="bottom-left" orientation="horizontal" />
         </ReactFlow>
+        </div>
+        <RelationshipLegend />
+      </div>
     )
 }
 
