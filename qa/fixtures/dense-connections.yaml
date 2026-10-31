@@ -1,0 +1,24 @@
+# Synthetic parser input only. Never run this fixture with Docker.
+services:
+  hub:
+    image: nginx:latest
+    depends_on: [worker01, worker02, worker03, worker04, worker05, worker06, worker07, worker08, worker09, worker10, worker11, worker12]
+    networks: [front]
+    volumes: ["data:/data", "data:/backup"]
+  worker01: { image: "redis:latest", networks: [back] }
+  worker02: { image: "redis:latest", networks: [back] }
+  worker03: { image: "redis:latest", networks: [front] }
+  worker04: { image: "redis:latest" }
+  worker05: { image: "redis:latest" }
+  worker06: { image: "redis:latest" }
+  worker07: { image: "redis:latest" }
+  worker08: { image: "redis:latest" }
+  worker09: { image: "redis:latest" }
+  worker10: { image: "redis:latest" }
+  worker11: { image: "redis:latest" }
+  worker12: { image: "redis:latest" }
+networks:
+  front: {}
+  back: {}
+volumes:
+  data: {}

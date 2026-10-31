@@ -19,7 +19,8 @@ import '@xyflow/react/dist/style.css'
 import { IDesignElement } from '../../interface/IDesignElements'
 import nodeTypes from './NodeTypes'
 import MapMaker from '../../modules/MapMaker'
-import OrthogonalEdge, { RouteComputer } from './edges/OrthogonalEdge'
+import OrthogonalEdge from './edges/OrthogonalEdge'
+import { RoutingProvider, RouteComputer } from './RoutingContext'
 import BridgeEdge from './edges/BridgeEdge'
 import SimpleEdge from './edges/SimpleEdge'
 import SmoothStepEdge from './edges/SmoothStepEdge'
@@ -27,12 +28,13 @@ import StraightEdge from './edges/StraightEdge'
 import { buildBootAnnotationNodes, computeTimelinePositions } from './BootTimelineOverlay'
 import { buildLayeredAnnotationNodes } from './LayeredAnnotationOverlay'
 import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'
-import { selectNode, clearSelection } from '../../store/slices/selectionSlice'
+import { selectNode, selectEdge, clearSelection } from '../../store/slices/selectionSlice'
 import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
 import { setEdges, setNodes } from '../../store/slices/dockerdeckSlice'
 import { setAstObject } from '../../store/slices/uploadedFileSlice'
 import { resourceId } from '../../utils/resourceIdentity'
 import RelationshipLegend from './RelationshipLegend'
+import ConnectionDetails from './ConnectionDetails'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -99,7 +101,13 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         [dispatch, nodes],
     );
     const onEdgesChange = useCallback(
-        (changes: any) => dispatch(setEdges(applyEdgeChanges(changes, edges))),
+        (changes: any) => {
+            dispatch(setEdges(applyEdgeChanges(changes, edges)));
+            const selected = changes.find((change: any) => change.type === 'select' && change.selected);
+            const edge = selected && edges.find(e => e.id === selected.id);
+            if (edge) dispatch(selectEdge({ id: edge.id, source: edge.source, target: edge.target }));
+            else if (changes.some((change: any) => change.type === 'select' && !change.selected)) dispatch(clearSelection());
+        },
         [dispatch, edges],
     );
     const onConnect = useCallback(
@@ -187,6 +195,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
     }, [dispatch])
 
     const onEdgeClick: EdgeMouseHandler = useCallback((_event, edge) => {
+        dispatch(selectEdge({ id: edge.id, source: edge.source, target: edge.target }));
         console.log('Graph: Clicked edge:', edge.id);
         
         // Log edge selection event
@@ -199,7 +208,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             source: edge.source,
             target: edge.target
         });
-    }, [])
+    }, [dispatch])
 
     const edgeTypes = useMemo(() => {
         const edgeComponent = {
@@ -322,7 +331,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         }
 
         // Selection-based styling
-        if (!selection.selectedNodeId) return viewFilteredNodes
+        if (!selection.selectedNodeId && !selection.selectedEdgeId) return viewFilteredNodes
 
         return viewFilteredNodes.map(node => {
             // Annotation nodes are never grayed
@@ -399,7 +408,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         }
 
         // Selection overlay on top of view-mode filtering
-        if (!selection.selectedNodeId) return filtered;
+        if (!selection.selectedNodeId && !selection.selectedEdgeId) return filtered;
         return filtered.map(e => {
             const isConn = selection.connectedEdgeIds.includes(e.id);
             return {
@@ -417,6 +426,15 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
 
     // Legacy alias kept so the ReactFlow render can use styledEdges name
     const styledEdges = viewModeEdges;
+
+    useEffect(() => {
+        if (selection.selectedEdgeId && !viewModeEdges.some(e => e.id === selection.selectedEdgeId)) dispatch(clearSelection());
+    }, [selection.selectedEdgeId, viewModeEdges, dispatch]);
+
+    // ReactFlow mutates its internal selected flags when Escape clears focus.
+    // Give it mutable copies, never Redux's frozen node/edge objects.
+    const flowNodes = styledNodes.map(node => ({ ...node, position: { ...node.position }, data: { ...node.data }, style: { ...node.style }, selected: node.id === selection.selectedNodeId }));
+    const flowEdges = styledEdges.map(edge => ({ ...edge, data: { ...edge.data }, style: { ...edge.style }, selected: edge.id === selection.selectedEdgeId }));
 
     useEffect(() => {
         if (clear) {
@@ -468,7 +486,9 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
     }, [yamlObject, settings, dispatch, getDependencyLayout])
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', minHeight: 0, minWidth: 0 }}>
+      <RoutingProvider>
+      <div onKeyDownCapture={event => { if (event.key === 'Escape') dispatch(clearSelection()); }}
+        style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', minHeight: 0, minWidth: 0 }}>
         <div style={{ flex: '1 1 0', minHeight: 0, position: 'relative' }}>
         <ReactFlow
             nodeTypes={nodeTypes}
@@ -479,8 +499,8 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
             onNodeClick={onNodeClick}
             onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
-            nodes={styledNodes}
-            edges={styledEdges}
+            nodes={flowNodes}
+            edges={flowEdges}
             edgeTypes={edgeTypes}
             colorMode={themeMode}
             className='overview'
@@ -493,7 +513,9 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         </ReactFlow>
         </div>
         <RelationshipLegend />
+        <ConnectionDetails />
       </div>
+      </RoutingProvider>
     )
 }
 

@@ -4,6 +4,7 @@ import { useAppSelector } from '../../../hooks/useReduxHooks';
 import { relationshipPresentation, type EndpointSymbol, type RelationshipPresentation } from '../../../utils/relationshipPresentation';
 import { parseResourceId } from '../../../utils/resourceIdentity';
 import { T } from '../../../styles/tokens';
+import type { PcbRoute } from '../../../utils/pcbRouter';
 
 function Endpoint({ symbol, color, background }: { symbol: EndpointSymbol; color: string; background: string }) {
   switch (symbol) {
@@ -48,9 +49,11 @@ interface TraceProps {
   labelX: number;
   labelY: number;
   masks?: ReactNode;
+  hitPath?: string;
+  route?: PcbRoute;
 }
 
-export default function RelationshipTrace({ edge, path, labelX, labelY, masks }: TraceProps) {
+export default function RelationshipTrace({ edge, path, labelX, labelY, masks, hitPath, route }: TraceProps) {
   const dark = useAppSelector(s => s.theme.isDark);
   const [hovered, setHovered] = useState(false);
   const prefix = `relationship-${useId().replace(/:/g, '')}`;
@@ -64,15 +67,18 @@ export default function RelationshipTrace({ edge, path, labelX, labelY, masks }:
   const description = `${p.label}: ${source} ${p.kind === 'depends_on' ? 'depends on' : 'and'} ${target}. ${p.description}`;
 
   return <>
-    <g data-relationship={p.kind} role="img" aria-label={description} style={{ opacity: edge.style?.opacity ?? 1 }}
+    <g data-relationship={p.kind} data-route-edge={edge.id} data-route-source={edge.source} data-route-target={edge.target}
+      data-route-points={route ? JSON.stringify(route.points) : undefined} data-route-blocked={route?.blocked}
+      data-route-selected={edge.selected ? 'true' : 'false'} role="img" aria-label={description} style={{ opacity: edge.style?.opacity ?? 1 }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <title>{description}</title>
-      <path data-relationship-hit={p.kind} d={path} fill="none" stroke="transparent" strokeWidth="18" style={{ cursor: 'pointer', animation: 'none', strokeDasharray: 'none' }} />
+      <path data-relationship-hit={p.kind} d={hitPath ?? path} fill="none" stroke="transparent" strokeWidth="18" style={{ cursor: 'pointer', animation: 'none', strokeDasharray: 'none' }} />
       {masks}
       <RelationshipStroke id={edge.id} prefix={prefix} path={path} presentation={p} background={background} width={width} />
     </g>
     {(hovered || edge.selected) && <EdgeLabelRenderer>
-      <div className="nodrag nopan" style={{ position: 'absolute', transform: `translate(-50%,-50%) translate(${labelX}px,${labelY}px)`,
+      <div className="nodrag nopan" data-route-label={edge.id} data-route-label-x={labelX} data-route-label-y={labelY}
+        style={{ position: 'absolute', transform: `translate(-50%,-50%) translate(${labelX}px,${labelY}px)`,
         pointerEvents: 'none', fontSize: 11, padding: '3px 8px', borderRadius: 7, background: dark ? T.bg2 : T.lbg1,
         border: `1px solid ${p.color}`, color: dark ? T.text : '#0B0E14', whiteSpace: 'nowrap' }}>{label}</div>
     </EdgeLabelRenderer>}

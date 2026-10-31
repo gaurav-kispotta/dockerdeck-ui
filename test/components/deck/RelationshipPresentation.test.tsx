@@ -51,7 +51,7 @@ describe('shared relationship presentation', () => {
           expect(html).toContain(`stroke="${p.color}"`);
           expect(html).toContain(`aria-label="${p.label}:`);
           expect(html).toContain('stroke="transparent" stroke-width="18"');
-          if (name === 'bridge') expect(html).toContain('d="M 200 140 L 300 140"'); // endpoints stay at handles, never hidden under card centers
+          if (name === 'bridge') expect(html).toMatch(/d="M\s*200[, ]140\s*L\s*300[, ]140"/); // endpoints stay at handles, never hidden under card centers
           expect(html.includes('data-double-gap="true"')).toBe(p.double);
           if (p.dash) expect(html).toContain(`stroke-dasharray="${p.dash}"`);
           else expect(html).not.toContain('stroke-dasharray=');

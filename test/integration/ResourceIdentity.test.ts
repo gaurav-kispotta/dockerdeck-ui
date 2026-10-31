@@ -1,12 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
-import { Position } from '@xyflow/react';
 import { JSONPath } from 'jsonpath-plus';
 import MapMaker from '../../src/modules/MapMaker';
 import selectionReducer, { selectNode, selectAstNode } from '../../src/store/slices/selectionSlice';
 import { resourceId, resourcePath, parseResourceId, relationshipId } from '../../src/utils/resourceIdentity';
-import { edgeReg, regEdge, unregEdge } from '../../src/utils/orthogonalRouter';
+import { buildRoutingFrame } from '../../src/utils/pcbRouter';
 import { settingsSlice } from '../../src/store/slices/settingsSlice';
 
 vi.mock('../../src/utils/analytics', () => ({ logInteractionEvent: vi.fn(), AnalyticsEvent: { NODE_SELECTED: 'node_selected' } }));
@@ -78,7 +77,7 @@ describe('typed Compose resource identity', () => {
     expect(selectionReducer(selected, selectAstNode({ astNodeKey: 'root', expandedKeys: [], astObject: ast })).selectedNodeId).toBeNull();
   });
 
-  it('rebuilds view/layout variants with stable IDs, and routing unregister removes only the departed relationship', async () => {
+  it('rebuilds view/layout variants with stable IDs and drops only departed routing relationships', async () => {
     const maker = new MapMaker();
     await maker.buildMap3(fixture);
     const expected = maker.nodes.map(n => n.id).sort();
@@ -87,13 +86,11 @@ describe('typed Compose resource identity', () => {
       expect(maker.nodes.map(n => n.id).sort()).toEqual(expected);
     }
     const edges = maker.edges.filter(e => e.source === 'service:data' && (e.target === 'network:data' || e.target === 'volume:data'));
-    try {
-      for (const e of edges) regEdge({ id: e.id, sx: 0, sy: 0, tx: 100, ty: 100, srcPos: Position.Right });
-      expect(edges.every(e => edgeReg.has(e.id))).toBe(true);
-      unregEdge(edges[0].id);
-      expect(edgeReg.has(edges[0].id)).toBe(false);
-      expect(edges.slice(1).every(e => edgeReg.has(e.id))).toBe(true);
-    } finally { edges.forEach(e => unregEdge(e.id)); }
-    expect(edges.some(e => edgeReg.has(e.id))).toBe(false);
+    const bounds = maker.nodes.map(n => ({ id: n.id, ...n.position, width: 200, height: 80 }));
+    const full = buildRoutingFrame(bounds, edges), reduced = buildRoutingFrame(bounds, edges.slice(1));
+    expect(edges.every(e => full.routes.has(e.id))).toBe(true);
+    expect(reduced.routes.has(edges[0].id)).toBe(false);
+    expect(edges.slice(1).every(e => reduced.routes.has(e.id))).toBe(true);
+    expect(buildRoutingFrame([], []).routes.size).toBe(0);
   });
 });

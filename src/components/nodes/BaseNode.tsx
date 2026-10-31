@@ -74,6 +74,8 @@ export default function BaseNode({
 
   return (
     <div
+      data-resource-card={dockerServiceId}
+      data-endpoint-highlight={isConnected || isSelected ? 'true' : 'false'}
       className={glowClass}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
