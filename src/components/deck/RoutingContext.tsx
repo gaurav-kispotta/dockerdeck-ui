@@ -16,11 +16,11 @@ function renderedBounds(node: any): NodeBounds {
   const handles = node.internals.handleBounds?.source ?? [];
   const at = (id: string, axis: 'x' | 'y') => {
     const handle = handles.find((h: any) => h.id === id);
-    return handle ? handle[axis] + handle[axis === 'x' ? 'width' : 'height'] / 2 : undefined;
+    return handle ? Math.round(handle[axis] + handle[axis === 'x' ? 'width' : 'height'] / 2) : undefined;
   };
-  const left = at('d', 'x') ?? 0, right = at('b', 'x') ?? node.measured?.width ?? node.width ?? 200;
-  const top = at('a', 'y') ?? 0, bottom = at('c', 'y') ?? node.measured?.height ?? node.height ?? 80;
-  return { id: node.id, x: node.internals.positionAbsolute.x + left, y: node.internals.positionAbsolute.y + top,
+  const left = at('d', 'x') ?? 0, right = at('b', 'x') ?? Math.round(node.measured?.width ?? node.width ?? 200);
+  const top = at('a', 'y') ?? 0, bottom = at('c', 'y') ?? Math.round(node.measured?.height ?? node.height ?? 80);
+  return { id: node.id, x: Math.round(node.internals.positionAbsolute.x) + left, y: Math.round(node.internals.positionAbsolute.y) + top,
     width: right - left, height: bottom - top };
 }
 

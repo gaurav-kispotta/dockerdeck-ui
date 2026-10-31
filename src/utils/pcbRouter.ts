@@ -26,9 +26,18 @@ function sideToward(a: NodeBounds, b: NodeBounds): Side {
   const dy = b.y + b.height / 2 - a.y - a.height / 2;
   return Math.abs(dx) > Math.abs(dy) ? (dx >= 0 ? 'right' : 'left') : (dy >= 0 ? 'bottom' : 'top');
 }
-function exit(pin: Pin): Point {
-  return { x: pin.x + (pin.side === 'right' ? STUB : pin.side === 'left' ? -STUB : 0),
-    y: pin.y + (pin.side === 'bottom' ? STUB : pin.side === 'top' ? -STUB : 0) };
+function exit(pin: Pin, bounds: NodeBounds[] = []): Point {
+  let minDist = Infinity;
+  for (const r of bounds) {
+    if (r.id === pin.nodeId) continue;
+    if (pin.side === 'right' && pin.y >= r.y - 4 && pin.y <= r.y + r.height + 4 && r.x >= pin.x) minDist = Math.min(minDist, r.x - pin.x);
+    if (pin.side === 'left' && pin.y >= r.y - 4 && pin.y <= r.y + r.height + 4 && r.x + r.width <= pin.x) minDist = Math.min(minDist, pin.x - (r.x + r.width));
+    if (pin.side === 'bottom' && pin.x >= r.x - 4 && pin.x <= r.x + r.width + 4 && r.y >= pin.y) minDist = Math.min(minDist, r.y - pin.y);
+    if (pin.side === 'top' && pin.x >= r.x - 4 && pin.x <= r.x + r.width + 4 && r.y + r.height <= pin.y) minDist = Math.min(minDist, pin.y - (r.y + r.height));
+  }
+  const stub = minDist < STUB + CLEARANCE && minDist > 0 ? Math.max(2, Math.min(STUB, Math.floor((minDist - 1) / 2))) : STUB;
+  return { x: pin.x + (pin.side === 'right' ? stub : pin.side === 'left' ? -stub : 0),
+    y: pin.y + (pin.side === 'bottom' ? stub : pin.side === 'top' ? -stub : 0) };
 }
 export function segmentHitsInterior(a: Point, b: Point, r: NodeBounds, padding = 0): boolean {
   const left = r.x - padding, right = r.x + r.width + padding, top = r.y - padding, bottom = r.y + r.height + padding;
@@ -88,54 +97,85 @@ class MinHeap {
 }
 
 function findCorridor(start: Point, end: Point, bounds: NodeBounds[], used: Point[][], lane: number): Point[] | null {
-  const xs = new Set([start.x, end.x]), ys = new Set([start.y, end.y]);
-  for (const r of bounds) {
-    for (const gutter of [CLEARANCE, CLEARANCE + 12, CLEARANCE + 24]) {
-      xs.add(r.x - gutter); xs.add(r.x + r.width + gutter);
-      ys.add(r.y - gutter); ys.add(r.y + r.height + gutter);
-    }
-  }
-  // Independent lanes inside long open corridors; stable edge order chooses which is preferred.
-  xs.add((start.x + end.x) / 2 + ((lane % 7) - 3) * 10);
-  ys.add((start.y + end.y) / 2 + ((lane % 7) - 3) * 10);
-  const xx = [...xs].sort((a, b) => a - b), yy = [...ys].sort((a, b) => a - b);
-  const sx = xx.indexOf(start.x), sy = yy.indexOf(start.y), tx = xx.indexOf(end.x), ty = yy.indexOf(end.y);
-  const key = (x: number, y: number, dir: number) => (y * xx.length + x) * 3 + dir;
-  const heap = new MinHeap(), costs = new Map<number, number>(), previous = new Map<number, number>();
-  const first = key(sx, sy, 0);
-  heap.push({ key: first, x: sx, y: sy, dir: 0, cost: 0, score: distance(start, end) }); costs.set(first, 0);
   const usedSegments = used.flatMap(routeSegments);
-  while (heap.entries.length) {
-    const current = heap.pop()!;
-    if (current.cost !== costs.get(current.key)) continue;
-    if (current.x === tx && current.y === ty) {
-      const path: Point[] = [];
-      let at: number | undefined = current.key;
-      while (at !== undefined) {
-        const cell = Math.floor(at / 3); path.push({ x: xx[cell % xx.length], y: yy[Math.floor(cell / xx.length)] }); at = previous.get(at);
+  for (const clearance of [CLEARANCE, 8, 4, 2]) {
+    const xs = new Set([start.x, end.x]), ys = new Set([start.y, end.y]);
+    const gutters = clearance === CLEARANCE ? [CLEARANCE, CLEARANCE + 12, CLEARANCE + 24] : [clearance, clearance + 8, CLEARANCE, CLEARANCE + 12, CLEARANCE + 24];
+    for (const r of bounds) {
+      for (const gutter of gutters) {
+        xs.add(r.x - gutter); xs.add(r.x + r.width + gutter);
+        ys.add(r.y - gutter); ys.add(r.y + r.height + gutter);
       }
-      return path.reverse();
     }
-    const a = { x: xx[current.x], y: yy[current.y] };
-    for (const [dx, dy, dir] of [[-1, 0, 1], [1, 0, 1], [0, -1, 2], [0, 1, 2]]) {
-      const x = current.x + dx, y = current.y + dy;
-      if (x < 0 || y < 0 || x >= xx.length || y >= yy.length) continue;
-      const b = { x: xx[x], y: yy[y] };
-      if (bounds.some(r => segmentHitsInterior(a, b, r, CLEARANCE))) continue;
-      let penalty = 0;
-      for (const segment of usedSegments) {
-        penalty += overlap(a, b, segment.start, segment.end) * 30;
-        const crossing = intersection(a, b, segment.start, segment.end);
-        if (crossing) penalty += Math.min(distance(crossing, segment.start), distance(crossing, segment.end)) < 12 ? 300 : 12;
+    // Independent lanes inside long open corridors; stable edge order chooses which is preferred.
+    xs.add((start.x + end.x) / 2 + ((lane % 7) - 3) * 10);
+    ys.add((start.y + end.y) / 2 + ((lane % 7) - 3) * 10);
+    const xx = [...xs].sort((a, b) => a - b), yy = [...ys].sort((a, b) => a - b);
+    const sx = xx.indexOf(start.x), sy = yy.indexOf(start.y), tx = xx.indexOf(end.x), ty = yy.indexOf(end.y);
+    const key = (x: number, y: number, dir: number) => (y * xx.length + x) * 3 + dir;
+    const heap = new MinHeap(), costs = new Map<number, number>(), previous = new Map<number, number>();
+    const first = key(sx, sy, 0);
+    heap.push({ key: first, x: sx, y: sy, dir: 0, cost: 0, score: distance(start, end) }); costs.set(first, 0);
+    while (heap.entries.length) {
+      const current = heap.pop()!;
+      if (current.cost !== costs.get(current.key)) continue;
+      if (current.x === tx && current.y === ty) {
+        const path: Point[] = [];
+        let at: number | undefined = current.key;
+        while (at !== undefined) {
+          const cell = Math.floor(at / 3); path.push({ x: xx[cell % xx.length], y: yy[Math.floor(cell / xx.length)] }); at = previous.get(at);
+        }
+        return path.reverse();
       }
-      const cost = current.cost + distance(a, b) + (current.dir && current.dir !== dir ? 18 : 0) + penalty;
-      const next = key(x, y, dir);
-      if (cost >= (costs.get(next) ?? Infinity)) continue;
-      costs.set(next, cost); previous.set(next, current.key);
-      heap.push({ key: next, x, y, dir, cost, score: cost + distance(b, end) });
+      const a = { x: xx[current.x], y: yy[current.y] };
+      for (const [dx, dy, dir] of [[-1, 0, 1], [1, 0, 1], [0, -1, 2], [0, 1, 2]]) {
+        const x = current.x + dx, y = current.y + dy;
+        if (x < 0 || y < 0 || x >= xx.length || y >= yy.length) continue;
+        const b = { x: xx[x], y: yy[y] };
+        if (bounds.some(r => segmentHitsInterior(a, b, r, clearance))) continue;
+        let penalty = 0;
+        for (const segment of usedSegments) {
+          penalty += overlap(a, b, segment.start, segment.end) * 30;
+          const crossing = intersection(a, b, segment.start, segment.end);
+          if (crossing) penalty += Math.min(distance(crossing, a), distance(crossing, b), distance(crossing, segment.start), distance(crossing, segment.end)) < 12 ? 300 : 12;
+        }
+        const cost = current.cost + distance(a, b) + (current.dir && current.dir !== dir ? 18 : 0) + penalty;
+        const next = key(x, y, dir);
+        if (cost >= (costs.get(next) ?? Infinity)) continue;
+        costs.set(next, cost); previous.set(next, current.key);
+        heap.push({ key: next, x, y, dir, cost, score: cost + distance(b, end) });
+      }
     }
   }
   return null;
+}
+
+/** Effective intervals are shared by path drawing and label placement. */
+function segmentCrossings(start: Point, end: Point, crossings: Crossing[]) {
+  const length = distance(start, end);
+  const hits = crossings.filter(p => Math.abs(start.y - end.y) < EPS ? Math.abs(p.y - start.y) < EPS && p.x > Math.min(start.x, end.x) && p.x < Math.max(start.x, end.x) : Math.abs(p.x - start.x) < EPS && p.y > Math.min(start.y, end.y) && p.y < Math.max(start.y, end.y))
+    .sort((a, b) => distance(start, a) - distance(start, b));
+  const effective: { crossing: Crossing; at: number; from: number; to: number; radius: number }[] = [];
+  for (const crossing of hits) {
+    const at = distance(start, crossing);
+    const r = crossing.over ? Math.min(crossing.radius, at - 0.5, length - at - 0.5)
+      : Math.min(Math.max(crossing.radius, 4.5), at - 0.25, length - at - 0.25);
+    if (r < 0.5) continue;
+    const prev = effective.at(-1);
+    if (prev && at - r < prev.to) {
+      if (prev.crossing.over && crossing.over && (at - prev.at) / 2 >= 4) {
+        const mid = (prev.at + at) / 2;
+        const prevR = Math.min(prev.radius, mid - prev.at - 0.1);
+        prev.from = prev.at - prevR; prev.to = prev.at + prevR; prev.radius = prevR;
+        const curR = Math.min(r, at - mid - 0.1);
+        effective.push({ crossing, at, from: at - curR, to: at + curR, radius: curR });
+      } else {
+        prev.crossing = { ...prev.crossing, over: false };
+        prev.to = Math.max(prev.to, at + r); prev.radius = (prev.to - prev.from) / 2; prev.at = at;
+      }
+    } else effective.push({ crossing, at, from: at - r, to: at + r, radius: r });
+  }
+  return effective;
 }
 
 export function pathForRoute(points: Point[], crossings: Crossing[] = []): string {
@@ -145,15 +185,10 @@ export function pathForRoute(points: Point[], crossings: Crossing[] = []): strin
     const length = distance(start, end);
     if (!length) continue;
     const dx = (end.x - start.x) / length, dy = (end.y - start.y) / length;
-    const hits = crossings.filter(p => Math.abs(start.y - end.y) < EPS ? Math.abs(p.y - start.y) < EPS && p.x > Math.min(start.x, end.x) && p.x < Math.max(start.x, end.x) : Math.abs(p.x - start.x) < EPS && p.y > Math.min(start.y, end.y) && p.y < Math.max(start.y, end.y))
-      .sort((a, b) => distance(start, a) - distance(start, b));
-    let last = -Infinity;
-    for (const p of hits) {
-      const at = distance(start, p), radius = Math.min(p.radius, at - 1, length - at - 1);
-      if (radius < 1 || at - radius <= last) continue;
-      path += ` L ${p.x - dx * radius} ${p.y - dy * radius}`;
-      path += p.over ? ` A ${radius} ${radius} 0 0 1 ${p.x + dx * radius} ${p.y + dy * radius}` : ` M ${p.x + dx * radius} ${p.y + dy * radius}`;
-      last = at + radius;
+    for (const { crossing: p, from, to, radius } of segmentCrossings(start, end, crossings)) {
+      const x1 = start.x + dx * from, y1 = start.y + dy * from, x2 = start.x + dx * to, y2 = start.y + dy * to;
+      path += ` L ${x1} ${y1}`;
+      path += p.over ? ` A ${radius} ${radius} 0 0 1 ${x2} ${y2}` : ` M ${x2} ${y2}`;
     }
     path += ` L ${end.x} ${end.y}`;
   }
@@ -165,11 +200,19 @@ export function labelAnchor(points: Point[], crossings: Crossing[]): Point {
   for (const { start, end } of routeSegments(points)) {
     const length = distance(start, end), dx = (end.x - start.x) / length, dy = (end.y - start.y) / length;
     if (!length) continue;
-    const cuts = [0, ...crossings.filter(p => Math.abs(start.x - end.x) < EPS ? Math.abs(p.x - start.x) < EPS && p.y > Math.min(start.y, end.y) && p.y < Math.max(start.y, end.y) : Math.abs(p.y - start.y) < EPS && p.x > Math.min(start.x, end.x) && p.x < Math.max(start.x, end.x))
-      .flatMap(p => [Math.max(0, distance(start, p) - p.radius - 5), Math.min(length, distance(start, p) + p.radius + 5)]).sort((a, b) => a - b), length];
-    for (let i = 0; i + 1 < cuts.length; i += 2) {
-      if (cuts[i + 1] - cuts[i] <= longest) continue;
-      longest = cuts[i + 1] - cuts[i]; const at = (cuts[i + 1] + cuts[i]) / 2;
+    const excluded: { from: number; to: number }[] = [];
+    for (const interval of segmentCrossings(start, end, crossings)) {
+      const previous = excluded.at(-1);
+      if (previous && interval.from <= previous.to) previous.to = Math.max(previous.to, interval.to);
+      else excluded.push({ from: interval.from, to: interval.to });
+    }
+    const clear: [number, number][] = [];
+    let cursor = 0;
+    for (const interval of excluded) { if (interval.from > cursor) clear.push([cursor, interval.from]); cursor = Math.max(cursor, interval.to); }
+    if (cursor < length) clear.push([cursor, length]);
+    for (const [from, to] of clear) {
+      if (to - from <= longest) continue;
+      longest = to - from; const at = (from + to) / 2;
       anchor = { x: start.x + dx * at, y: start.y + dy * at };
     }
   }
@@ -185,12 +228,27 @@ export function buildRoutingFrame(inputBounds: NodeBounds[], inputEdges: Routing
     const rect = byId.get(edge[end])!, other = byId.get(edge[end === 'source' ? 'target' : 'source'])!;
     const preferred = sideToward(rect, other);
     const opposite: Record<Side, Side> = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' };
+    const sidePenalty = (side: Side) => {
+      let minGap = Infinity;
+      for (const r of bounds) {
+        if (r.id === rect.id) continue;
+        if ((side === 'left' || side === 'right') && r.y < rect.y + rect.height + CLEARANCE && r.y + r.height > rect.y - CLEARANCE) {
+          if (side === 'right' && r.x + r.width > rect.x) minGap = Math.min(minGap, r.x - (rect.x + rect.width));
+          if (side === 'left' && r.x < rect.x + rect.width) minGap = Math.min(minGap, rect.x - (r.x + r.width));
+        }
+        if ((side === 'top' || side === 'bottom') && r.x < rect.x + rect.width + CLEARANCE && r.x + r.width > rect.x - CLEARANCE) {
+          if (side === 'bottom' && r.y + r.height > rect.y) minGap = Math.min(minGap, r.y - (rect.y + rect.height));
+          if (side === 'top' && r.y < rect.y + rect.height) minGap = Math.min(minGap, rect.y - (r.y + r.height));
+        }
+      }
+      return minGap < STUB + CLEARANCE ? (minGap < 20 ? 80 : 30) + (STUB + CLEARANCE - Math.max(0, minGap)) : 0;
+    };
     // Spread high-degree nodes across adjacent sides before endpoint symbols collide.
     const score = (side: Side) => {
       const count = groups.get(JSON.stringify([rect.id, side]))?.length ?? 0;
       const size = side === 'top' || side === 'bottom' ? rect.width : rect.height;
       const capacity = Math.max(1, Math.floor((size - 24) / 12));
-      return (side === preferred ? 0 : side === opposite[preferred] ? 4 : 1) + count / capacity * 2 + (count >= capacity ? 100 : 0);
+      return (side === preferred ? 0 : side === opposite[preferred] ? 4 : 1) + count / capacity * 2 + (count >= capacity ? 100 : 0) + sidePenalty(side);
     };
     const side = (['top', 'right', 'bottom', 'left'] as Side[]).sort((a, b) => score(a) - score(b))[0];
     const groupKey = JSON.stringify([rect.id, side]);
@@ -207,7 +265,7 @@ export function buildRoutingFrame(inputBounds: NodeBounds[], inputEdges: Routing
   const routes = new Map<string, PcbRoute>(), used: Point[][] = [];
   edges.forEach((edge, index) => {
     const source = pins.get(JSON.stringify([edge.id, 'source']))!, target = pins.get(JSON.stringify([edge.id, 'target']))!;
-    const from = exit(source), to = exit(target);
+    const from = exit(source, bounds), to = exit(target, bounds);
     const corridor = findCorridor(from, to, bounds, used, index);
     const points = simplify([source, ...(corridor ?? [from, { x: from.x, y: to.y }, to]), target]);
     const endpointOverlap = [byId.get(edge.source)!, byId.get(edge.target)!].some(endpoint => bounds.some(r => r.id !== endpoint.id &&
@@ -215,16 +273,23 @@ export function buildRoutingFrame(inputBounds: NodeBounds[], inputEdges: Routing
     const blocked = endpointOverlap || !corridor || routeSegments(points).some((segment, i, all) => bounds.some(r => (i === 0 && r.id === edge.source) || (i === all.length - 1 && r.id === edge.target) ? false : segmentHitsInterior(segment.start, segment.end, r)));
     routes.set(edge.id, { id: edge.id, source, target, points, crossings: [], path: '', hitPath: pathForRoute(points), label: points[0], blocked }); used.push(points);
   });
+  const addCrossing = (list: Crossing[], point: Point, over: boolean, radius: number) => {
+    if (radius < 0.5) return;
+    const existing = list.find(p => distance(p, point) < EPS);
+    if (existing) { existing.over = existing.over && over; existing.radius = Math.max(existing.radius, radius); }
+    else list.push({ ...point, over, radius });
+  };
   const entries = [...routes.values()];
   for (let i = 0; i < entries.length; i++) for (const b of entries.slice(i + 1)) {
     const a = entries[i];
     for (const sa of routeSegments(a.points)) for (const sb of routeSegments(b.points)) {
       const point = intersection(sa.start, sa.end, sb.start, sb.end);
       if (!point) continue;
-      const radius = Math.min(6, distance(point, sa.start) - 1, distance(point, sa.end) - 1, distance(point, sb.start) - 1, distance(point, sb.end) - 1);
-      if (radius < 1) continue;
-      if (a.crossings.some(p => distance(p, point) < EPS)) continue;
-      a.crossings.push({ ...point, over: a.id > b.id, radius }); b.crossings.push({ ...point, over: b.id > a.id, radius });
+      const distA = Math.min(distance(point, sa.start), distance(point, sa.end));
+      const distB = Math.min(distance(point, sb.start), distance(point, sb.end));
+      const [overA, overB] = distA < 6 && distB > distA ? [true, false] : distB < 6 && distA > distB ? [false, true] : [a.id > b.id, b.id > a.id];
+      addCrossing(a.crossings, point, overA, Math.min(6, distA - 0.5));
+      addCrossing(b.crossings, point, overB, Math.min(6, distB - 0.5));
     }
   }
   for (const route of routes.values()) { route.path = pathForRoute(route.points, route.crossings); route.label = labelAnchor(route.points, route.crossings); }
