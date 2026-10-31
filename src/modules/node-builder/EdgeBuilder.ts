@@ -2,7 +2,6 @@ import { DockerDeckEdge } from "../../model/DockerDeckEdge";
 import { IDockerService } from "../../interface/ast/IDockerService";
 import { IDockerNetwork } from "../../interface/ast/IDockerNetwork";
 import { IDockerVolume } from "../../interface/ast/IDockerVolume";
-import { MarkerType } from "@xyflow/react";
 import { resourceId, resourcePath, relationshipId } from '../../utils/resourceIdentity';
 
 interface IDockerComposeAst {
@@ -66,7 +65,6 @@ export class EdgeBuilder {
                         type: 'default',
                         animated: false,
                         style: {
-                            stroke: '#10b981',
                             strokeWidth: 2,
                         },
                         label: networkName,
@@ -108,12 +106,10 @@ export class EdgeBuilder {
                             type: 'default',
                             animated: false,
                             style: {
-                                stroke: '#f59e0b',
                                 strokeWidth: 2,
                             },
                             // Show the internal mount path as the label (e.g. /var/lib/mysql)
                             label: volumeMapping.internal || volumeName,
-                            markerEnd: { type: MarkerType.Arrow, color: '#f59e0b' },
                             path: [resourcePath('service', service.name), resourcePath('volume', volumeName)],
                             sources: [resourceId('service', service.name)],
                             targets: [resourceId('volume', volumeName)],
@@ -198,11 +194,9 @@ export class EdgeBuilder {
                                 type: 'default', // Use default instead of smoothstep
                                 animated: false,
                                 style: {
-                                    stroke: '#6366f1', // Indigo color for service-to-service connections
                                     strokeWidth: 1,
-                                    strokeDasharray: '5,5', // Dashed line to differentiate
                                 },
-                                label: 'communicates',
+                                label: 'Shared network',
                                 path: [resourcePath('service', sourceName), resourcePath('service', targetName)],
                                 sources: [resourceId('service', sourceName)],
                                 targets: [resourceId('service', targetName)],
@@ -264,13 +258,11 @@ export class EdgeBuilder {
                     source: resourceId('service', service.name),
                     target: resourceId('service', depName),
                     type: 'default',
-                    animated: true,
+                    animated: false,
                     style: {
-                        stroke: '#ef4444',
                         strokeWidth: 2,
                     },
                     label: 'depends on',
-                    markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' },
                     path: [`${resourcePath('service', service.name)}.depends_on`, resourcePath('service', depName)],
                     sources: [resourceId('service', service.name)],
                     targets: [resourceId('service', depName)],

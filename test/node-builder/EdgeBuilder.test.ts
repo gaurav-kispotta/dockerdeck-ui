@@ -102,7 +102,7 @@ describe('EdgeBuilder', () => {
             );
             expect(webToFrontend).toBeDefined();
             expect(webToFrontend?.label).toBe('frontend');
-            expect(webToFrontend?.style?.stroke).toBe('#10b981');
+            expect(webToFrontend?.animated).toBe(false);
 
             const apiToBackend = networkEdges.find(edge =>
                 edge.source === 'service:api' && edge.target === 'network:backend'
@@ -128,7 +128,7 @@ describe('EdgeBuilder', () => {
             );
             expect(webToVolume).toBeDefined();
             expect(webToVolume?.label).toBe('/usr/share/nginx/html');
-            expect(webToVolume?.style?.stroke).toBe('#f59e0b');
+            expect(webToVolume?.animated).toBe(false);
             expect(webToVolume?.data?.serviceName).toBe('web');
             expect(webToVolume?.data?.volumeName).toBe('web-content');
         });
@@ -140,7 +140,7 @@ describe('EdgeBuilder', () => {
         const enabled = builder.getAllEdges();
         const disabled = builder.getAllEdges({ showDependencyEdges: false });
         expect(enabled.filter(e => e.data?.connectionType === 'depends_on')).toMatchObject([
-            { id: relationshipId('depends_on', 'service:web', 'service:api'), source: 'service:web', target: 'service:api', label: 'depends on' },
+            { id: relationshipId('depends_on', 'service:web', 'service:api'), source: 'service:web', target: 'service:api', label: 'depends on', animated: false },
         ]);
         expect(disabled.some(e => e.data?.connectionType === 'depends_on')).toBe(false);
         expect(disabled).toEqual(enabled.filter(e => e.data?.connectionType !== 'depends_on'));
@@ -163,6 +163,9 @@ describe('EdgeBuilder', () => {
             expect(webToApi).toBeDefined();
             expect(webToApi?.data?.connectionType).toBe('service-to-service');
             expect(webToApi?.data?.sharedNetworks).toContain('backend');
+            expect(webToApi?.label).toBe('Shared network');
+            expect(webToApi?.markerEnd).toBeUndefined();
+            expect(webToApi?.animated).toBe(false);
 
             // Check api to db edge (they share 'database' network)
             const apiToDb = serviceToServiceEdges.find(edge =>

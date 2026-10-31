@@ -1,16 +1,12 @@
-import { getBezierPath, useInternalNode } from '@xyflow/react';
+import { getBezierPath, useInternalNode, type EdgeProps } from '@xyflow/react';
 
 import { getEdgeParams } from '../../../utils/floatingEdge';
+import RelationshipTrace from './RelationshipTrace';
 
-interface SimpleFloatingEdgeProps {
-    id: string;
-    source: string;
-    target: string;
-    markerEnd?: string;
-    style?: React.CSSProperties;
-}
+type SimpleFloatingEdgeProps = Pick<EdgeProps, 'id' | 'source' | 'target' | 'style' | 'label' | 'selected' | 'data'>;
 
-function SimpleFloatingEdge({ id, source, target, markerEnd, style }: SimpleFloatingEdgeProps) {
+function SimpleFloatingEdge(props: SimpleFloatingEdgeProps) {
+    const { source, target } = props;
     const sourceNode = useInternalNode(source);
     const targetNode = useInternalNode(target);
 
@@ -23,7 +19,7 @@ function SimpleFloatingEdge({ id, source, target, markerEnd, style }: SimpleFloa
         targetNode,
     );
 
-    const [edgePath] = getBezierPath({
+    const [edgePath, labelX, labelY] = getBezierPath({
         sourceX: sx,
         sourceY: sy,
         sourcePosition: sourcePos,
@@ -33,16 +29,7 @@ function SimpleFloatingEdge({ id, source, target, markerEnd, style }: SimpleFloa
         curvature: 100,
     });
 
-    return (
-        <path
-            id={id}
-            className="react-flow__edge-path"
-            d={edgePath}
-            strokeWidth={style?.strokeWidth || 2}
-            markerEnd={markerEnd}
-            style={style}
-            ></path>
-    );
+    return <RelationshipTrace edge={props} path={edgePath} labelX={labelX} labelY={labelY} />;
 }
 
 export default SimpleFloatingEdge;

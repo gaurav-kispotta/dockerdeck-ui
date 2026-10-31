@@ -32,6 +32,7 @@ import { logInteractionEvent, AnalyticsEvent } from '../../utils/analytics'
 import { setEdges, setNodes } from '../../store/slices/dockerdeckSlice'
 import { setAstObject } from '../../store/slices/uploadedFileSlice'
 import { resourceId } from '../../utils/resourceIdentity'
+import RelationshipLegend from './RelationshipLegend'
 
 interface DesignDeckProperties extends IDesignElement {
     clear?: boolean
@@ -349,7 +350,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         if (settings.showDependencies) {
             return edges.map(e => {
                 const isDep = e.data?.connectionType === 'depends_on';
-                return { ...e, style: { ...e.style, opacity: isDep ? 1 : 0.15, strokeWidth: isDep ? 3 : 1 }, animated: isDep };
+                return { ...e, style: { ...e.style, opacity: isDep ? 1 : 0.15, strokeWidth: isDep ? 3 : 1 }, animated: false };
             });
         }
 
@@ -390,7 +391,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                 // Only depends_on edges
                 filtered = filtered
                     .filter(e => e.data?.connectionType === 'depends_on')
-                    .map(e => ({ ...e, style: { ...e.style, opacity: 1, strokeWidth: 2.5 }, animated: true }));
+                    .map(e => ({ ...e, style: { ...e.style, opacity: 1, strokeWidth: 2.5 }, animated: false }));
                 break;
 
             default: // architecture — all edges at normal weight
@@ -409,7 +410,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
                     strokeWidth: isConn ? 4 : (e.style?.strokeWidth as number ?? 1.5),
                     filter: isConn ? 'drop-shadow(0 0 4px rgba(91,200,255,0.6))' : 'none',
                 },
-                animated: isConn ? true : e.animated,
+                animated: false,
             };
         });
     }, [edges, viewFilteredNodes, selection, settings.showDependencies, settings.viewMode, astObject])
@@ -484,6 +485,7 @@ function DesignDeck({ clear = false }: DesignDeckProperties) {
         >
             <FlowWithCentering nodes={nodes} />
             <RouteComputer />
+            <RelationshipLegend />
             <MiniMap nodeStrokeWidth={6} nodeStrokeColor="transparent" pannable zoomable />
             <Background variant={BackgroundVariant.Dots} gap={22} size={1} />
             <Controls position="bottom-left" orientation="horizontal" />
